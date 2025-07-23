@@ -9,23 +9,45 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
+import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
+import org.mybatis.spring.annotation.MapperScan;
 
 import javax.sql.DataSource;
 
+/**
+ * Spring의 Root Application Context를 설정하는 클래스.
+ * 데이터베이스 연결, 트랜잭션 관리 등 백엔드 관련 설정을 담당합니다.
+ */
 @Configuration
-@PropertySource({"classpath:/application.properties"})
+@PropertySource({"classpath:/application.properties"}) // application.properties 파일의 설정을 불러옵니다.
 @Slf4j
-@EnableTransactionManagement
+@EnableTransactionManagement // 어노테이션 기반의 트랜잭션 관리를 활성화합니다.
+@ComponentScan(basePackages = {"org.ozea"}) // org.ozea 패키지 내의 컴포넌트들을 스캔하여 빈으로 등록합니다.
+@MapperScan(basePackages = {"org.ozea.mapper"}) // org.ozea.mapper 패키지 내의 MyBatis 매퍼 인터페이스를 스캔합니다.
 public class RootConfig {
     @Value("${jdbc.driver}") String driver;
     @Value("${jdbc.url}") String url;
     @Value("${jdbc.username}") String username;
     @Value("${jdbc.password}") String password;
 
+    /**
+     * PropertySourcesPlaceholderConfigurer를 빈으로 등록하여 @Value 어노테이션으로 프로퍼티 값을 주입받을 수 있도록 합니다.
+     * @return PropertySourcesPlaceholderConfigurer 객체
+     */
+    @Bean
+    public static PropertySourcesPlaceholderConfigurer propertySourcesPlaceholderConfigurer() {
+        return new PropertySourcesPlaceholderConfigurer();
+    }
+
+    /**
+     * HikariCP를 사용한 데이터 소스를 설정하고 빈으로 등록합니다.
+     * @return DataSource 객체
+     */
     @Bean
     public DataSource dataSource() {
         HikariConfig config = new HikariConfig();
@@ -42,15 +64,24 @@ public class RootConfig {
     @Autowired
     ApplicationContext applicationContext;
 
+    /**
+     * MyBatis의 SqlSessionFactory를 설정하고 빈으로 등록합니다.
+     * @return SqlSessionFactory 객체
+     * @throws Exception SqlSessionFactory 생성 중 예외 발생 시
+     */
     @Bean
     public SqlSessionFactory sqlSessionFactory() throws Exception {
         SqlSessionFactoryBean sqlSessionFactory = new SqlSessionFactoryBean();
         sqlSessionFactory.setConfigLocation(
-                applicationContext.getResource("classpath:/mybatis-config.xml"));
-        sqlSessionFactory.setDataSource(dataSource());
+                applicationContext.getResource("classpath:/mybatis-config.xml")); // mybatis-config.xml 파일 위치를 설정합니다.
+        sqlSessionFactory.setDataSource(dataSource()); // 데이터 소스를 설정합니다.
         return (SqlSessionFactory) sqlSessionFactory.getObject();
     }
 
+    /**
+     * 트랜잭션 매니저를 설정하고 빈으로 등록합니다.
+     * @return DataSourceTransactionManager 객체
+     */
     @Bean
     public DataSourceTransactionManager transactionManager(){
         DataSourceTransactionManager manager = new DataSourceTransactionManager(dataSource());

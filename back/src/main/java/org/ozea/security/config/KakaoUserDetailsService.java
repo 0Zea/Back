@@ -1,0 +1,65 @@
+package org.ozea.security.config;
+
+import org.ozea.domain.User;
+import org.ozea.mapper.UserMapper;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.stereotype.Service;
+
+import java.util.ArrayList;
+import java.util.UUID;
+
+/**
+ * Spring Security의 UserDetailsService를 구현한 클래스입니다.
+ * 카카오 로그인 시 사용자 정보를 처리합니다.
+ */
+@Service
+public class KakaoUserDetailsService implements UserDetailsService {
+
+    @Autowired
+    private UserMapper userMapper;
+
+    /**
+     * 외부에서 이메일로 User를 조회할 수 있도록 public 메서드 제공
+     */
+    public User getUserByEmail(String email) {
+        return userMapper.getUserByEmail(email);
+    }
+
+    /**
+     * 이메일을 사용하여 사용자 정보를 조회합니다.
+     * 만약 사용자가 존재하지 않으면 새로운 사용자를 생성하여 데이터베이스에 저장합니다.
+     * @param email 사용자 이메일 (username으로 사용)
+     * @return UserDetails 객체
+     * @throws UsernameNotFoundException 사용자를 찾을 수 없을 때 발생하는 예외
+     */
+    // nickname을 받아 name에 저장하는 오버로드 메서드
+    public UserDetails loadUserByUsername(String email, String nickname) throws UsernameNotFoundException {
+        User user = userMapper.getUserByEmail(email);
+        if (user == null) {
+            user = new User();
+            user.setUserId(UUID.randomUUID());
+            user.setEmail(email);
+            if (nickname == null || nickname.isEmpty()) {
+                nickname = "카카오사용자";
+            }
+            user.setName(nickname); // name에 반드시 값 할당
+            user.setMbti("XXXX");
+            user.setPhoneNum("000-0000-0000");
+            user.setBirthDate(java.time.LocalDate.now());
+            user.setSex("female");
+            user.setSalary(0L);
+            user.setPayAmount(0L);
+            user.setRole("user");
+            userMapper.insertUserWithEmail(user);
+        }
+        return new org.springframework.security.core.userdetails.User(user.getEmail(), "", new ArrayList<>());
+    }
+
+    @Override
+    public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
+        return loadUserByUsername(email, null);
+    }
+}
