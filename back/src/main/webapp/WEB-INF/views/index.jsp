@@ -9,5 +9,10 @@
 <body>
 <h1>기본 화면</h1>
 <p>KB IT's YourLife 최종 프로젝트</p>
+
+<a href="/login">
+  kakao login
+</a>
+
 </body>
 </html>
