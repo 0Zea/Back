@@ -90,6 +90,15 @@ dependencies {
   //Apache HttpClient
   implementation 'org.apache.httpcomponents:httpclient:4.5.13'
 
+  // JWT (JJWT) 관련 의존성
+  implementation("io.jsonwebtoken:jjwt-api:0.11.5")
+  runtimeOnly("io.jsonwebtoken:jjwt-impl:0.11.5")
+  implementation("io.jsonwebtoken:jjwt-jackson:0.11.5")
+
+  // LocalDate를 JSON으로 변환할 수 있도록 jackson-datatype-jsr310 라이브러리를 등록
+  implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
+
+
 }
 
 

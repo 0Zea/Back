@@ -1,8 +1,10 @@
 package org.ozea.config;
 
 import lombok.extern.slf4j.Slf4j;
+import org.ozea.security.config.SecurityConfig;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.filter.CharacterEncodingFilter;
+import org.springframework.web.filter.DelegatingFilterProxy;
 import org.springframework.web.servlet.support.AbstractAnnotationConfigDispatcherServletInitializer;
 
 import javax.servlet.Filter;
@@ -23,7 +25,7 @@ public class WebConfig extends AbstractAnnotationConfigDispatcherServletInitiali
      */
     @Override
     protected Class<?>[] getRootConfigClasses() {
-        return new Class[] { RootConfig.class, org.ozea.security.config.SecurityConfig.class };
+        return new Class[] { RootConfig.class, SecurityConfig.class };
     }
 
     /**
@@ -55,6 +57,11 @@ public class WebConfig extends AbstractAnnotationConfigDispatcherServletInitiali
         characterEncodingFilter.setEncoding("UTF-8");
         characterEncodingFilter.setForceEncoding(true);
 
-        return new Filter[] {characterEncodingFilter};
+        DelegatingFilterProxy securityFilterChain = new DelegatingFilterProxy("springSecurityFilterChain");
+
+        return new Filter[] {
+                characterEncodingFilter,
+                securityFilterChain // 🔥 이게 반드시 있어야 Security 작동함};
+        };
     }
 }

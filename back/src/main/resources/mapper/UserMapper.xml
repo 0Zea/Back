@@ -89,4 +89,9 @@
             role = #{role}
         WHERE email = #{email}
     </update>
+
+    <!-- 이메일 중복 확인  -->
+    <select id="checkEmail" parameterType="string" resultType="boolean">
+        SELECT COUNT(*) > 0 FROM USER WHERE email = #{email}
+    </select>
 </mapper>

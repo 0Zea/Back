@@ -34,6 +34,9 @@ public interface UserMapper {
      */
     void updateUser(User user);
 
+    // 이메일 중복 확인
+    boolean checkEmail(String email);
+
     default User findByEmail(String email) {
         return null;
     }

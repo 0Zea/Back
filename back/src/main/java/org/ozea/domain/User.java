@@ -1,6 +1,9 @@
 package org.ozea.domain;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
 import java.util.UUID;
@@ -10,6 +13,9 @@ import java.util.UUID;
  * Lombok의 @Data 어노테이션을 사용하여 getter, setter, toString, equals, hashCode 등을 자동으로 생성합니다.
  */
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class User {
     private UUID userId; // 사용자 고유 ID (UUID)
     private String name; // 사용자 이름
