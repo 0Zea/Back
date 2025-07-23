@@ -10,6 +10,15 @@
 
     <typeAliases>
         <package name="org.ozea.board.domain" />
+        <package name="org.ozea.domain" />
     </typeAliases>
+
+    <typeHandlers>
+        <typeHandler handler="org.ozea.type.UUIDTypeHandler" javaType="java.util.UUID"/>
+    </typeHandlers>
+
+    <mappers>
+        <mapper resource="mapper/UserMapper.xml"/>
+    </mappers>
 
 </configuration>
