@@ -5,6 +5,13 @@
 
 <mapper namespace="org.ozea.mapper.GoalMapper">
 
+
+    <select id="findAllByUserId" resultType="org.ozea.goal.domain.Goal">
+        SELECT *
+        FROM goal
+        WHERE user_id = #{userId, jdbcType=BINARY, javaType=java.util.UUID}
+    </select>
+
     <insert id="insertGoal" parameterType="org.ozea.goal.domain.Goal">
         INSERT INTO Goal (
             goal_id, user_id, goal_name, target_amount,
