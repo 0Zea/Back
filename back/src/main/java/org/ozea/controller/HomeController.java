@@ -116,6 +116,7 @@ public class HomeController {
         return "additional-info";
     }
 
+
     @PostMapping("/additional-info")
     public String saveAdditionalInfo(HttpServletRequest request) {
         String email = request.getParameter("email");

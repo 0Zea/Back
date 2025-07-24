@@ -18,6 +18,7 @@
     </typeHandlers>
 
     <mappers>
+        <mapper resource="mapper/GoalMapper.xml" />
         <mapper resource="mapper/UserMapper.xml"/>
     </mappers>
 
