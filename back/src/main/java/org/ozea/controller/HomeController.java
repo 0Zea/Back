@@ -49,37 +49,25 @@ public class HomeController {
     // 회원가입 폼 제출 처리
     @PostMapping("/signup")
     public String processSignup(HttpServletRequest request) {
-        // 폼에서 전달된 데이터 받기
         String name = request.getParameter("name");
         String email = request.getParameter("email");
         String password = request.getParameter("password");
-        String mbti = request.getParameter("mbti");
-        String phoneNum = request.getParameter("phoneNum");
-        String birthDate = request.getParameter("birthDate");
-        String sex = request.getParameter("sex");
-        String salary = request.getParameter("salary");
-        String payAmount = request.getParameter("payAmount");
-        // String role = request.getParameter("role"); // 삭제
-
-        // User 객체 생성 및 값 세팅
         User user = new User();
         user.setUserId(java.util.UUID.randomUUID());
         user.setName(name);
         user.setEmail(email);
-        user.setPassword(password); // 이 단계에서는 비밀번호 암호화가 빠져 있음. 서비스에서 암호화 처리해야 안전함.
-        user.setMbti(mbti);
-        user.setPhoneNum(phoneNum);
-        user.setBirthDate(java.time.LocalDate.parse(birthDate));
-        user.setSex(sex);
-        user.setSalary(Long.parseLong(salary));
-        user.setPayAmount(Long.parseLong(payAmount));
-        user.setRole("USER"); // 고정
-
-        // DB에 저장
+        user.setPassword(password); // 실제 서비스에서는 암호화 필요
+        user.setMbti("미입력");
+        user.setPhoneNum("000-0000-0000");
+        user.setBirthDate(java.time.LocalDate.of(1900, 1, 1));
+        user.setSex("female");
+        user.setSalary(0L);
+        user.setPayAmount(0L);
+        user.setRole("USER");
         userMapper.insertUser(user);
-
-        // 회원가입 후 로그인 페이지로 이동
-        return "redirect:/local-login";
+        // 세션에 email 저장
+        request.getSession().setAttribute("email", email);
+        return "redirect:/additional-info";
     }
 
     /**
@@ -119,24 +107,21 @@ public class HomeController {
     @PostMapping("/additional-info")
     public String saveAdditionalInfo(HttpServletRequest request) {
         String email = request.getParameter("email");
-        String name = request.getParameter("name");
+        org.ozea.domain.User user = userMapper.getUserByEmail(email);
+        if (user == null) {
+            throw new IllegalArgumentException("해당 이메일의 사용자를 찾을 수 없습니다: " + email);
+        }
         String phoneNum = request.getParameter("phoneNum");
-        String mbti = request.getParameter("mbti");
         String birthDate = request.getParameter("birthDate");
         String sex = request.getParameter("sex");
         String salary = request.getParameter("salary");
         String payAmount = request.getParameter("payAmount");
-        // String role = request.getParameter("role"); // 삭제
-
-        org.ozea.domain.User user = userMapper.getUserByEmail(email);
-        user.setName(name);
         user.setPhoneNum(phoneNum);
-        user.setMbti(mbti);
         user.setBirthDate(java.time.LocalDate.parse(birthDate));
         user.setSex(sex);
         user.setSalary(Long.parseLong(salary));
         user.setPayAmount(Long.parseLong(payAmount));
-        user.setRole("USER"); // 고정
+        user.setRole("USER");
         userMapper.updateUser(user);
         return "redirect:/mbti-survey";
     }

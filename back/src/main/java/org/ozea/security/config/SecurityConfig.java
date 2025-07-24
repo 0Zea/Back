@@ -95,7 +95,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
             .formLogin().disable() // 기존 form 로그인 사용 안함
             .httpBasic().disable() // 기본 로그인 방식 사용 안함
             .authorizeRequests() // 요청에 대한 접근 권한을 설정합니다.
-                .antMatchers("/", "/signup", "/login", "/local-login", "/main", "/additional-info", "/callback").permitAll() // 인증 없이 접근 허용
+                .antMatchers("/", "/signup", "/login", "/local-login", "/main", "/additional-info", "/callback", "/mbti-survey").permitAll() // /mbti-survey 추가
                 .antMatchers("/api/auth/**").permitAll() // 회원가입, 로그인 API
                 .anyRequest().authenticated() // 그 외의 모든 요청은 인증된 사용자만 접근 가능합니다.
                 .and()
