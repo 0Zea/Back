@@ -8,4 +8,5 @@ import java.util.UUID;
 public interface GoalMapper {
     void insertGoal(Goal goal);
     List<Goal> findAllByUserId(UUID userId);
+    Goal findByGoalId(UUID goalId);
 }
