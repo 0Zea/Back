@@ -9,7 +9,7 @@ import java.util.UUID;
 public interface InquiryMapper {
     int getTotalCount();
     public List<InquiryVO> getPage(PageRequest pageRequest);
-    public InquiryVO get(UUID no);
+    public InquiryVO get(@Param("no") UUID no);
     public void create(InquiryVO inquiry);
     public int update(@Param("no") UUID no,@Param("inquiry") InquiryVO inquiry);
     public int delete(UUID no);
