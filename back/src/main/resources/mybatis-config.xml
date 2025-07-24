@@ -9,7 +9,9 @@
     </settings>
 
     <typeAliases>
-        <package name="org.ozea.board.domain" />
+        <package name="org.ozea.inquiry.domain" />
     </typeAliases>
-
+    <typeHandlers>
+        <typeHandler handler="org.ozea.type.UUIDTypeHandler"/>
+    </typeHandlers>
 </configuration>
