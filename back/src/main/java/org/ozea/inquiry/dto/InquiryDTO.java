@@ -24,8 +24,8 @@ public class InquiryDTO {
 
     public static InquiryDTO of(InquiryVO vo) {
         return vo == null ? null : InquiryDTO.builder()
-                .infoId(vo.getInfoId() != null ? vo.getInfoId().toString() : null)
-                .userId(vo.getUserId() != null ? vo.getUserId().toString() : null)
+                .infoId(vo.getInfoId().toString())
+                .userId(vo.getUserId().toString())
                 .userName(vo.getUserName())
                 .title(vo.getTitle())
                 .content(vo.getContent())
@@ -37,8 +37,8 @@ public class InquiryDTO {
 
     public InquiryVO toVo() {
         return InquiryVO.builder()
-                .infoId(infoId != null ? UUID.fromString(infoId) : null)
-                .userId(userId != null ? UUID.fromString(userId) : null)
+                .infoId(UUID.fromString(infoId))
+                .userId(UUID.fromString(userId))
                 .userName(userName)
                 .title(title)
                 .content(content)

@@ -25,17 +25,16 @@ public class InquiryController {
         return ResponseEntity.ok(service.getPage(pageRequest));
     }
     //상세보기
-    //TODO: url로 받기 위해서는 Long no(index 값) 이 맞는 것 같은데 일단 url 처리를 info_id로 하니까 UUID로 수정하기
     @GetMapping("/{no}")
     public ResponseEntity<InquiryDTO> getById(@PathVariable UUID no){
         return ResponseEntity.ok(service.get(no));
     }
+
     //생성
     @PostMapping("")
     public ResponseEntity<InquiryDTO> create(@RequestBody InquiryDTO inquiry){
         return ResponseEntity.ok(service.create(inquiry));
     }
-    //FIXME: put 에서 patch로 변경해야되는지 고민해보기
     @PatchMapping("/{no}")
     public ResponseEntity<InquiryDTO> update(@PathVariable UUID no,@RequestBody InquiryDTO inquiry){
         return ResponseEntity.ok(service.update(no, inquiry));

@@ -8,9 +8,6 @@ import org.ozea.inquiry.domain.InquiryVO;
 import org.ozea.inquiry.dto.InquiryDTO;
 import org.ozea.inquiry.mapper.InquiryMapper;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.multipart.MultipartFile;
-
 import java.util.List;
 import java.util.Optional;
 import java.util.NoSuchElementException;
@@ -28,17 +25,19 @@ public class InquiryServiceImpl implements InquiryService{
         InquiryDTO inquiry = InquiryDTO.of(mapper.get(no));
         return Optional.ofNullable(inquiry).orElseThrow(NoSuchElementException::new);
     }
-
     @Override
     public InquiryDTO create(InquiryDTO inquiry) {
         log.info("create......" + inquiry);
         InquiryVO inquiryVO = inquiry.toVo();
+
+        // UUID가 없으면 생성
+        if (inquiryVO.getInfoId() == null) {
+            inquiryVO.setInfoId(UUID.randomUUID());
+        }
+
         mapper.create(inquiryVO);
-//        return get(inquiryVO.get());
-        return null;
+        return get(inquiryVO.getInfoId());
     }
-
-
     @Override
     public InquiryDTO update(UUID no, InquiryDTO inquiry) {
         log.info("update........"+inquiry);
