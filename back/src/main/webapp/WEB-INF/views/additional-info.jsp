@@ -19,12 +19,6 @@
     </label><br>
     <label>월급: <input type="number" name="salary" required></label><br>
     <label>지출비: <input type="number" name="payAmount" required></label><br>
-    <label>역할: 
-        <select name="role" required>
-            <option value="user">user</option>
-            <option value="admin">admin</option>
-        </select>
-    </label><br>
     <button type="submit">저장</button>
 </form>
 </body>

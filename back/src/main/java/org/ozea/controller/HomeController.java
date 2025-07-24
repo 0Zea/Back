@@ -59,7 +59,7 @@ public class HomeController {
         String sex = request.getParameter("sex");
         String salary = request.getParameter("salary");
         String payAmount = request.getParameter("payAmount");
-        String role = request.getParameter("role");
+        // String role = request.getParameter("role"); // 삭제
 
         // User 객체 생성 및 값 세팅
         User user = new User();
@@ -73,7 +73,7 @@ public class HomeController {
         user.setSex(sex);
         user.setSalary(Long.parseLong(salary));
         user.setPayAmount(Long.parseLong(payAmount));
-        user.setRole(role);
+        user.setRole("USER"); // 고정
 
         // DB에 저장
         userMapper.insertUser(user);
@@ -126,7 +126,7 @@ public class HomeController {
         String sex = request.getParameter("sex");
         String salary = request.getParameter("salary");
         String payAmount = request.getParameter("payAmount");
-        String role = request.getParameter("role");
+        // String role = request.getParameter("role"); // 삭제
 
         org.ozea.domain.User user = userMapper.getUserByEmail(email);
         user.setName(name);
@@ -136,8 +136,38 @@ public class HomeController {
         user.setSex(sex);
         user.setSalary(Long.parseLong(salary));
         user.setPayAmount(Long.parseLong(payAmount));
-        user.setRole(role);
+        user.setRole("USER"); // 고정
         userMapper.updateUser(user);
-        return "redirect:/main";
+        return "redirect:/mbti-survey";
+    }
+
+    @GetMapping("/mbti-survey")
+    public String mbtiSurveyForm(Model model, HttpSession session) {
+        model.addAttribute("email", session.getAttribute("email"));
+        return "mbti-survey";
+    }
+
+    @PostMapping("/mbti-survey")
+    public String saveMbtiSurvey(HttpServletRequest request) {
+        String email = request.getParameter("email");
+        // 빠름/느림 점수 계산
+        int fast = 0, slow = 0, high = 0, low = 0;
+        if ("fast".equals(request.getParameter("speed1"))) fast += 4; else slow += 4;
+        if ("fast".equals(request.getParameter("speed2"))) fast += 4; else slow += 4;
+        if ("fast".equals(request.getParameter("speed3"))) fast += 4; else slow += 4;
+        if ("high".equals(request.getParameter("risk1"))) high += 4; else low += 4;
+        if ("high".equals(request.getParameter("risk2"))) high += 4; else low += 4;
+        if ("high".equals(request.getParameter("risk3"))) high += 4; else low += 4;
+        // 유형 판별
+        String mbtiType;
+        if (fast > slow && high > low) mbtiType = "신속한 승부사";
+        else if (slow >= fast && high > low) mbtiType = "신중한 승부사";
+        else if (fast > slow && low >= high) mbtiType = "신속한 분석가";
+        else mbtiType = "신중한 분석가";
+        // DB 저장
+        org.ozea.domain.User user = userMapper.getUserByEmail(email);
+        user.setMbti(mbtiType);
+        userMapper.updateUser(user);
+        return "redirect:/";
     }
 }
