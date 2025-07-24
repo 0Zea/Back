@@ -61,33 +61,18 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         auth.userDetailsService(userDetailsService()).passwordEncoder(passwordEncoder());
     }
 
-    /**
-     * AuthenticationManager를 빈으로 등록하여 다른 곳에서 주입받아 사용할 수 있도록 합니다.
-     * @return AuthenticationManager 객체
-     * @throws Exception 설정 중 예외 발생 시
-     */
     @Bean
     @Override
     public AuthenticationManager authenticationManagerBean() throws Exception {
         return super.authenticationManagerBean();
     }
 
-    /**
-     * 정적 리소스에 대한 보안을 무시하도록 설정합니다.
-     * @param web WebSecurity 객체
-     * @throws Exception 설정 중 예외 발생 시
-     */
     @Override
     public void configure(WebSecurity web) throws Exception {
         // static resources, ignoring security
         web.ignoring().antMatchers("/resources/**");
     }
 
-    /**
-     * HTTP 요청에 대한 보안을 설정합니다.
-     * @param http HttpSecurity 객체
-     * @throws Exception 설정 중 예외 발생 시
-     */
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         http
@@ -95,7 +80,20 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
             .formLogin().disable() // 기존 form 로그인 사용 안함
             .httpBasic().disable() // 기본 로그인 방식 사용 안함
             .authorizeRequests() // 요청에 대한 접근 권한을 설정합니다.
-                .antMatchers("/", "/signup", "/login", "/local-login", "/main", "/additional-info", "/callback", "/mbti-survey").permitAll() // /mbti-survey 추가
+                .antMatchers("/",
+                        "/signup",
+                        "/login",
+                        "/local-login",
+                        "/main",
+                        "/additional-info",
+                        "/callback",
+                        "/goal/**",
+                        "/mbti-survey",
+                        // 🔽 Swagger 경로 추가
+                        "/swagger-ui.html",
+                        "/swagger-resources/**",
+                        "/v2/api-docs",
+                        "/webjars/**").permitAll() // 인증 없이 접근 허용
                 .antMatchers("/api/auth/**").permitAll() // 회원가입, 로그인 API
                 .anyRequest().authenticated() // 그 외의 모든 요청은 인증된 사용자만 접근 가능합니다.
                 .and()

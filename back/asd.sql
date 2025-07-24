@@ -1,6 +1,0 @@
-
-delete from USER;
-
-
-
-
