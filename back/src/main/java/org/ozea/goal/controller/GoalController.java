@@ -3,6 +3,7 @@ package org.ozea.goal.controller;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.ozea.goal.dto.request.GoalCreateRequestDto;
+import org.ozea.goal.dto.request.GoalUpdateRequestDto;
 import org.ozea.goal.dto.response.GoalDetailResponseDto;
 import org.ozea.goal.dto.response.GoalListResponseDto;
 import org.ozea.goal.service.GoalService;
@@ -44,6 +45,21 @@ public class GoalController {
         return ResponseEntity.ok(goal);
     }
 
+    @DeleteMapping("/{goalId}")
+    @ApiOperation(value = "목표 삭제", notes = "goalId와 userId를 기반으로 목표를 삭제합니다.")
+    public ResponseEntity<?> deleteGoal(@PathVariable UUID goalId,
+                                        @RequestParam UUID userId) {
+        goalService.deleteGoal(goalId, userId);
+        return ResponseEntity.ok(Map.of("message", "목표가 삭제되었습니다."));
+    }
 
+    @PutMapping("/{goalId}")
+    @ApiOperation(value = "목표 수정", notes = "goalId에 해당하는 목표를 수정합니다.")
+    public ResponseEntity<?> updateGoal(@PathVariable UUID goalId,
+                                        @RequestParam UUID userId,
+                                        @RequestBody GoalUpdateRequestDto dto) {
+        goalService.updateGoal(goalId, userId, dto);
+        return ResponseEntity.ok(Map.of("message", "목표가 수정되었습니다."));
+    }
 
 }

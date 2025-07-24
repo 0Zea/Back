@@ -5,6 +5,11 @@
 
 <mapper namespace="org.ozea.mapper.GoalMapper">
 
+    <delete id="deleteByGoalIdAndUserId">
+        DELETE FROM goal
+        WHERE goal_id = #{goalId, jdbcType=BINARY, javaType=java.util.UUID}
+          AND user_id = #{userId, jdbcType=BINARY, javaType=java.util.UUID}
+    </delete>
 
     <select id="findAllByUserId" resultType="org.ozea.goal.domain.Goal">
         SELECT *
@@ -17,6 +22,18 @@
         FROM goal
         WHERE goal_id = #{goalId, jdbcType=BINARY, javaType=java.util.UUID}
     </select>
+
+    <update id="updateGoalByIdAndUserId">
+        UPDATE goal
+        SET
+            goal_name = #{dto.goal_name},
+            target_amount = #{dto.target_amount},
+            start_date = #{dto.start_date},
+            end_date = #{dto.end_date},
+            deposit_date = #{dto.deposit_date}
+        WHERE goal_id = #{goalId, jdbcType=BINARY, javaType=java.util.UUID}
+          AND user_id = #{userId, jdbcType=BINARY, javaType=java.util.UUID}
+    </update>
 
 
     <insert id="insertGoal" parameterType="org.ozea.goal.domain.Goal">

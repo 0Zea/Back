@@ -1,6 +1,7 @@
 package org.ozea.goal.service;
 
 import org.ozea.goal.dto.request.GoalCreateRequestDto;
+import org.ozea.goal.dto.request.GoalUpdateRequestDto;
 import org.ozea.goal.dto.response.GoalDetailResponseDto;
 import org.ozea.goal.dto.response.GoalListResponseDto;
 
@@ -11,4 +12,6 @@ public interface GoalService {
     void createGoal(UUID userId, GoalCreateRequestDto request);
     List<GoalListResponseDto> getGoalsByUserId(UUID userId);
     GoalDetailResponseDto getGoalById(UUID goalId);
+    void deleteGoal(UUID goalId, UUID userId);
+    void updateGoal(UUID goalId, UUID userId, GoalUpdateRequestDto dto);
 }

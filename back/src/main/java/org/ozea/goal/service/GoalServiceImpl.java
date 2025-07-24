@@ -2,6 +2,7 @@ package org.ozea.goal.service;
 
 import org.ozea.goal.domain.Goal;
 import org.ozea.goal.dto.request.GoalCreateRequestDto;
+import org.ozea.goal.dto.request.GoalUpdateRequestDto;
 import org.ozea.goal.dto.response.GoalDetailResponseDto;
 import org.ozea.goal.dto.response.GoalListResponseDto;
 import org.ozea.mapper.GoalMapper;
@@ -41,6 +42,24 @@ public class GoalServiceImpl implements GoalService {
         }
         return GoalDetailResponseDto.from(goal);
     }
+
+    @Override
+    public void deleteGoal(UUID goalId, UUID userId) {
+        int deleted = goalMapper.deleteByGoalIdAndUserId(goalId, userId);
+        if (deleted == 0) {
+            throw new IllegalArgumentException("해당 목표가 존재하지 않거나 권한이 없습니다.");
+        }
+    }
+
+    @Override
+    public void updateGoal(UUID goalId, UUID userId, GoalUpdateRequestDto dto) {
+        int updated = goalMapper.updateGoalByIdAndUserId(goalId, userId, dto);
+        if (updated == 0) {
+            throw new IllegalArgumentException("해당 목표가 존재하지 않거나 권한이 없습니다.");
+        }
+    }
+
+
 
 
 }
