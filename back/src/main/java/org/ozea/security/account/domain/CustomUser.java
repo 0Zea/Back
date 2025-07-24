@@ -14,15 +14,25 @@ import java.util.Collections;
 @Setter
 public class CustomUser implements UserDetails {
     private final User user;
+    private final boolean isNewUser;
+
+    public CustomUser(User user, boolean isNewUser) {
+        this.user = user;
+        this.isNewUser = isNewUser;
+    }
 
     public CustomUser(User user) {
-        this.user = user;
+        this(user, false);
     }
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
+        String role = user.getRole();
+        if (role == null) {
+            role = "USER"; 
+        }
         return Collections.singletonList(
-                new SimpleGrantedAuthority("ROLE_" + user.getRole().toUpperCase())
+                new SimpleGrantedAuthority("ROLE_" + role.toUpperCase())
         );
     }
 

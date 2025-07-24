@@ -32,6 +32,12 @@ public class LoginSuccessHandler implements AuthenticationSuccessHandler {
         // 인증된 사용자 정보 꺼내기
         CustomUser customUser = (CustomUser) authentication.getPrincipal();
 
+        // 신규 사용자인 경우 추가 정보 입력 페이지로 리디렉션
+        if (customUser.isNewUser()) {
+            response.sendRedirect("/additional-info.jsp"); // 또는 리디렉션할 경로
+            return; // 리디렉션 후에는 추가 로직을 실행하지 않도록 종료
+        }
+
         // JWT 토큰 생성
         String token = jwtProcessor.generateToken(customUser.getUsername());
 
