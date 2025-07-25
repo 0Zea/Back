@@ -1,0 +1,14 @@
+enabled: true
+model: gpt-4
+language: ko
+
+review:
+  summarization: true            # PR 전체 요약 코멘트 생성
+  review_comments: true          # 코드 줄 단위 리뷰 코멘트 작성
+  code_suggestions: true         # 코드 개선 제안 제공
+  explanation_level: detailed    # 설명을 최대한 구체적으로 (이유 + 대안 포함)
+  tone: formal                   # 격식 있는 정중한 말투로 리뷰
+  num_comments: 15               # 최대 코멘트 수 (적절히 조절 가능)
+  include_tests: true            # 테스트 코드도 리뷰 대상 포함
+
+# branches 항목 생략 시 → 모든 브랜치에 대해 리뷰 적용됨
