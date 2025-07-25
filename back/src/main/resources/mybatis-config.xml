@@ -19,6 +19,7 @@
     </typeHandlers>
 
     <mappers>
+        <mapper resource="mapper/GoalMapper.xml" />
         <mapper resource="mapper/UserMapper.xml"/>
         <mapper resource="org/ozea/inquiry/mapper/InquiryMapper.xml"/>
     </mappers>

@@ -2,6 +2,7 @@ package org.ozea.security.config;
 
 import org.ozea.domain.User;
 import org.ozea.mapper.UserMapper;
+import org.ozea.security.account.domain.CustomUser;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -38,24 +39,27 @@ public class KakaoUserDetailsService implements UserDetailsService {
     // nickname을 받아 name에 저장하는 오버로드 메서드
     public UserDetails loadUserByUsername(String email, String nickname) throws UsernameNotFoundException {
         User user = userMapper.getUserByEmail(email);
+        boolean isNewUser = false;
         if (user == null) {
+            isNewUser = true;
             user = new User();
             user.setUserId(UUID.randomUUID());
             user.setEmail(email);
             if (nickname == null || nickname.isEmpty()) {
                 nickname = "카카오사용자";
             }
-            user.setName(nickname); // name에 반드시 값 할당
-            user.setMbti("XXXX");
+            user.setName(nickname); // name만 저장
+            // 나머지 필드는 null로 저장
+            user.setMbti("xxxx");
             user.setPhoneNum("000-0000-0000");
             user.setBirthDate(java.time.LocalDate.now());
             user.setSex("female");
             user.setSalary(0L);
             user.setPayAmount(0L);
-            user.setRole("user");
+            user.setRole("USER");
             userMapper.insertUserWithEmail(user);
         }
-        return new org.springframework.security.core.userdetails.User(user.getEmail(), "", new ArrayList<>());
+        return new CustomUser(user, isNewUser);
     }
 
     @Override

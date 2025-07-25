@@ -35,19 +35,11 @@ public class RootConfig {
     @Value("${jdbc.username}") String username;
     @Value("${jdbc.password}") String password;
 
-    /**
-     * PropertySourcesPlaceholderConfigurer를 빈으로 등록하여 @Value 어노테이션으로 프로퍼티 값을 주입받을 수 있도록 합니다.
-     * @return PropertySourcesPlaceholderConfigurer 객체
-     */
     @Bean
     public static PropertySourcesPlaceholderConfigurer propertySourcesPlaceholderConfigurer() {
         return new PropertySourcesPlaceholderConfigurer();
     }
 
-    /**
-     * HikariCP를 사용한 데이터 소스를 설정하고 빈으로 등록합니다.
-     * @return DataSource 객체
-     */
     @Bean
     public DataSource dataSource() {
         HikariConfig config = new HikariConfig();
@@ -64,11 +56,6 @@ public class RootConfig {
     @Autowired
     ApplicationContext applicationContext;
 
-    /**
-     * MyBatis의 SqlSessionFactory를 설정하고 빈으로 등록합니다.
-     * @return SqlSessionFactory 객체
-     * @throws Exception SqlSessionFactory 생성 중 예외 발생 시
-     */
     @Bean
     public SqlSessionFactory sqlSessionFactory() throws Exception {
         SqlSessionFactoryBean sqlSessionFactory = new SqlSessionFactoryBean();
@@ -78,10 +65,6 @@ public class RootConfig {
         return (SqlSessionFactory) sqlSessionFactory.getObject();
     }
 
-    /**
-     * 트랜잭션 매니저를 설정하고 빈으로 등록합니다.
-     * @return DataSourceTransactionManager 객체
-     */
     @Bean
     public DataSourceTransactionManager transactionManager(){
         DataSourceTransactionManager manager = new DataSourceTransactionManager(dataSource());

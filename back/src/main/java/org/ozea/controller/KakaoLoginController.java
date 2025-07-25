@@ -84,7 +84,7 @@ public class KakaoLoginController {
         // 추가 정보가 없으면 추가 정보 입력 페이지로 리다이렉트
         // (UserMapper에서 다시 조회)
         org.ozea.domain.User user = kakaoUserDetailsService.getUserByEmail(email);
-        if (user.getRole() == null) {
+        if (Objects.equals(user.getPhoneNum(), "000-0000-0000")) {
             return "redirect:/additional-info";
         }
 
