@@ -95,4 +95,5 @@ create table Inquiry(
                         answered_content VARcHAR(1000) null,
                         foreign key(user_id) references USER(user_id)
 );
+select * from inquiry where info_id='1afe6ef6-67b0-11f0-b1df-8cb0e9d84583';
 select * from inquiry;
