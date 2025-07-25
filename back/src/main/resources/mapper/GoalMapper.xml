@@ -5,6 +5,22 @@
 
 <mapper namespace="org.ozea.mapper.GoalMapper">
 
+    <select id="sumTargetAmountOverlappingGoals" resultType="long">
+        SELECT IFNULL(SUM(target_amount), 0)
+        FROM goal
+        WHERE user_id = #{userId}
+          AND (
+            (start_date BETWEEN #{startDate} AND #{endDate})
+                OR
+            (end_date BETWEEN #{startDate} AND #{endDate})
+                OR
+            (#{startDate} BETWEEN start_date AND end_date)
+                OR
+            (#{endDate} BETWEEN start_date AND end_date)
+            )
+    </select>
+
+
     <delete id="deleteByGoalIdAndUserId">
         DELETE FROM goal
         WHERE goal_id = #{goalId, jdbcType=BINARY, javaType=java.util.UUID}

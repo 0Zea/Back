@@ -5,6 +5,23 @@
 <!-- org.ozea.mapper.UserMapper 인터페이스와 매핑되는 MyBatis 매퍼 파일입니다. -->
 <mapper namespace="org.ozea.mapper.UserMapper">
 
+    <select id="findById" parameterType="java.util.UUID" resultType="User">
+        SELECT
+            user_id,
+            name,
+            email,
+            password,
+            mbti,
+            phone_num,
+            birth_date,
+            sex,
+            salary,
+            pay_amount,
+            role
+        FROM USER
+        WHERE user_id = #{userId}
+    </select>
+
     <!-- 이메일을 기준으로 사용자 정보를 조회하는 SQL 쿼리입니다. -->
     <select id="getUserByEmail" parameterType="String" resultType="User">
         SELECT
