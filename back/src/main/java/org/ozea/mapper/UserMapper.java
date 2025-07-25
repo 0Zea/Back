@@ -3,6 +3,8 @@ package org.ozea.mapper;
 import org.apache.ibatis.annotations.Mapper;
 import org.ozea.domain.User;
 
+import java.util.UUID;
+
 /**
  * 사용자(User) 데이터베이스 연동을 위한 MyBatis 매퍼 인터페이스입니다.
  * SQL 쿼리는 src/main/resources/mapper/UserMapper.xml 파일에 정의되어 있습니다.
@@ -33,6 +35,9 @@ public interface UserMapper {
      * @param user 업데이트할 User 객체
      */
     void updateUser(User user);
+
+
+    User findById(UUID userId);
 
     // 이메일 중복 확인
     boolean checkEmail(String email);
