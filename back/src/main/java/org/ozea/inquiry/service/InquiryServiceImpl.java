@@ -20,38 +20,46 @@ public class InquiryServiceImpl implements InquiryService{
     final private InquiryMapper mapper;
 
     @Override
-    public InquiryDTO get(UUID no) {
-        log.info("get......" + no);
-        InquiryDTO inquiry = InquiryDTO.of(mapper.get(no));
+    public InquiryDTO get(UUID infoId) {
+        log.info("get......" + infoId);
+        InquiryDTO inquiry = InquiryDTO.of(mapper.get(infoId));
         return Optional.ofNullable(inquiry).orElseThrow(NoSuchElementException::new);
     }
     @Override
     public InquiryDTO create(InquiryDTO inquiry) {
         log.info("create......" + inquiry);
-        InquiryVO inquiryVO = inquiry.toVo();
 
-        // UUID가 없으면 생성
-        if (inquiryVO.getInfoId() == null) {
-            inquiryVO.setInfoId(UUID.randomUUID());
+        if (inquiry.getInfoId() == null) {
+            inquiry.setInfoId(UUID.randomUUID().toString());
         }
 
+        InquiryVO inquiryVO = inquiry.toVo();
         mapper.create(inquiryVO);
         return get(inquiryVO.getInfoId());
     }
     @Override
-    public InquiryDTO update(UUID no, InquiryDTO inquiry) {
+    public InquiryDTO update(UUID infoId, InquiryDTO inquiry) {
         log.info("update........"+inquiry);
         InquiryVO inquiryVO = inquiry.toVo();
-        log.info("update........"+inquiryVO);
-        mapper.update(no, inquiryVO);
-        return get(no);
+        log.info("update vo........"+inquiryVO);
+        mapper.update(infoId, inquiryVO);
+        return get(infoId);
     }
 
     @Override
-    public InquiryDTO delete(UUID no) {
-        log.info("delete........"+no);
-        InquiryDTO inquiry = get(no);
-        mapper.delete(no);
+    public InquiryDTO updateAnswered(UUID infoId, InquiryDTO inquiry) {
+        log.info("update........"+inquiry);
+        InquiryVO inquiryVO = inquiry.toVo();
+        log.info("update answer vo........"+inquiryVO);
+        mapper.updateAnswered(infoId, inquiryVO);
+        return get(infoId);
+    }
+
+    @Override
+    public InquiryDTO delete(UUID infoId) {
+        log.info("delete........"+infoId);
+        InquiryDTO inquiry = get(infoId);
+        mapper.delete(infoId);
         return inquiry;
     }
 

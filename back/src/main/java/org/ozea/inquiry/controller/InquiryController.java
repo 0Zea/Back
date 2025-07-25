@@ -25,24 +25,29 @@ public class InquiryController {
         return ResponseEntity.ok(service.getPage(pageRequest));
     }
     //상세보기
-    @GetMapping("/{no}")
-    public ResponseEntity<InquiryDTO> getById(@PathVariable UUID no){
-        return ResponseEntity.ok(service.get(no));
+    @GetMapping("/{infoId}")
+    public ResponseEntity<InquiryDTO> getById(@PathVariable UUID infoId){
+        return ResponseEntity.ok(service.get(infoId));
     }
-
     //생성
     @PostMapping("")
     public ResponseEntity<InquiryDTO> create(@RequestBody InquiryDTO inquiry){
         return ResponseEntity.ok(service.create(inquiry));
     }
-    @PatchMapping("/{no}")
-    public ResponseEntity<InquiryDTO> update(@PathVariable UUID no,@RequestBody InquiryDTO inquiry){
-        return ResponseEntity.ok(service.update(no, inquiry));
+    //내용 수정
+    @PatchMapping("/{infoId}")
+    public ResponseEntity<InquiryDTO> update(@PathVariable UUID infoId, @RequestBody InquiryDTO inquiry){
+        return ResponseEntity.ok(service.update(infoId, inquiry));
+    }
+    //답변 추가 밑 수정
+    @PatchMapping("/{infoId}/answer")
+    public ResponseEntity<InquiryDTO> updateAnswered(@PathVariable UUID infoId, @RequestBody InquiryDTO inquiry){
+        return ResponseEntity.ok(service.updateAnswered(infoId, inquiry));
     }
     //삭제
-    @DeleteMapping("/{no}")
-    public ResponseEntity<InquiryDTO> delete(@PathVariable UUID no){
-        return ResponseEntity.ok(service.delete(no));
+    @DeleteMapping("/{infoId}")
+    public ResponseEntity<InquiryDTO> delete(@PathVariable UUID infoId){
+        return ResponseEntity.ok(service.delete(infoId));
     }
     //검색 리스트 조회
     @GetMapping("/search")

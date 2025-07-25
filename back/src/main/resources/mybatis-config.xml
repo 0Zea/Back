@@ -15,11 +15,13 @@
     </typeAliases>
 
     <typeHandlers>
-        <typeHandler handler="org.ozea.type.UUIDTypeHandler"/>
+        <typeHandler handler="org.ozea.type.UUIDTypeHandler" javaType="java.util.UUID"/>
     </typeHandlers>
 
     <mappers>
         <mapper resource="mapper/UserMapper.xml"/>
+        <mapper resource="org/ozea/inquiry/mapper/InquiryMapper.xml"/>
     </mappers>
+
 
 </configuration>

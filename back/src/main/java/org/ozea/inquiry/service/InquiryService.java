@@ -9,10 +9,11 @@ import java.util.List;
 import java.util.UUID;
 
 public interface InquiryService {
-    InquiryDTO get(UUID no);
+    InquiryDTO get(UUID infoId);
     InquiryDTO create(InquiryDTO inquiry);
-    InquiryDTO update(UUID no,InquiryDTO inquiry);
-    InquiryDTO delete(UUID no);
+    InquiryDTO update(UUID infoId,InquiryDTO inquiry);
+    InquiryDTO updateAnswered(UUID infoId,InquiryDTO inquiry);
+    InquiryDTO delete(UUID infoId);
     Page<InquiryDTO> getPage(PageRequest pageRequest);
     Page<InquiryDTO> findByTitleContaining(String keyword, PageRequest pageRequest);
 }
