@@ -2,7 +2,7 @@ package org.ozea.security.account.domain;
 
 import lombok.Getter;
 import lombok.Setter;
-import org.ozea.domain.User;
+import org.ozea.user.domain.User;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;

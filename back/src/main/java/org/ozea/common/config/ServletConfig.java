@@ -1,4 +1,4 @@
-package org.ozea.config;
+package org.ozea.common.config;
 
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
@@ -14,11 +14,12 @@ import org.springframework.web.servlet.view.JstlView;
  */
 @EnableWebMvc // Spring MVC를 활성화합니다.
 @ComponentScan(basePackages = {
-        "org.ozea.controller",
+        "org.ozea.common.controller",
+        "org.ozea.security.controller",
         "org.ozea.user.controller",
         "org.ozea.goal.controller",
         "org.ozea.inquiry.controller"
-}) // org.ozea.controller 패키지 내의 컴포넌트들을 스캔하여 빈으로 등록합니다.
+}) // 컨트롤러 패키지들을 스캔하여 빈으로 등록합니다.
 public class ServletConfig  implements WebMvcConfigurer {
 
     /**
@@ -54,4 +55,4 @@ public class ServletConfig  implements WebMvcConfigurer {
 
         registry.viewResolver(bean);
     }
-}
+} 

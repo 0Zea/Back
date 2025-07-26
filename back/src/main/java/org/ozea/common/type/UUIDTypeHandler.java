@@ -1,4 +1,4 @@
-package org.ozea.type;
+package org.ozea.common.type;
 
 import org.apache.ibatis.type.JdbcType;
 import org.apache.ibatis.type.MappedJdbcTypes;
@@ -94,4 +94,4 @@ public class UUIDTypeHandler implements TypeHandler<UUID> {
         return new UUID(high, low);
     }
 
-}
+} 

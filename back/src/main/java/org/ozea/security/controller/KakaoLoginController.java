@@ -1,4 +1,4 @@
-package org.ozea.controller;
+package org.ozea.security.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.http.HttpResponse;
@@ -83,7 +83,7 @@ public class KakaoLoginController {
 
         // 추가 정보가 없으면 추가 정보 입력 페이지로 리다이렉트
         // (UserMapper에서 다시 조회)
-        org.ozea.domain.User user = kakaoUserDetailsService.getUserByEmail(email);
+        org.ozea.user.domain.User user = kakaoUserDetailsService.getUserByEmail(email);
         if (Objects.equals(user.getPhoneNum(), "000-0000-0000")) {
             return "redirect:/additional-info";
         }
@@ -134,4 +134,4 @@ public class KakaoLoginController {
         ObjectMapper mapper = new ObjectMapper();
         return mapper.readValue(body, Map.class);
     }
-}
+} 
