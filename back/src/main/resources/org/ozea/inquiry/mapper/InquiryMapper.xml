@@ -4,6 +4,16 @@
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <!-- org.ozea.inquiry.mapper.InquiryMapper 인터페이스와 매핑되는 MyBatis 매퍼 파일입니다. -->
 <mapper namespace="org.ozea.inquiry.mapper.InquiryMapper">
+    <sql id="maskedUserName">
+        (
+            CASE
+            WHEN LENGTH(user_name) >= 2 THEN
+            CONCAT(SUBSTRING(user_name, 1, 1), '*', SUBSTRING(user_name, 3))
+            ELSE
+            user_name
+            END
+        )
+    </sql>
     <resultMap id="inquiryMap" type="org.ozea.inquiry.domain.InquiryVO">
         <id column="info_id" property="infoId" typeHandler="org.ozea.type.UUIDTypeHandler"/>
         <result column="user_id" property="userId" typeHandler="org.ozea.type.UUIDTypeHandler"/>
@@ -54,7 +64,15 @@
         delete from inquiry where info_id = #{infoId, javaType=java.util.UUID, jdbcType=BINARY}
     </delete>
     <select id="get" parameterType="java.util.UUID" resultMap="inquiryMap">
-        SELECT *
+        SELECT
+        info_id,
+        user_id,
+        title,
+        content,
+        is_answered,
+        created_at,
+        answered_content,
+        <include refid="maskedUserName"/> AS user_name
         FROM inquiry
         WHERE info_id = #{infoId, javaType=java.util.UUID, jdbcType=BINARY}
     </select>
@@ -63,12 +81,29 @@
         select count(*) from inquiry
     </select>
     <select id="getPage" resultMap="inquiryMap">
-        SELECT *
+        SELECT
+        info_id,
+        user_id,
+        title,
+        content,
+        is_answered,
+        created_at,
+        answered_content,
+        <include refid="maskedUserName"/> AS user_name
         FROM inquiry
-        ORDER BY created_at desc LIMIT #{offset}, #{amount}
+        ORDER BY created_at DESC
+        LIMIT #{offset}, #{amount}
     </select>
     <select id="findByTitleContaining" resultMap="inquiryMap">
-        SELECT *
+        SELECT
+        info_id,
+        user_id,
+        title,
+        content,
+        is_answered,
+        created_at,
+        answered_content,
+        <include refid="maskedUserName"/> AS user_name
         FROM inquiry
         WHERE title LIKE CONCAT('%', #{keyword}, '%')
         ORDER BY created_at DESC
