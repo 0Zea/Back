@@ -5,6 +5,7 @@ import com.zaxxer.hikari.HikariDataSource;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.ibatis.session.SqlSessionFactory;
 import org.mybatis.spring.SqlSessionFactoryBean;
+import org.mybatis.spring.annotation.MapperScan;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
@@ -15,7 +16,6 @@ import org.springframework.context.annotation.PropertySource;
 import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
-import org.mybatis.spring.annotation.MapperScan;
 
 import javax.sql.DataSource;
 
@@ -28,7 +28,7 @@ import javax.sql.DataSource;
 @Slf4j
 @EnableTransactionManagement // 어노테이션 기반의 트랜잭션 관리를 활성화합니다.
 @ComponentScan(basePackages = {"org.ozea"}) // org.ozea 패키지 내의 컴포넌트들을 스캔하여 빈으로 등록합니다.
-@MapperScan(basePackages = {"org.ozea.mapper"}) // org.ozea.mapper 패키지 내의 MyBatis 매퍼 인터페이스를 스캔합니다.
+@MapperScan(basePackages = {"org.ozea.mapper", "org.ozea.inquiry.mapper"}) // org.ozea.mapper 패키지 내의 MyBatis 매퍼 인터페이스를 스캔합니다.
 public class RootConfig {
     @Value("${jdbc.driver}") String driver;
     @Value("${jdbc.url}") String url;

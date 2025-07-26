@@ -9,6 +9,7 @@
     </settings>
 
     <typeAliases>
+        <package name="org.ozea.inquiry.domain" />
         <package name="org.ozea.board.domain" />
         <package name="org.ozea.domain" />
     </typeAliases>
@@ -20,6 +21,8 @@
     <mappers>
         <mapper resource="mapper/GoalMapper.xml" />
         <mapper resource="mapper/UserMapper.xml"/>
+        <mapper resource="org/ozea/inquiry/mapper/InquiryMapper.xml"/>
     </mappers>
+
 
 </configuration>

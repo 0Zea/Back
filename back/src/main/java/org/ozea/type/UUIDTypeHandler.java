@@ -1,6 +1,8 @@
 package org.ozea.type;
 
 import org.apache.ibatis.type.JdbcType;
+import org.apache.ibatis.type.MappedJdbcTypes;
+import org.apache.ibatis.type.MappedTypes;
 import org.apache.ibatis.type.TypeHandler;
 
 import java.nio.ByteBuffer;
@@ -12,6 +14,8 @@ import java.util.UUID;
  * 이 핸들러는 UUID 객체를 바이트 배열로 변환하여 데이터베이스에 저장하고,
  * 데이터베이스에서 읽어온 바이트 배열을 UUID 객체로 변환합니다.
  */
+@MappedJdbcTypes(JdbcType.BINARY)
+@MappedTypes(UUID.class)
 public class UUIDTypeHandler implements TypeHandler<UUID> {
 
     /**
