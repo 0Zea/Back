@@ -1,4 +1,4 @@
-package org.ozea.config;
+package org.ozea.common.config;
 
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
@@ -28,7 +28,7 @@ import javax.sql.DataSource;
 @Slf4j
 @EnableTransactionManagement // 어노테이션 기반의 트랜잭션 관리를 활성화합니다.
 @ComponentScan(basePackages = {"org.ozea"}) // org.ozea 패키지 내의 컴포넌트들을 스캔하여 빈으로 등록합니다.
-@MapperScan(basePackages = {"org.ozea.mapper", "org.ozea.inquiry.mapper"}) // org.ozea.mapper 패키지 내의 MyBatis 매퍼 인터페이스를 스캔합니다.
+@MapperScan(basePackages = {"org.ozea.user.mapper", "org.ozea.goal.mapper", "org.ozea.inquiry.mapper"}) // 도메인별 매퍼 패키지들을 스캔합니다.
 public class RootConfig {
     @Value("${jdbc.driver}") String driver;
     @Value("${jdbc.url}") String url;
@@ -71,4 +71,4 @@ public class RootConfig {
         return manager;
     }
 
-}
+} 

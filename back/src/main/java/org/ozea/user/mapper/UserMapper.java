@@ -1,7 +1,7 @@
-package org.ozea.mapper;
+package org.ozea.user.mapper;
 
 import org.apache.ibatis.annotations.Mapper;
-import org.ozea.domain.User;
+import org.ozea.user.domain.User;
 
 import java.util.UUID;
 
@@ -45,4 +45,4 @@ public interface UserMapper {
     default User findByEmail(String email) {
         return null;
     }
-}
+} 

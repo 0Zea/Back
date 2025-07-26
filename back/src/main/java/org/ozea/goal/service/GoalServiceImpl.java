@@ -1,13 +1,13 @@
 package org.ozea.goal.service;
 
-import org.ozea.domain.User;
+import org.ozea.user.domain.User;
 import org.ozea.goal.domain.Goal;
 import org.ozea.goal.dto.request.GoalCreateRequestDto;
 import org.ozea.goal.dto.request.GoalUpdateRequestDto;
 import org.ozea.goal.dto.response.GoalDetailResponseDto;
 import org.ozea.goal.dto.response.GoalListResponseDto;
-import org.ozea.mapper.GoalMapper;
-import org.ozea.mapper.UserMapper;
+import org.ozea.goal.mapper.GoalMapper;
+import org.ozea.user.mapper.UserMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 

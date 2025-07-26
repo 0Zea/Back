@@ -1,6 +1,6 @@
 package org.ozea.user.service;
 
-import org.ozea.domain.User;
+import org.ozea.user.domain.User;
 import org.ozea.user.dto.UserDTO;
 import org.ozea.user.dto.UserSignupDTO;
 

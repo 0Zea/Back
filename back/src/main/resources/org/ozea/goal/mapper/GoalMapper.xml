@@ -3,7 +3,7 @@
         PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
-<mapper namespace="org.ozea.mapper.GoalMapper">
+<mapper namespace="org.ozea.goal.mapper.GoalMapper">
 
     <select id="sumTargetAmountOverlappingGoals" resultType="long">
         SELECT IFNULL(SUM(target_amount), 0)
@@ -69,4 +69,4 @@
                  )
     </insert>
 
-</mapper>
+</mapper> 

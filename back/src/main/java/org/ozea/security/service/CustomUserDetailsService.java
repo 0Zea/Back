@@ -2,8 +2,8 @@ package org.ozea.security.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
-import org.ozea.domain.User;
-import org.ozea.mapper.UserMapper;
+import org.ozea.user.domain.User;
+import org.ozea.user.mapper.UserMapper;
 import org.ozea.security.account.domain.CustomUser;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;

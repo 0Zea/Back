@@ -1,4 +1,4 @@
-package org.ozea.config;
+package org.ozea.common.config;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Configuration;
@@ -44,4 +44,4 @@ public class WebConfig extends AbstractAnnotationConfigDispatcherServletInitiali
 
         return new Filter[] {characterEncodingFilter};
     }
-}
+} 

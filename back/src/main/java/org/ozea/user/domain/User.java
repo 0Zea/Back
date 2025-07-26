@@ -1,4 +1,4 @@
-package org.ozea.domain;
+package org.ozea.user.domain;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -29,4 +29,4 @@ public class User {
     private Long payAmount; // 지불 금액
     private String role;      // 사용자 역할 (e.g., 'user', 'admin')
 
-}
+} 
