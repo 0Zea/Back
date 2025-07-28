@@ -1,4 +1,4 @@
-package org.ozea.config;
+package org.ozea.common.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -35,4 +35,4 @@ public class SwaggerConfig {
                 .apiInfo(apiInfo());
     }
 
-}
+} 

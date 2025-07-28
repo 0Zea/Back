@@ -15,8 +15,8 @@
         )
     </sql>
     <resultMap id="inquiryMap" type="org.ozea.inquiry.domain.InquiryVO">
-        <id column="info_id" property="infoId" typeHandler="org.ozea.type.UUIDTypeHandler"/>
-        <result column="user_id" property="userId" typeHandler="org.ozea.type.UUIDTypeHandler"/>
+        <id column="info_id" property="infoId" typeHandler="org.ozea.common.type.UUIDTypeHandler"/>
+        <result column="user_id" property="userId" typeHandler="org.ozea.common.type.UUIDTypeHandler"/>
         <result column="user_name" property="userName"/>
         <result column="title" property="title"/>
         <result column="content" property="content"/>

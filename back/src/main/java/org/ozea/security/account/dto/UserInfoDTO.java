@@ -3,7 +3,7 @@ package org.ozea.security.account.dto;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.ozea.domain.User;
+import org.ozea.user.domain.User;
 
 @Data
 @NoArgsConstructor

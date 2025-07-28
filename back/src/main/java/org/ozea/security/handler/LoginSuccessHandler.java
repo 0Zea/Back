@@ -2,7 +2,7 @@ package org.ozea.security.handler;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
-import org.ozea.domain.User;
+import org.ozea.user.domain.User;
 import org.ozea.security.account.domain.CustomUser;
 import org.ozea.security.account.dto.AuthResultDTO;
 import org.ozea.security.account.dto.UserInfoDTO;

@@ -1,4 +1,4 @@
-package org.ozea.controller;
+package org.ozea.common.controller;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -9,8 +9,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 
 import javax.servlet.http.HttpSession;
 import javax.servlet.http.HttpServletRequest;
-import org.ozea.mapper.UserMapper;
-import org.ozea.domain.User;
+import org.ozea.user.mapper.UserMapper;
+import org.ozea.user.domain.User;
 
 /**
  * 홈 및 로그인 페이지와 관련된 요청을 처리하는 컨트롤러입니다.
@@ -108,7 +108,7 @@ public class HomeController {
     @PostMapping("/additional-info")
     public String saveAdditionalInfo(HttpServletRequest request) {
         String email = request.getParameter("email");
-        org.ozea.domain.User user = userMapper.getUserByEmail(email);
+        org.ozea.user.domain.User user = userMapper.getUserByEmail(email);
         if (user == null) {
             throw new IllegalArgumentException("해당 이메일의 사용자를 찾을 수 없습니다: " + email);
         }
@@ -151,9 +151,9 @@ public class HomeController {
         else if (fast > slow && low >= high) mbtiType = "신속한 분석가";
         else mbtiType = "신중한 분석가";
         // DB 저장
-        org.ozea.domain.User user = userMapper.getUserByEmail(email);
+        org.ozea.user.domain.User user = userMapper.getUserByEmail(email);
         user.setMbti(mbtiType);
         userMapper.updateUser(user);
         return "redirect:/";
     }
-}
+} 

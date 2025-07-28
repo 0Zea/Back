@@ -1,4 +1,4 @@
-package org.ozea.mapper;
+package org.ozea.goal.mapper;
 
 import org.apache.ibatis.annotations.Param;
 import org.ozea.goal.domain.Goal;
@@ -21,4 +21,4 @@ public interface GoalMapper {
                                          @Param("endDate") LocalDate endDate);
 
 
-}
+} 

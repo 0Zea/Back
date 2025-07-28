@@ -11,16 +11,17 @@
     <typeAliases>
         <package name="org.ozea.inquiry.domain" />
         <package name="org.ozea.board.domain" />
-        <package name="org.ozea.domain" />
+        <package name="org.ozea.user.domain" />
+        <package name="org.ozea.goal.domain" />
     </typeAliases>
 
     <typeHandlers>
-        <typeHandler handler="org.ozea.type.UUIDTypeHandler" javaType="java.util.UUID"/>
+        <typeHandler handler="org.ozea.common.type.UUIDTypeHandler" javaType="java.util.UUID"/>
     </typeHandlers>
 
     <mappers>
-        <mapper resource="mapper/GoalMapper.xml" />
-        <mapper resource="mapper/UserMapper.xml"/>
+        <mapper resource="org/ozea/goal/mapper/GoalMapper.xml" />
+        <mapper resource="org/ozea/user/mapper/UserMapper.xml"/>
         <mapper resource="org/ozea/inquiry/mapper/InquiryMapper.xml"/>
     </mappers>
 
