@@ -14,24 +14,30 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.http.ResponseEntity;
+import org.ozea.security.account.dto.AuthResultDTO;
+import org.ozea.security.account.dto.UserInfoDTO;
+import org.ozea.security.util.JwtProcessor;
 
 import javax.servlet.http.*;
 import java.util.*;
 
 /**
- * 카카오 로그인을 처리하는 컨트롤러입니다.
+ * 카카오 API를 처리하는 컨트롤러입니다.
  */
-@Controller
-public class KakaoLoginController {
+@RestController
+public class KakaoApiController {
 
     @Autowired
     private KakaoUserDetailsService kakaoUserDetailsService;
+
+    @Autowired
+    private JwtProcessor jwtProcessor;
 
     @Value("${kakao.api.key}")
     private String REST_API_KEY; // 카카오 REST API 키
@@ -40,14 +46,21 @@ public class KakaoLoginController {
     private String REDIRECT_URI; // 카카오 로그인 후 리다이렉트될 URI
 
     /**
-     * 카카오 로그인 후 리다이렉트되는 콜백 요청을 처리합니다.
+     * 테스트용 엔드포인트
+     */
+    @GetMapping("/api/test")
+    public ResponseEntity<String> test() {
+        return ResponseEntity.ok("Backend server is running!");
+    }
+
+    /**
+     * 프론트엔드에서 호출하는 카카오 로그인 API
      * @param code 카카오에서 발급하는 인증 코드
-     * @param session 현재 세션
-     * @return "redirect:/main" - 메인 페이지로 리다이렉트
+     * @return AuthResultDTO - JWT 토큰과 사용자 정보
      * @throws Exception 예외 발생 시
      */
-    @RequestMapping("/callback")
-    public String kakaoCallback(@RequestParam("code") String code, HttpSession session) throws Exception {
+    @GetMapping("/api/auth/kakao/callback")
+    public ResponseEntity<AuthResultDTO> kakaoApiCallback(@RequestParam("code") String code) throws Exception {
         String accessToken = getAccessToken(code); // 인증 코드로 액세스 토큰을 발급받습니다.
         Map<String, Object> userInfo = getUserInfo(accessToken); // 액세스 토큰으로 사용자 정보를 조회합니다.
 
@@ -78,17 +91,17 @@ public class KakaoLoginController {
         Authentication authentication = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
         SecurityContextHolder.getContext().setAuthentication(authentication);
 
-        session.setAttribute("email", email);
-        session.setAttribute("nickname", nickname);
+        // JWT 토큰 생성
+        String token = jwtProcessor.generateToken(email);
 
-        // 추가 정보가 없으면 추가 정보 입력 페이지로 리다이렉트
-        // (UserMapper에서 다시 조회)
+        // 사용자 정보 DTO 구성
         org.ozea.user.domain.User user = kakaoUserDetailsService.getUserByEmail(email);
-        if (Objects.equals(user.getPhoneNum(), "000-0000-0000")) {
-            return "redirect:/additional-info";
-        }
+        UserInfoDTO userInfoDTO = UserInfoDTO.of(user);
 
-        return "redirect:/main";
+        // 토큰 + 사용자 정보 DTO 반환
+        AuthResultDTO result = new AuthResultDTO(token, userInfoDTO);
+
+        return ResponseEntity.ok(result);
     }
 
     /**

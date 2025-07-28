@@ -1,7 +1,6 @@
 package org.ozea.common.controller;
 
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -18,12 +17,6 @@ import org.ozea.user.domain.User;
 @Controller
 @Slf4j
 public class HomeController {
-
-    @Value("${kakao.api.key}")
-    private String REST_API_KEY; // 카카오 REST API 키
-
-    @Value("${kakao.redirect.uri}")
-    private String REDIRECT_URI; // 카카오 로그인 후 리다이렉트될 URI
 
     private final UserMapper userMapper;
 
@@ -70,19 +63,6 @@ public class HomeController {
         return "redirect:/additional-info";
     }
 
-    /**
-     * 로그인 페이지("/login") 요청을 처리합니다.
-     * 모델에 카카오 API 키와 리다이렉트 URI를 추가하여 뷰에 전달합니다.
-     * @param model 뷰에 데이터를 전달하기 위한 Model 객체
-     * @return "login" - 로그인 페이지의 뷰 이름
-     */
-    @GetMapping("/login")
-    public String login(Model model) {
-        model.addAttribute("REST_API_KEY", REST_API_KEY);
-        model.addAttribute("REDIRECT_URI", REDIRECT_URI);
-        return "login";
-    }
-
     // 로컬 로그인
     @GetMapping("/local-login")
     public String showLocalLoginPage() {
@@ -96,64 +76,5 @@ public class HomeController {
     @GetMapping("/main")
     public String mainPage() {
         return "main";
-    }
-
-    @GetMapping("/additional-info")
-    public String additionalInfoForm(Model model, HttpSession session) {
-        model.addAttribute("email", session.getAttribute("email"));
-        return "additional-info";
-    }
-
-
-    @PostMapping("/additional-info")
-    public String saveAdditionalInfo(HttpServletRequest request) {
-        String email = request.getParameter("email");
-        org.ozea.user.domain.User user = userMapper.getUserByEmail(email);
-        if (user == null) {
-            throw new IllegalArgumentException("해당 이메일의 사용자를 찾을 수 없습니다: " + email);
-        }
-        String phoneNum = request.getParameter("phoneNum");
-        String birthDate = request.getParameter("birthDate");
-        String sex = request.getParameter("sex");
-        String salary = request.getParameter("salary");
-        String payAmount = request.getParameter("payAmount");
-        user.setPhoneNum(phoneNum);
-        user.setBirthDate(java.time.LocalDate.parse(birthDate));
-        user.setSex(sex);
-        user.setSalary(Long.parseLong(salary));
-        user.setPayAmount(Long.parseLong(payAmount));
-        user.setRole("USER");
-        userMapper.updateUser(user);
-        return "redirect:/mbti-survey";
-    }
-
-    @GetMapping("/mbti-survey")
-    public String mbtiSurveyForm(Model model, HttpSession session) {
-        model.addAttribute("email", session.getAttribute("email"));
-        return "mbti-survey";
-    }
-
-    @PostMapping("/mbti-survey")
-    public String saveMbtiSurvey(HttpServletRequest request) {
-        String email = request.getParameter("email");
-        // 빠름/느림 점수 계산
-        int fast = 0, slow = 0, high = 0, low = 0;
-        if ("fast".equals(request.getParameter("speed1"))) fast += 4; else slow += 4;
-        if ("fast".equals(request.getParameter("speed2"))) fast += 4; else slow += 4;
-        if ("fast".equals(request.getParameter("speed3"))) fast += 4; else slow += 4;
-        if ("high".equals(request.getParameter("risk1"))) high += 4; else low += 4;
-        if ("high".equals(request.getParameter("risk2"))) high += 4; else low += 4;
-        if ("high".equals(request.getParameter("risk3"))) high += 4; else low += 4;
-        // 유형 판별
-        String mbtiType;
-        if (fast > slow && high > low) mbtiType = "신속한 승부사";
-        else if (slow >= fast && high > low) mbtiType = "신중한 승부사";
-        else if (fast > slow && low >= high) mbtiType = "신속한 분석가";
-        else mbtiType = "신중한 분석가";
-        // DB 저장
-        org.ozea.user.domain.User user = userMapper.getUserByEmail(email);
-        user.setMbti(mbtiType);
-        userMapper.updateUser(user);
-        return "redirect:/";
     }
 } 
