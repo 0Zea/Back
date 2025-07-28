@@ -14,14 +14,21 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<?> handleIllegalArgument(IllegalArgumentException e) {
-        Map<String, Object> error = new HashMap<>();
-        error.put("timestamp", LocalDateTime.now());
-        error.put("status", HttpStatus.BAD_REQUEST.value());
-        error.put("error", "Bad Request");
-        error.put("message", e.getMessage());
-
-        return ResponseEntity.badRequest().body(error);
+        return buildErrorResponse(HttpStatus.BAD_REQUEST, "Bad Request", e.getMessage());
     }
 
-    // 다른 예외도 필요하면 여기에 추가 가능
+    @ExceptionHandler(IllegalStateException.class)
+    public ResponseEntity<?> handleIllegalState(IllegalStateException e) {
+        return buildErrorResponse(HttpStatus.CONFLICT, "Conflict", e.getMessage());
+    }
+
+    // 공통 에러 응답 구조
+    private ResponseEntity<Map<String, Object>> buildErrorResponse(HttpStatus status, String error, String message) {
+        Map<String, Object> body = new HashMap<>();
+        body.put("timestamp", LocalDateTime.now());
+        body.put("status", status.value());
+        body.put("error", error);
+        body.put("message", message);
+        return new ResponseEntity<>(body, status);
+    }
 }
