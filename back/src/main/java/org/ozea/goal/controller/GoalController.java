@@ -4,8 +4,10 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.ozea.goal.dto.request.GoalCreateRequestDto;
 import org.ozea.goal.dto.request.GoalUpdateRequestDto;
+import org.ozea.goal.dto.request.LinkAccountRequestDto;
 import org.ozea.goal.dto.response.GoalDetailResponseDto;
 import org.ozea.goal.dto.response.GoalListResponseDto;
+import org.ozea.goal.dto.response.LinkedAccountDto;
 import org.ozea.goal.service.GoalService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -22,6 +24,30 @@ public class GoalController {
 
     @Autowired
     private GoalService goalService;
+
+    @GetMapping("/accounts/{userId}")
+    @ApiOperation(value = "사용자 계좌 목록 조회", notes = "사용자의 보유 계좌를 조회합니다.")
+    public ResponseEntity<?> getAccountsByUser(@PathVariable UUID userId) {
+        List<LinkedAccountDto> accounts = goalService.getAccountsByUserId(userId);
+        return ResponseEntity.ok(accounts);
+    }
+
+    @DeleteMapping("/unlink/{accountId}")
+    @ApiOperation(value = "계좌 연동 해제", notes = "해당 계좌를 목표에서 연동 해제합니다.")
+    public ResponseEntity<?> unlinkAccount(@PathVariable int accountId) {
+        goalService.unlinkAccount(accountId);
+        return ResponseEntity.ok("계좌 연동이 해제되었습니다.");
+    }
+
+    @PostMapping("/{goalId}/link-account")
+    @ApiOperation(value = "목표 계좌 연동", notes = "사용자의 목표에 계좌를 연동합니다.")
+    public ResponseEntity<Void> linkAccountToGoal(
+            @PathVariable UUID goalId,
+            @RequestBody LinkAccountRequestDto requestDto
+    ) {
+        goalService.linkAccountToGoal(goalId, requestDto.getAccountId());
+        return ResponseEntity.ok().build();
+    }
 
     @PostMapping
     @ApiOperation(value = "목표 생성", notes = "사용자의 목표를 생성합니다.")

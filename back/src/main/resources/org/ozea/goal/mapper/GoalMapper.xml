@@ -5,6 +5,41 @@
 
 <mapper namespace="org.ozea.goal.mapper.GoalMapper">
 
+    <select id="findAccountsByUserId" resultType="org.ozea.goal.dto.response.LinkedAccountDto">
+        SELECT
+            account_id,
+            bank_name,
+            account_num,
+            account_type,
+            balance
+        FROM BankAccount
+        WHERE user_id = #{userId, jdbcType=BINARY, javaType=java.util.UUID}
+    </select>
+
+    <update id="unlinkAllAccountsFromGoal">
+        UPDATE BankAccount
+        SET goal_id = NULL
+        WHERE goal_id = #{goalId, jdbcType=BINARY, javaType=java.util.UUID}
+    </update>
+
+
+    <update id="unlinkAccount">
+        UPDATE BankAccount
+        SET goal_id = NULL
+        WHERE account_id = #{accountId}
+    </update>
+
+    <select id="isAccountAlreadyLinked" resultType="int">
+        SELECT COUNT(*) FROM BankAccount
+        WHERE account_id = #{accountId} AND goal_id IS NOT NULL
+    </select>
+
+    <update id="linkAccountToGoal">
+        UPDATE BankAccount
+        SET goal_id = #{goalId}
+        WHERE account_id = #{accountId} AND goal_id IS NULL
+    </update>
+
     <select id="sumTargetAmountOverlappingGoals" resultType="long">
         SELECT IFNULL(SUM(target_amount), 0)
         FROM goal
@@ -50,6 +85,17 @@
         WHERE goal_id = #{goalId, jdbcType=BINARY, javaType=java.util.UUID}
           AND user_id = #{userId, jdbcType=BINARY, javaType=java.util.UUID}
     </update>
+
+    <select id="findLinkedAccountsByGoalId" resultType="org.ozea.goal.dto.response.LinkedAccountDto">
+        SELECT
+            account_id,
+            bank_name,
+            account_num,
+            account_type,
+            balance
+        FROM BankAccount
+        WHERE goal_id = #{goalId, jdbcType=BINARY, javaType=java.util.UUID}
+    </select>
 
 
     <insert id="insertGoal" parameterType="org.ozea.goal.domain.Goal">

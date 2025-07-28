@@ -1,5 +1,6 @@
 package org.ozea.goal.service;
 
+import org.ozea.goal.dto.response.LinkedAccountDto;
 import org.ozea.user.domain.User;
 import org.ozea.goal.domain.Goal;
 import org.ozea.goal.dto.request.GoalCreateRequestDto;
@@ -57,6 +58,22 @@ public class GoalServiceImpl implements GoalService {
         goalMapper.insertGoal(requestDto.toEntity(userId));
     }
 
+    @Override
+    public List<LinkedAccountDto> getAccountsByUserId(UUID userId) {
+        return goalMapper.findAccountsByUserId(userId);
+    }
+
+    @Override
+    public void linkAccountToGoal(UUID goalId, int accountId) {
+        // 중복 연동 방지 로직 (이미 계좌에 goal_id가 있다면 예외)
+        Integer count = goalMapper.isAccountAlreadyLinked(accountId);
+        if (count != null && count > 0) {
+            throw new IllegalStateException("이미 다른 목표에 연동된 계좌입니다.");
+        }
+        // 연동 수행
+        goalMapper.linkAccountToGoal(goalId, accountId);
+    }
+
 
     @Override
     public List<GoalListResponseDto> getGoalsByUserId(UUID userId) {
@@ -72,11 +89,21 @@ public class GoalServiceImpl implements GoalService {
         if (goal == null) {
             throw new NoSuchElementException("해당 목표가 존재하지 않습니다.");
         }
-        return GoalDetailResponseDto.from(goal);
+
+        List<LinkedAccountDto> linkedAccounts = goalMapper.findLinkedAccountsByGoalId(goalId);
+
+        return GoalDetailResponseDto.from(goal, linkedAccounts);
+    }
+
+    @Override
+    public void unlinkAccount(int accountId) {
+        goalMapper.unlinkAccount(accountId);
     }
 
     @Override
     public void deleteGoal(UUID goalId, UUID userId) {
+        goalMapper.unlinkAllAccountsFromGoal(goalId);
+
         int deleted = goalMapper.deleteByGoalIdAndUserId(goalId, userId);
         if (deleted == 0) {
             throw new IllegalArgumentException("해당 목표가 존재하지 않거나 권한이 없습니다.");
