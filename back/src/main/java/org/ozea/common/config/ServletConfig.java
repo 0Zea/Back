@@ -19,7 +19,8 @@ import org.springframework.web.servlet.view.JstlView;
         "org.ozea.security.controller",
         "org.ozea.user.controller",
         "org.ozea.goal.controller",
-        "org.ozea.inquiry.controller"
+        "org.ozea.inquiry.controller",
+        "org.ozea.asset.controller"
 }) // 컨트롤러 패키지들을 스캔하여 빈으로 등록합니다.
 public class ServletConfig  implements WebMvcConfigurer {
 

@@ -1,0 +1,1 @@
+import{_ as s,c as r,z as c,o}from"./index-C3BHZyYF.js";const t={},a={class:"user-card"};function d(e,n){return o(),r("div",a,[c(e.$slots,"default",{},void 0,!0)])}const f=s(t,[["render",d],["__scopeId","data-v-f6e1dcd2"]]);export{f as U};

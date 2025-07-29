@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="org.ozea.asset.mapper.AssetMapper">
+
+    <select id="getUserAssetSummary" parameterType="java.util.UUID"
+            resultType="org.ozea.asset.domain.AssetVO"
+            >
+        SELECT u.name,
+               COALESCE(user_assets.totalAssets, 0)             as totalAssets,
+               (u.salary - u.pay_amount)                        as monthlyNetIncome,
+               COALESCE(goal_rates.averageGoalRate, 0.0) as averageGoalRate
+        FROM USER u
+                 LEFT JOIN (SELECT user_id,
+                                   SUM(balance) as totalAssets
+                            FROM BankAccount
+                            WHERE user_id = #{userId}
+                            GROUP BY user_id) user_assets ON u.user_id = user_assets.user_id
+                 LEFT JOIN (SELECT g.user_id,
+                                   AVG(
+                                           IF(g.target_amount = 0, 0.0,
+                                              (COALESCE(goal_balances.goal_balance, 0) / g.target_amount) * 100)
+                                   ) as averageGoalRate
+                            FROM Goal g
+                                     LEFT JOIN (SELECT goal_id,
+                                                       SUM(balance) as goal_balance
+                                                FROM BankAccount
+                                                GROUP BY goal_id) goal_balances ON g.goal_id = goal_balances.goal_id
+                            WHERE g.user_id = #{userId}
+                            GROUP BY g.user_id) goal_rates ON u.user_id = goal_rates.user_id
+        WHERE u.user_id = #{userId}
+    </select>
+
+    <!-- 계좌 목록 쿼리 -->
+    <select id="getUserBankAccounts" parameterType="java.util.UUID"
+            resultType="org.ozea.asset.domain.BankAccountVO">
+        SELECT user_id as userId,
+               account_num as accountNum,
+               account_type as accountType,
+               balance as balance
+        FROM BankAccount
+        WHERE user_id = #{userId}
+        ORDER BY account_id
+    </select>
+
+</mapper>
