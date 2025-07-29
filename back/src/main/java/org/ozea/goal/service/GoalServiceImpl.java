@@ -1,6 +1,7 @@
 package org.ozea.goal.service;
 
 import org.ozea.goal.dto.response.LinkedAccountDto;
+import org.ozea.goal.dto.response.ProductRecommendResponseDto;
 import org.ozea.user.domain.User;
 import org.ozea.goal.domain.Goal;
 import org.ozea.goal.dto.request.GoalCreateRequestDto;
@@ -12,8 +13,11 @@ import org.ozea.user.mapper.UserMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.Period;
 import java.time.temporal.ChronoUnit;
+import java.util.Comparator;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.UUID;
@@ -57,6 +61,35 @@ public class GoalServiceImpl implements GoalService {
         // 7. insert
         goalMapper.insertGoal(requestDto.toEntity(userId));
     }
+
+    @Override
+    public List<ProductRecommendResponseDto> recommendProducts(UUID goalId) {
+        Goal goal = goalMapper.findByGoalId(goalId);
+        if (goal == null) {
+            throw new IllegalArgumentException("해당 목표가 존재하지 않습니다.");
+        }
+
+        int goalDuration = Period.between(goal.getStartDate(), goal.getEndDate()).getYears();
+        long goalAmount = goal.getTargetAmount();
+        long savePerMonth = goalAmount / (goalDuration * 12);  // 단순화된 계산
+
+        List<ProductRecommendResponseDto> candidates = goalMapper.findProductsWithOptions();
+
+        // 정렬 예시: 우대금리 내림차순
+        return candidates.stream()
+                .sorted(Comparator.comparing(ProductRecommendResponseDto::getIntrRate2).reversed())
+                .limit(5)
+                .peek(dto -> {
+                    StringBuilder reason = new StringBuilder();
+                    reason.append("✨ 목표 기간과 비슷한 ").append(dto.getSaveTrm()).append("개월 상품입니다.");
+                    if (dto.getIntrRate2().compareTo(new BigDecimal("3.0")) > 0) {
+                        reason.append(" 우대금리가 높습니다.");
+                    }
+                    if (dto.getRsrvTypeNm().contains("자유")) reason.append(" 자유적립식입니다.");
+                })
+                .collect(Collectors.toList());
+    }
+
 
     @Override
     public List<LinkedAccountDto> getAccountsByUserId(UUID userId) {

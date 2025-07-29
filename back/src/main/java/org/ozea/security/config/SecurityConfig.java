@@ -20,6 +20,11 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.NoOpPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import java.util.Arrays;
+import org.springframework.http.HttpMethod;
 
 /**
  * Spring Security 설정을 담당하는 클래스.
@@ -76,10 +81,12 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         http
+            .cors().and()  // CORS 설정 추가
             .csrf().disable() // CSRF 보호 기능을 비활성화합니다. (개발 편의를 위해, 운영 환경에서는 활성화를 권장합니다.)
             .formLogin().disable() // 기존 form 로그인 사용 안함
             .httpBasic().disable() // 기본 로그인 방식 사용 안함
             .authorizeRequests() // 요청에 대한 접근 권한을 설정합니다.
+                .antMatchers(HttpMethod.OPTIONS, "/**").permitAll() // OPTIONS 요청 허용
                 .antMatchers("/",
                         "/signup",
                         "/login",
@@ -95,10 +102,12 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                         "/v2/api-docs",
                         "/webjars/**","api/inquiry/**","api/notice/**").permitAll() // 인증 없이 접근 허용
                 .antMatchers("/api/auth/**").permitAll() // 회원가입, 로그인 API
+                .antMatchers("/api/auth/kakao/callback").permitAll() // 카카오 로그인 API
                 .anyRequest().authenticated() // 그 외의 모든 요청은 인증된 사용자만 접근 가능합니다.
-                .and()
-                .addFilterAt(jwtUsernamePasswordAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class) // 로그인 인증 필터 등록
-                .addFilterAfter(jwtAuthenticationFilter(), JwtUsernamePasswordAuthenticationFilter.class); // JWT 토큰 검증 필터 등록 (인증 후 요청마다 실행됨)
+                .and();
+                // 임시로 필터 비활성화 (실무에서는 활성화해야 함)
+                // .addFilterBefore(jwtUsernamePasswordAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class) // 로그인 인증 필터 등록
+                // .addFilterAfter(jwtAuthenticationFilter(), JwtUsernamePasswordAuthenticationFilter.class); // JWT 토큰 검증 필터 등록 (인증 후 요청마다 실행됨)
     }
 
     /**
@@ -113,6 +122,24 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         // In a real application, use a strong password encoder like BCryptPasswordEncoder.
 //        return NoOpPasswordEncoder.getInstance();
         return new BCryptPasswordEncoder();
+    }
+
+    /**
+     * CORS 설정을 위한 Bean
+     */
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration configuration = new CorsConfiguration();
+        configuration.setAllowedOriginPatterns(Arrays.asList("*"));
+        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "HEAD", "PATCH"));
+        configuration.setAllowedHeaders(Arrays.asList("*"));
+        configuration.setExposedHeaders(Arrays.asList("*"));
+        configuration.setAllowCredentials(false);
+        configuration.setMaxAge(3600L);
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", configuration);
+        return source;
     }
 
     // 6-1. 사용자 로그인 시 이메일/비밀번호 받아서 인증 시도 → 성공/실패 핸들러 지정

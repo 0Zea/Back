@@ -5,6 +5,20 @@
 
 <mapper namespace="org.ozea.goal.mapper.GoalMapper">
 
+    <select id="findProductsWithOptions" resultType="org.ozea.goal.dto.response.ProductRecommendResponseDto">
+        SELECT
+            p.fin_prdt_cd,
+            p.kor_co_nm,
+            p.fin_prdt_nm,
+            o.rsrv_type_nm,
+            o.save_trm,
+            o.intr_rate,
+            o.intr_rate2
+        FROM product p
+                 JOIN productoption o ON p.fin_prdt_cd = o.fin_prdt_cd
+    </select>
+
+
     <select id="findAccountsByUserId" resultType="org.ozea.goal.dto.response.LinkedAccountDto">
         SELECT
             account_id,
