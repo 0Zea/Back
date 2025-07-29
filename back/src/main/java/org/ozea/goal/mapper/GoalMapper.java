@@ -5,6 +5,7 @@ import org.ozea.goal.domain.Goal;
 import org.ozea.goal.dto.request.GoalUpdateRequestDto;
 import org.ozea.goal.dto.response.GoalDetailResponseDto;
 import org.ozea.goal.dto.response.LinkedAccountDto;
+import org.ozea.goal.dto.response.ProductRecommendResponseDto;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -28,5 +29,6 @@ public interface GoalMapper {
     void unlinkAccount(int accountId);
     List<LinkedAccountDto> findAccountsByUserId(UUID userId);
     void unlinkAllAccountsFromGoal(UUID goalId);
+    List<ProductRecommendResponseDto> findProductsWithOptions();
 
 } 
