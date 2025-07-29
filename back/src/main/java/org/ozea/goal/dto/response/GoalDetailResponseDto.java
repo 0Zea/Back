@@ -1,9 +1,12 @@
 package org.ozea.goal.dto.response;
 
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
 import org.ozea.goal.domain.Goal;
 
 import java.time.LocalDate;
+import java.util.List;
 import java.util.UUID;
 
 @Getter
@@ -18,8 +21,9 @@ public class GoalDetailResponseDto {
     private LocalDate start_date;
     private LocalDate end_date;
     private int deposit_date;
+    private List<LinkedAccountDto> linked_accounts;
 
-    public static GoalDetailResponseDto from(Goal goal) {
+    public static GoalDetailResponseDto from(Goal goal, List<LinkedAccountDto> accounts) {
         return GoalDetailResponseDto.builder()
                 .goal_id(goal.getGoalId())
                 .goal_name(goal.getGoalName())
@@ -28,6 +32,8 @@ public class GoalDetailResponseDto {
                 .start_date(goal.getStartDate())
                 .end_date(goal.getEndDate())
                 .deposit_date(goal.getDepositDate())
+                .linked_accounts(accounts)
                 .build();
     }
+
 }

@@ -3,6 +3,8 @@ package org.ozea.goal.mapper;
 import org.apache.ibatis.annotations.Param;
 import org.ozea.goal.domain.Goal;
 import org.ozea.goal.dto.request.GoalUpdateRequestDto;
+import org.ozea.goal.dto.response.GoalDetailResponseDto;
+import org.ozea.goal.dto.response.LinkedAccountDto;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -19,6 +21,12 @@ public interface GoalMapper {
     long sumTargetAmountOverlappingGoals(@Param("userId") UUID userId,
                                          @Param("startDate") LocalDate startDate,
                                          @Param("endDate") LocalDate endDate);
+    int isAccountAlreadyLinked(int accountId);
 
+    void linkAccountToGoal(@Param("goalId") UUID goalId, @Param("accountId") int accountId);
+    List<LinkedAccountDto> findLinkedAccountsByGoalId(@Param("goalId") UUID goalId);
+    void unlinkAccount(int accountId);
+    List<LinkedAccountDto> findAccountsByUserId(UUID userId);
+    void unlinkAllAccountsFromGoal(UUID goalId);
 
 } 
