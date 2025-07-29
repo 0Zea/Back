@@ -23,19 +23,24 @@
         <result column="is_answered" property="isAnswered"/>
         <result column="created_at" property="createdAt"/>
         <result column="answered_content" property="answeredContent"/>
+        <result column="view_count" property="viewCount"/>
     </resultMap>
     <insert id="create" parameterType="org.ozea.inquiry.domain.InquiryVO">
         INSERT INTO inquiry(
-        info_id, user_id, title, content, user_name, is_answered, created_at
+        info_id, user_id, title, content, user_name, is_answered
         ) VALUES(
         #{infoId, javaType=java.util.UUID, jdbcType=BINARY},
         #{userId, javaType=java.util.UUID, jdbcType=BINARY},
         #{title},
         #{content},
         #{userName},
-        false,
-        NOW()  <!-- DB 함수로 현재 시각 삽입 -->
+        false
         )
+    </insert>
+    <insert id="increaseViewCount">
+        UPDATE Inquiry
+        SET view_count = view_count + 1
+        WHERE info_id = #{infoId, javaType=java.util.UUID, jdbcType=BINARY};
     </insert>
     <update id="update">
         UPDATE inquiry
@@ -72,7 +77,8 @@
         is_answered,
         created_at,
         answered_content,
-        <include refid="maskedUserName"/> AS user_name
+        <include refid="maskedUserName"/> AS user_name,
+        view_count
         FROM inquiry
         WHERE info_id = #{infoId, javaType=java.util.UUID, jdbcType=BINARY}
     </select>
@@ -89,7 +95,8 @@
         is_answered,
         created_at,
         answered_content,
-        <include refid="maskedUserName"/> AS user_name
+        <include refid="maskedUserName"/> AS user_name,
+        view_count
         FROM inquiry
         ORDER BY created_at DESC
         LIMIT #{offset}, #{amount}
@@ -103,7 +110,8 @@
         is_answered,
         created_at,
         answered_content,
-        <include refid="maskedUserName"/> AS user_name
+        <include refid="maskedUserName"/> AS user_name,
+        view_count
         FROM inquiry
         WHERE title LIKE CONCAT('%', #{keyword}, '%')
         ORDER BY created_at DESC
@@ -114,5 +122,21 @@
         SELECT COUNT(*)
         FROM inquiry
         WHERE title LIKE CONCAT('%', #{keyword}, '%')
+    </select>
+    <select id="getTopFaqInquiries" resultMap="inquiryMap">
+        SELECT
+        info_id,
+        user_id,
+        title,
+        content,
+        is_answered,
+        created_at,
+        answered_content,
+        <include refid="maskedUserName"/> AS user_name,
+        view_count
+        FROM inquiry
+        WHERE view_count >= 10
+        ORDER BY view_count DESC, created_at DESC
+        LIMIT 5
     </select>
 </mapper>
