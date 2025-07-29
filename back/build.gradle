@@ -101,6 +101,12 @@ dependencies {
   // LocalDate를 JSON으로 변환할 수 있도록 jackson-datatype-jsr310 라이브러리를 등록
   implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
 
+  // JavaMail
+  implementation 'org.springframework:spring-context-support:5.3.37'
+  implementation 'javax.mail:javax.mail-api:1.6.2'
+  implementation 'com.sun.mail:javax.mail:1.6.2'
+  implementation 'javax.activation:activation:1.1.1'
+
 
 }
 

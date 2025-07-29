@@ -5,6 +5,7 @@ import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.ViewResolverRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.view.InternalResourceViewResolver;
 import org.springframework.web.servlet.view.JstlView;
 
@@ -21,6 +22,21 @@ import org.springframework.web.servlet.view.JstlView;
         "org.ozea.inquiry.controller"
 }) // 컨트롤러 패키지들을 스캔하여 빈으로 등록합니다.
 public class ServletConfig  implements WebMvcConfigurer {
+
+    /**
+     * CORS 설정을 추가합니다.
+     * @param registry CorsRegistry 객체
+     */
+    @Override
+    public void addCorsMappings(CorsRegistry registry) {
+        registry.addMapping("/**")
+                .allowedOriginPatterns("*")  // 모든 origin 허용
+                .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS", "HEAD", "PATCH")
+                .allowedHeaders("*")
+                .exposedHeaders("*")
+                .allowCredentials(false)  // credentials를 false로 변경
+                .maxAge(3600);
+    }
 
     /**
      * 정적 리소스(css, js, images 등)의 경로를 설정합니다.
