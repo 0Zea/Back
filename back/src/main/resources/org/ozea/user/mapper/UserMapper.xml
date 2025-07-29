@@ -97,6 +97,7 @@
     <update id="updateUser" parameterType="org.ozea.user.domain.User">
         UPDATE USER
         SET name = #{name},
+            password = #{password},
             phone_num = #{phoneNum},
             mbti = #{mbti},
             birth_date = #{birthDate},

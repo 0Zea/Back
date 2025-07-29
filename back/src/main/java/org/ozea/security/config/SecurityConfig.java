@@ -100,13 +100,15 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                         "/swagger-ui.html",
                         "/swagger-resources/**",
                         "/v2/api-docs",
-                        "/webjars/**","api/inquiry/**").permitAll() // 인증 없이 접근 허용
+                        "/webjars/**",
+                        "/api/inquiry/**").permitAll() // 인증 없이 접근 허용
                 .antMatchers("/api/auth/**").permitAll() // 회원가입, 로그인 API
                 .antMatchers("/api/auth/kakao/callback").permitAll() // 카카오 로그인 API
                 .anyRequest().authenticated() // 그 외의 모든 요청은 인증된 사용자만 접근 가능합니다.
-                .and()
-                .addFilterAt(jwtUsernamePasswordAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class) // 로그인 인증 필터 등록
-                .addFilterAfter(jwtAuthenticationFilter(), JwtUsernamePasswordAuthenticationFilter.class); // JWT 토큰 검증 필터 등록 (인증 후 요청마다 실행됨)
+                .and();
+                // 임시로 필터 비활성화 (실무에서는 활성화해야 함)
+                // .addFilterBefore(jwtUsernamePasswordAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class) // 로그인 인증 필터 등록
+                // .addFilterAfter(jwtAuthenticationFilter(), JwtUsernamePasswordAuthenticationFilter.class); // JWT 토큰 검증 필터 등록 (인증 후 요청마다 실행됨)
     }
 
     /**
@@ -133,7 +135,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "HEAD", "PATCH"));
         configuration.setAllowedHeaders(Arrays.asList("*"));
         configuration.setExposedHeaders(Arrays.asList("*"));
-        configuration.setAllowCredentials(false);  // credentials를 false로 변경
+        configuration.setAllowCredentials(false);
         configuration.setMaxAge(3600L);
         
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
