@@ -7,6 +7,9 @@ import org.ozea.common.pagenation.PageRequest;
 import org.ozea.inquiry.domain.InquiryVO;
 import org.ozea.inquiry.dto.InquiryDTO;
 import org.ozea.inquiry.mapper.InquiryMapper;
+import org.ozea.user.domain.User;
+import org.ozea.user.mapper.UserMapper;
+import org.ozea.user.service.EmailService;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -17,7 +20,8 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class InquiryServiceImpl implements InquiryService {
     final private InquiryMapper mapper;
-
+    final private UserMapper userMapper;
+    final private EmailService emailService;
     // 기존 메서드들...
 
     @Override
@@ -51,7 +55,21 @@ public class InquiryServiceImpl implements InquiryService {
         InquiryVO inquiryVO = inquiry.toVo();
         log.info("update answer vo........" + inquiryVO);
         mapper.updateAnswered(infoId, inquiryVO);
-        return get(infoId);
+        InquiryDTO inq = get(infoId);
+
+        if (inq.getUserId() != null) { // Assuming InquiryDTO has a getUserId() method
+            User user = userMapper.findById(UUID.fromString(inq.getUserId())); // Use findById to get the User object
+            // 최초 답변만 이메일을 보내도록 함
+            if (user != null && user.getEmail() != null && inquiryVO.getIsAnswered() != null) {
+                // Actual email sending
+                emailService.sendInquiryAnsweredEmail(user.getEmail(), inquiryVO.getTitle(), inquiryVO.getAnsweredContent());
+            } else {
+                log.warn("User or user email not found for inquiryId: {}", infoId);
+            }
+        } else {
+            log.warn("UserId not found for inquiryId: {}", infoId);
+        }
+        return inq;
     }
 
     @Override
