@@ -1,6 +1,7 @@
 plugins {
   id 'java'
   id 'war'
+  id 'org.gretty' version '4.1.3'
 }
 
 group 'org.ozea'
@@ -14,6 +15,7 @@ ext {
   junitVersion = '5.9.2'
   springVersion = '5.3.37'
   lombokVersion = '1.18.30'
+  springSecurityVersion = '5.8.13'
 }
 
 sourceCompatibility = '17'
@@ -70,6 +72,10 @@ dependencies {
   implementation 'org.apache.logging.log4j:log4j-api:2.0.1'
   implementation 'org.apache.logging.log4j:log4j-core:2.0.1'
 
+  //스웨거
+  implementation 'io.springfox:springfox-swagger2:2.9.2'
+  implementation 'io.springfox:springfox-swagger-ui:2.9.2'
+
   implementation 'org.json:json:20250517'
   implementation 'com.googlecode.json-simple:json-simple:1.1.1'
   // 테스트
@@ -79,6 +85,31 @@ dependencies {
 
   testImplementation("org.junit.jupiter:junit-jupiter-api:${junitVersion}")
   testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:${junitVersion}")
+
+  //보안
+  implementation "org.springframework.security:spring-security-web:${springSecurityVersion}"
+  implementation "org.springframework.security:spring-security-config:${springSecurityVersion}"
+  implementation "org.springframework.security:spring-security-core:${springSecurityVersion}"
+  implementation "org.springframework.security:spring-security-taglibs:${springSecurityVersion}"
+
+  //Apache HttpClient
+  implementation 'org.apache.httpcomponents:httpclient:4.5.13'
+
+  // JWT (JJWT) 관련 의존성
+  implementation("io.jsonwebtoken:jjwt-api:0.11.5")
+  runtimeOnly("io.jsonwebtoken:jjwt-impl:0.11.5")
+  implementation("io.jsonwebtoken:jjwt-jackson:0.11.5")
+
+  // LocalDate를 JSON으로 변환할 수 있도록 jackson-datatype-jsr310 라이브러리를 등록
+  implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
+
+  // JavaMail
+  implementation 'org.springframework:spring-context-support:5.3.37'
+  implementation 'javax.mail:javax.mail-api:1.6.2'
+  implementation 'com.sun.mail:javax.mail:1.6.2'
+  implementation 'javax.activation:activation:1.1.1'
+
+
 }
 
 

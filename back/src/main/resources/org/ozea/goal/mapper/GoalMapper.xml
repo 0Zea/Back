@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="org.ozea.goal.mapper.GoalMapper">
+
+    <select id="findProductsWithOptions" resultType="org.ozea.goal.dto.response.ProductRecommendResponseDto">
+        SELECT
+            p.fin_prdt_cd,
+            p.kor_co_nm,
+            p.fin_prdt_nm,
+            o.rsrv_type_nm,
+            o.save_trm,
+            o.intr_rate,
+            o.intr_rate2
+        FROM product p
+                 JOIN productoption o ON p.fin_prdt_cd = o.fin_prdt_cd
+    </select>
+
+
+    <select id="findAccountsByUserId" resultType="org.ozea.goal.dto.response.LinkedAccountDto">
+        SELECT
+            account_id,
+            bank_name,
+            account_num,
+            account_type,
+            balance
+        FROM BankAccount
+        WHERE user_id = #{userId, jdbcType=BINARY, javaType=java.util.UUID}
+    </select>
+
+    <update id="unlinkAllAccountsFromGoal">
+        UPDATE BankAccount
+        SET goal_id = NULL
+        WHERE goal_id = #{goalId, jdbcType=BINARY, javaType=java.util.UUID}
+    </update>
+
+
+    <update id="unlinkAccount">
+        UPDATE BankAccount
+        SET goal_id = NULL
+        WHERE account_id = #{accountId}
+    </update>
+
+    <select id="isAccountAlreadyLinked" resultType="int">
+        SELECT COUNT(*) FROM BankAccount
+        WHERE account_id = #{accountId} AND goal_id IS NOT NULL
+    </select>
+
+    <update id="linkAccountToGoal">
+        UPDATE BankAccount
+        SET goal_id = #{goalId}
+        WHERE account_id = #{accountId} AND goal_id IS NULL
+    </update>
+
+    <select id="sumTargetAmountOverlappingGoals" resultType="long">
+        SELECT IFNULL(SUM(target_amount), 0)
+        FROM goal
+        WHERE user_id = #{userId}
+          AND (
+            (start_date BETWEEN #{startDate} AND #{endDate})
+                OR
+            (end_date BETWEEN #{startDate} AND #{endDate})
+                OR
+            (#{startDate} BETWEEN start_date AND end_date)
+                OR
+            (#{endDate} BETWEEN start_date AND end_date)
+            )
+    </select>
+
+
+    <delete id="deleteByGoalIdAndUserId">
+        DELETE FROM goal
+        WHERE goal_id = #{goalId, jdbcType=BINARY, javaType=java.util.UUID}
+          AND user_id = #{userId, jdbcType=BINARY, javaType=java.util.UUID}
+    </delete>
+
+    <select id="findAllByUserId" resultType="org.ozea.goal.domain.Goal">
+        SELECT *
+        FROM goal
+        WHERE user_id = #{userId, jdbcType=BINARY, javaType=java.util.UUID}
+    </select>
+
+    <select id="findByGoalId" resultType="org.ozea.goal.domain.Goal">
+        SELECT *
+        FROM goal
+        WHERE goal_id = #{goalId, jdbcType=BINARY, javaType=java.util.UUID}
+    </select>
+
+    <update id="updateGoalByIdAndUserId">
+        UPDATE goal
+        SET
+            goal_name = #{dto.goal_name},
+            target_amount = #{dto.target_amount},
+            start_date = #{dto.start_date},
+            end_date = #{dto.end_date},
+            deposit_date = #{dto.deposit_date}
+        WHERE goal_id = #{goalId, jdbcType=BINARY, javaType=java.util.UUID}
+          AND user_id = #{userId, jdbcType=BINARY, javaType=java.util.UUID}
+    </update>
+
+    <select id="findLinkedAccountsByGoalId" resultType="org.ozea.goal.dto.response.LinkedAccountDto">
+        SELECT
+            account_id,
+            bank_name,
+            account_num,
+            account_type,
+            balance
+        FROM BankAccount
+        WHERE goal_id = #{goalId, jdbcType=BINARY, javaType=java.util.UUID}
+    </select>
+
+
+    <insert id="insertGoal" parameterType="org.ozea.goal.domain.Goal">
+        INSERT INTO Goal (
+            goal_id, user_id, goal_name, target_amount,
+            save_amount, start_date, end_date, status, deposit_date
+        ) VALUES (
+                    #{goalId, jdbcType=BINARY, javaType=java.util.UUID},
+                    #{userId, jdbcType=BINARY, javaType=java.util.UUID},
+                    #{goalName},
+                    #{targetAmount},
+                    #{saveAmount},
+                    #{startDate},
+                    #{endDate},
+                    #{status},
+                    #{depositDate}
+                 )
+    </insert>
+
+</mapper> 
