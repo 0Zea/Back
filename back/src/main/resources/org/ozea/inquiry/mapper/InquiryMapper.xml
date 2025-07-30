@@ -37,11 +37,11 @@
         false
         )
     </insert>
-    <insert id="increaseViewCount">
+    <update id="increaseViewCount">
         UPDATE Inquiry
         SET view_count = view_count + 1
         WHERE info_id = #{infoId, javaType=java.util.UUID, jdbcType=BINARY};
-    </insert>
+    </update>
     <update id="update">
         UPDATE inquiry
         <set>
