@@ -18,5 +18,6 @@ public interface InquiryMapper {
     //검색 기능
     List<InquiryVO> findByTitleContaining(@Param("keyword") String keyword,@Param("pageRequest")  PageRequest pageRequest);
     int getTotalCountByTitle(String keyword);
-
+    void increaseViewCount(UUID infoId);
+    List<InquiryVO> getTopFaqInquiries();
 }

@@ -37,10 +37,27 @@ public interface UserMapper {
     void updateUser(User user);
 
 
+    /**
+     * UUID를 기준으로 사용자 정보를 조회합니다.
+     * @param userId 조회할 사용자의 UUID
+     * @return 조회된 User 객체, 없으면 null
+     */
     User findById(UUID userId);
 
     // 이메일 중복 확인
     boolean checkEmail(String email);
+    
+    /**
+     * UUID를 기준으로 사용자를 삭제합니다.
+     * @param userId 삭제할 사용자의 UUID
+     */
+    void deleteUser(UUID userId);
+    
+    /**
+     * 사용자와 관련된 모든 데이터를 삭제합니다.
+     * @param userId 삭제할 사용자의 UUID
+     */
+    void deleteUserData(UUID userId);
 
     default User findByEmail(String email) {
         return null;

@@ -14,6 +14,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
+import org.ozea.user.domain.User;
+import java.util.UUID;
 
 @Log4j2
 @RestController
@@ -229,7 +231,7 @@ public class UserController {
         }
     }
     
-    // 현재 사용자 프로필 조회
+    // 현재 사용자 프로필 조회 (프론트엔드 호환성)
     @GetMapping("/profile")
     public ResponseEntity<Map<String, Object>> getProfile(@RequestHeader("Authorization") String authHeader) {
         try {
@@ -270,10 +272,48 @@ public class UserController {
             String token = authHeader.substring(7);
             String email = jwtProcessor.getUsername(token);
             
-            // 프로필 업데이트 로직 (실제 구현 필요)
+            // 현재 사용자 정보 조회
+            UserDTO currentUser = service.getUserByEmail(email);
+            if (currentUser == null) {
+                throw new RuntimeException("사용자를 찾을 수 없습니다.");
+            }
+            
+            // 업데이트할 필드들 추출
+            String name = (String) request.get("name");
+            String mbti = (String) request.get("mbti");
+            String phoneNum = (String) request.get("phoneNum");
+            String birthDateStr = (String) request.get("birthDate");
+            String sex = (String) request.get("sex");
+            Long salary = request.get("salary") != null ? Long.valueOf(request.get("salary").toString()) : null;
+            Long payAmount = request.get("payAmount") != null ? Long.valueOf(request.get("payAmount").toString()) : null;
+            
+            // 필수 필드 검증
+            if (name == null || name.trim().isEmpty()) {
+                Map<String, Object> response = new HashMap<>();
+                response.put("success", false);
+                response.put("message", "이름은 필수 입력 항목입니다.");
+                return ResponseEntity.badRequest().body(response);
+            }
+            
+            // User 객체 생성 및 업데이트
+            User user = currentUser.toVO();
+            if (name != null) user.setName(name);
+            if (mbti != null) user.setMbti(mbti);
+            if (phoneNum != null) user.setPhoneNum(phoneNum);
+            if (birthDateStr != null) {
+                user.setBirthDate(java.time.LocalDate.parse(birthDateStr));
+            }
+            if (sex != null) user.setSex(sex);
+            if (salary != null) user.setSalary(salary);
+            if (payAmount != null) user.setPayAmount(payAmount);
+            
+            // DB 업데이트
+            UserDTO updatedUser = service.updateUserProfile(user);
+            
             Map<String, Object> response = new HashMap<>();
             response.put("success", true);
             response.put("message", "프로필 업데이트 성공");
+            response.put("user", updatedUser);
             
             log.info("프로필 업데이트 성공: email={}", email);
             
@@ -285,6 +325,344 @@ public class UserController {
             response.put("success", false);
             response.put("message", "프로필 업데이트 실패: " + e.getMessage());
             
+            return ResponseEntity.badRequest().body(response);
+        }
+    }
+
+    // 마이페이지 - 내 정보 조회
+    @GetMapping("/me")
+    public ResponseEntity<Map<String, Object>> getMyInfo(@RequestHeader("Authorization") String authHeader) {
+        log.info("🔍 내 정보 조회 요청: Authorization={}", authHeader);
+        try {
+            // JWT 토큰에서 사용자 이메일 추출
+            String token = authHeader.substring(7); // "Bearer " 제거
+            String email = jwtProcessor.getUsername(token);
+            log.info("📧 JWT에서 추출된 이메일: {}", email);
+            
+            // 이메일로 사용자 정보 조회
+            UserDTO user = service.getUserByEmail(email);
+            log.info("✅ 사용자 정보 조회 성공: userId={}", user.getUserId());
+            
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", true);
+            response.put("message", "내 정보 조회 성공");
+            response.put("user", user);
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            log.error("❌ 내 정보 조회 실패: {}", e.getMessage(), e);
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", false);
+            response.put("message", "내 정보 조회에 실패했습니다: " + e.getMessage());
+            return ResponseEntity.badRequest().body(response);
+        }
+    }
+
+    // 마이페이지 - 자산정보 수정
+    @PutMapping("/asset")
+    public ResponseEntity<Map<String, Object>> updateAssetInfo(@RequestHeader("Authorization") String authHeader,
+                                                              @RequestBody Map<String, Object> request) {
+        log.info("💰 자산정보 수정 요청: Authorization={}", authHeader);
+        log.info("💰 요청 데이터: {}", request);
+        
+        try {
+            // JWT 토큰에서 사용자 이메일 추출
+            if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+                log.error("❌ Authorization 헤더가 올바르지 않습니다: {}", authHeader);
+                Map<String, Object> response = new HashMap<>();
+                response.put("success", false);
+                response.put("message", "인증 정보가 올바르지 않습니다.");
+                return ResponseEntity.badRequest().body(response);
+            }
+            
+            String token = authHeader.substring(7); // "Bearer " 제거
+            log.info("🔐 추출된 토큰: {}", token.substring(0, Math.min(50, token.length())) + "...");
+            
+            String email = jwtProcessor.getUsername(token);
+            log.info("📧 JWT에서 추출된 이메일: {}", email);
+            
+            // 이메일로 사용자 정보 조회
+            UserDTO user = service.getUserByEmail(email);
+            if (user == null) {
+                log.error("❌ 이메일로 사용자를 찾을 수 없습니다: {}", email);
+                Map<String, Object> response = new HashMap<>();
+                response.put("success", false);
+                response.put("message", "사용자를 찾을 수 없습니다. 이메일: " + email);
+                return ResponseEntity.badRequest().body(response);
+            }
+            
+            // userId가 null이거나 잘못된 형식인지 확인
+            if (user.getUserId() == null || user.getUserId().trim().isEmpty()) {
+                log.error("❌ 사용자 ID가 null이거나 비어있습니다: {}", user.getUserId());
+                Map<String, Object> response = new HashMap<>();
+                response.put("success", false);
+                response.put("message", "사용자 ID가 올바르지 않습니다.");
+                return ResponseEntity.badRequest().body(response);
+            }
+            
+            UUID userId;
+            try {
+                userId = UUID.fromString(user.getUserId());
+                log.info("👤 사용자 정보 조회 성공: userId={}", userId);
+            } catch (IllegalArgumentException e) {
+                log.error("❌ 잘못된 UUID 형식입니다: {}", user.getUserId());
+                Map<String, Object> response = new HashMap<>();
+                response.put("success", false);
+                response.put("message", "사용자 ID 형식이 올바르지 않습니다.");
+                return ResponseEntity.badRequest().body(response);
+            }
+            
+            Long salary = request.get("salary") != null ? Long.valueOf(request.get("salary").toString()) : 0L;
+            Long payAmount = request.get("payAmount") != null ? Long.valueOf(request.get("payAmount").toString()) : 0L;
+            log.info("💵 자산정보: salary={}, payAmount={}", salary, payAmount);
+            
+            // 자산정보 유효성 검증
+            if (salary < 0 || payAmount < 0) {
+                log.error("❌ 자산정보가 음수입니다: salary={}, payAmount={}", salary, payAmount);
+                Map<String, Object> response = new HashMap<>();
+                response.put("success", false);
+                response.put("message", "자산정보는 0 이상이어야 합니다.");
+                return ResponseEntity.badRequest().body(response);
+            }
+            
+            UserDTO updatedUser = service.updateAssetInfo(userId, salary, payAmount);
+            log.info("✅ 자산정보 수정 성공: userId={}", userId);
+            
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", true);
+            response.put("message", "자산정보가 성공적으로 수정되었습니다.");
+            response.put("user", updatedUser);
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            log.error("❌ 자산정보 수정 실패: {}", e.getMessage(), e);
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", false);
+            response.put("message", "자산정보 수정에 실패했습니다: " + e.getMessage());
+            return ResponseEntity.badRequest().body(response);
+        }
+    }
+
+    // 마이페이지 - MBTI 수정
+    @PutMapping("/mbti")
+    public ResponseEntity<Map<String, Object>> updateMbti(@RequestHeader("Authorization") String authHeader,
+                                                          @RequestBody Map<String, String> request) {
+        log.info("🧠 MBTI 수정 요청: Authorization={}, request={}", authHeader, request);
+        try {
+            // JWT 토큰에서 사용자 이메일 추출
+            String token = authHeader.substring(7); // "Bearer " 제거
+            String email = jwtProcessor.getUsername(token);
+            log.info("📧 JWT에서 추출된 이메일: {}", email);
+            
+            // 이메일로 사용자 정보 조회
+            UserDTO user = service.getUserByEmail(email);
+            
+            // userId가 null이거나 잘못된 형식인지 확인
+            if (user.getUserId() == null || user.getUserId().trim().isEmpty()) {
+                log.error("❌ 사용자 ID가 null이거나 비어있습니다: {}", user.getUserId());
+                Map<String, Object> response = new HashMap<>();
+                response.put("success", false);
+                response.put("message", "사용자 ID가 올바르지 않습니다.");
+                return ResponseEntity.badRequest().body(response);
+            }
+            
+            UUID userId;
+            try {
+                userId = UUID.fromString(user.getUserId());
+                log.info("👤 사용자 정보 조회 성공: userId={}", userId);
+            } catch (IllegalArgumentException e) {
+                log.error("❌ 잘못된 UUID 형식입니다: {}", user.getUserId());
+                Map<String, Object> response = new HashMap<>();
+                response.put("success", false);
+                response.put("message", "사용자 ID 형식이 올바르지 않습니다.");
+                return ResponseEntity.badRequest().body(response);
+            }
+            
+            String mbti = request.get("mbti");
+            if (mbti == null || mbti.trim().isEmpty()) {
+                log.error("❌ MBTI가 null이거나 비어있습니다: {}", mbti);
+                Map<String, Object> response = new HashMap<>();
+                response.put("success", false);
+                response.put("message", "MBTI는 필수 입력 항목입니다.");
+                return ResponseEntity.badRequest().body(response);
+            }
+            log.info("🧠 MBTI: {}", mbti);
+            
+            UserDTO updatedUser = service.updateMbti(userId, mbti);
+            log.info("✅ MBTI 수정 성공: userId={}, mbti={}", userId, mbti);
+            
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", true);
+            response.put("message", "MBTI가 성공적으로 수정되었습니다.");
+            response.put("user", updatedUser);
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            log.error("❌ MBTI 수정 실패: {}", e.getMessage(), e);
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", false);
+            response.put("message", "MBTI 수정에 실패했습니다: " + e.getMessage());
+            return ResponseEntity.badRequest().body(response);
+        }
+    }
+
+    // 마이페이지 - 비밀번호 수정
+    @PutMapping("/password")
+    public ResponseEntity<Map<String, Object>> updatePassword(@RequestHeader("Authorization") String authHeader,
+                                                             @RequestBody Map<String, String> request) {
+        log.info("🔐 비밀번호 수정 요청: Authorization={}", authHeader);
+        try {
+            // JWT 토큰에서 사용자 이메일 추출
+            String token = authHeader.substring(7); // "Bearer " 제거
+            String email = jwtProcessor.getUsername(token);
+            log.info("📧 JWT에서 추출된 이메일: {}", email);
+            
+            // 이메일로 사용자 정보 조회
+            UserDTO user = service.getUserByEmail(email);
+            
+            // userId가 null이거나 잘못된 형식인지 확인
+            if (user.getUserId() == null || user.getUserId().trim().isEmpty()) {
+                log.error("❌ 사용자 ID가 null이거나 비어있습니다: {}", user.getUserId());
+                Map<String, Object> response = new HashMap<>();
+                response.put("success", false);
+                response.put("message", "사용자 ID가 올바르지 않습니다.");
+                return ResponseEntity.badRequest().body(response);
+            }
+            
+            UUID userId;
+            try {
+                userId = UUID.fromString(user.getUserId());
+                log.info("👤 사용자 정보 조회 성공: userId={}", userId);
+            } catch (IllegalArgumentException e) {
+                log.error("❌ 잘못된 UUID 형식입니다: {}", user.getUserId());
+                Map<String, Object> response = new HashMap<>();
+                response.put("success", false);
+                response.put("message", "사용자 ID 형식이 올바르지 않습니다.");
+                return ResponseEntity.badRequest().body(response);
+            }
+            
+            String currentPassword = request.get("currentPassword");
+            String newPassword = request.get("newPassword");
+            
+            // 현재 비밀번호 검증
+            if (currentPassword == null || currentPassword.trim().isEmpty()) {
+                log.error("❌ 현재 비밀번호가 null이거나 비어있습니다");
+                Map<String, Object> response = new HashMap<>();
+                response.put("success", false);
+                response.put("message", "현재 비밀번호는 필수 입력 항목입니다.");
+                return ResponseEntity.badRequest().body(response);
+            }
+            
+            // 새 비밀번호 검증
+            if (newPassword == null || newPassword.trim().isEmpty()) {
+                log.error("❌ 새 비밀번호가 null이거나 비어있습니다");
+                Map<String, Object> response = new HashMap<>();
+                response.put("success", false);
+                response.put("message", "새 비밀번호는 필수 입력 항목입니다.");
+                return ResponseEntity.badRequest().body(response);
+            }
+            
+            log.info("🔐 현재 비밀번호 길이: {}, 새 비밀번호 길이: {}", currentPassword.length(), newPassword.length());
+            
+            boolean success = service.updatePasswordWithCurrentCheck(userId, currentPassword, newPassword);
+            log.info("✅ 비밀번호 수정 성공: userId={}", userId);
+            
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", success);
+            response.put("message", success ? "비밀번호가 성공적으로 수정되었습니다." : "현재 비밀번호가 일치하지 않습니다.");
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            log.error("❌ 비밀번호 수정 실패: {}", e.getMessage(), e);
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", false);
+            response.put("message", "비밀번호 수정에 실패했습니다: " + e.getMessage());
+            return ResponseEntity.badRequest().body(response);
+        }
+    }
+
+    // 마이페이지 - 회원 탈퇴
+    @DeleteMapping("/withdraw")
+    public ResponseEntity<Map<String, Object>> withdrawUser(@RequestHeader("Authorization") String authHeader) {
+        log.info("🚪 회원 탈퇴 요청: Authorization={}", authHeader);
+        try {
+            // JWT 토큰에서 사용자 이메일 추출
+            String token = authHeader.substring(7); // "Bearer " 제거
+            String email = jwtProcessor.getUsername(token);
+            log.info("📧 JWT에서 추출된 이메일: {}", email);
+            
+            // 이메일로 사용자 정보 조회
+            UserDTO user = service.getUserByEmail(email);
+            
+            // userId가 null이거나 잘못된 형식인지 확인
+            if (user.getUserId() == null || user.getUserId().trim().isEmpty()) {
+                log.error("❌ 사용자 ID가 null이거나 비어있습니다: {}", user.getUserId());
+                Map<String, Object> response = new HashMap<>();
+                response.put("success", false);
+                response.put("message", "사용자 ID가 올바르지 않습니다.");
+                return ResponseEntity.badRequest().body(response);
+            }
+            
+            UUID userId;
+            try {
+                userId = UUID.fromString(user.getUserId());
+                log.info("👤 사용자 정보 조회 성공: userId={}", userId);
+            } catch (IllegalArgumentException e) {
+                log.error("❌ 잘못된 UUID 형식입니다: {}", user.getUserId());
+                Map<String, Object> response = new HashMap<>();
+                response.put("success", false);
+                response.put("message", "사용자 ID 형식이 올바르지 않습니다.");
+                return ResponseEntity.badRequest().body(response);
+            }
+            
+            boolean success = service.withdrawUser(userId);
+            log.info("✅ 회원 탈퇴 성공: userId={}", userId);
+            
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", success);
+            response.put("message", success ? "회원 탈퇴가 성공적으로 처리되었습니다." : "회원 탈퇴 처리에 실패했습니다.");
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            log.error("❌ 회원 탈퇴 실패: {}", e.getMessage(), e);
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", false);
+            response.put("message", "회원 탈퇴 처리에 실패했습니다: " + e.getMessage());
+            return ResponseEntity.badRequest().body(response);
+        }
+    }
+
+    // 테스트용 사용자 생성 (개발 중에만 사용)
+    @PostMapping("/test-user")
+    public ResponseEntity<Map<String, Object>> createTestUser() {
+        try {
+            // 테스트용 사용자 정보
+            UserSignupDTO testUser = UserSignupDTO.builder()
+                    .name("테스트 사용자")
+                    .email("test@example.com")
+                    .password("Test123!@#")
+                    .phoneNum("010-1234-5678")
+                    .birthDate(java.time.LocalDate.of(1990, 1, 1))
+                    .sex("male")
+                    .salary(3000000L)
+                    .payAmount(1000000L)
+                    .mbti("신중한 분석가")
+                    .build();
+            
+            UserDTO createdUser = service.signup(testUser);
+            
+            // JWT 토큰 생성
+            String token = jwtProcessor.generateToken(createdUser.getEmail());
+            
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", true);
+            response.put("message", "테스트 사용자가 생성되었습니다.");
+            response.put("user", createdUser);
+            response.put("token", token);
+            
+            log.info("✅ 테스트 사용자 생성 성공: email={}, token={}", createdUser.getEmail(), token.substring(0, 50) + "...");
+            
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            log.error("❌ 테스트 사용자 생성 실패: {}", e.getMessage(), e);
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", false);
+            response.put("message", "테스트 사용자 생성에 실패했습니다: " + e.getMessage());
             return ResponseEntity.badRequest().body(response);
         }
     }

@@ -13,6 +13,9 @@ out/
 !**/src/main/**/out/
 !**/src/test/**/out/
 
+# Vue build output
+src/main/webapp/resources/assets/
+
 ### Spring Properties ###
 application.properties
 
