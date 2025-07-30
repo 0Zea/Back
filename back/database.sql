@@ -11,6 +11,51 @@ created_at TIMESTAMP NOT null,
 answered_content VARcHAR(1000) null,
 foreign key(user_id) references USER(user_id)
 );
+
+-- Point 테이블 추가
+DROP TABLE IF EXISTS Point;
+CREATE TABLE Point (
+    point_id BINARY(16) NOT NULL PRIMARY KEY,
+    user_id BINARY(16) NOT NULL,
+    point_amount INT NOT NULL,
+    type_detail VARCHAR(40) NOT NULL, -- 상세 내역
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    total_amount INT NOT NULL,
+    type INT NOT NULL, -- 1: 적립, 2: 출금
+    FOREIGN KEY(user_id) REFERENCES USER(user_id)
+);
+
+-- BankCode 테이블 추가
+DROP TABLE IF EXISTS BankCode;
+CREATE TABLE BankCode (
+    bank_code VARCHAR(10) NOT NULL PRIMARY KEY,
+    bank_name VARCHAR(100) NOT NULL,
+    bank_icon VARCHAR(255)
+);
+
+-- 은행 코드 데이터 삽입
+INSERT INTO BankCode (bank_code, bank_name, bank_icon) VALUES
+('001', 'KB국민', '/images/banks/kb.png'),
+('002', '신한', '/images/banks/shinhan.png'),
+('003', '하나', '/images/banks/hana.png'),
+('004', '우리', '/images/banks/woori.png'),
+('005', 'NH농협', '/images/banks/nh.png'),
+('006', 'IBK기업', '/images/banks/ibk.png'),
+('007', 'KDB산업', '/images/banks/kdb.png'),
+('008', '신협', '/images/banks/shinhyup.png'),
+('009', 'SC제일', '/images/banks/sc.png'),
+('010', '우정사업본부', '/images/banks/post.png'),
+('011', '부산', '/images/banks/busan.png'),
+('012', 'iM뱅크', '/images/banks/im.png');
+
+-- 샘플 포인트 데이터 추가 (테스트용)
+INSERT INTO Point (point_id, user_id, point_amount, type_detail, created_at, total_amount, type) VALUES
+(UNHEX(REPLACE(UUID(), '-', '')), UNHEX(REPLACE('ac7b2a8c-6a65-4ccf-aa88-327c20c38f27', '-', '')), 10000, '챌린지 성공', '2024-07-14 15:32:00', 10000, 1),
+(UNHEX(REPLACE(UUID(), '-', '')), UNHEX(REPLACE('ac7b2a8c-6a65-4ccf-aa88-327c20c38f27', '-', '')), 5000, '퀴즈 완료', '2024-07-12 12:00:00', 15000, 1),
+(UNHEX(REPLACE(UUID(), '-', '')), UNHEX(REPLACE('ac7b2a8c-6a65-4ccf-aa88-327c20c38f27', '-', '')), 20000, '환급', '2024-07-10 10:30:00', -5000, 2),
+(UNHEX(REPLACE(UUID(), '-', '')), UNHEX(REPLACE('ac7b2a8c-6a65-4ccf-aa88-327c20c38f27', '-', '')), 8000, '목표 달성', '2024-07-08 14:20:00', 15000, 1),
+(UNHEX(REPLACE(UUID(), '-', '')), UNHEX(REPLACE('ac7b2a8c-6a65-4ccf-aa88-327c20c38f27', '-', '')), 15000, '출금', '2024-07-05 16:45:00', 0, 2);
+
 # INSERT INTO user
 # VALUES (
 #            UNHEX(REPLACE(UUID(), '-', '')), -- 또는 UUID_TO_BIN(UUID())

@@ -6,10 +6,12 @@ import org.ozea.security.util.JwtProcessor;
 import org.ozea.user.dto.UserDTO;
 import org.ozea.user.dto.UserSignupDTO;
 import org.ozea.user.service.UserService;
+import org.ozea.point.service.PointService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -23,6 +25,7 @@ import java.util.UUID;
 public class UserController {
     final UserService service;
     final JwtProcessor jwtProcessor;
+    final PointService pointService;
     
     // Rate Limiting을 위한 맵
     private final Map<String, AtomicInteger> loginAttempts = new ConcurrentHashMap<>();
@@ -653,6 +656,48 @@ public class UserController {
             Map<String, Object> response = new HashMap<>();
             response.put("success", false);
             response.put("message", "테스트 사용자 생성에 실패했습니다: " + e.getMessage());
+            return ResponseEntity.badRequest().body(response);
+        }
+    }
+
+    // 내 포인트 조회
+    @GetMapping("/points")
+    public ResponseEntity<Map<String, Object>> getMyPoints(@RequestHeader("Authorization") String authHeader) {
+        try {
+            String token = authHeader.replace("Bearer ", "");
+            String email = jwtProcessor.getUsername(token);
+            UserDTO user = service.getUserByEmail(email);
+            Integer totalPoints = pointService.getTotalPoints(UUID.fromString(user.getUserId()));
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", true);
+            response.put("totalPoints", totalPoints);
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            log.error("포인트 조회 실패: {}", e.getMessage());
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", false);
+            response.put("message", "포인트 조회 실패: " + e.getMessage());
+            return ResponseEntity.badRequest().body(response);
+        }
+    }
+
+    // 내 포인트 적립/출금 내역 조회
+    @GetMapping("/points/history")
+    public ResponseEntity<Map<String, Object>> getMyPointHistory(@RequestHeader("Authorization") String authHeader) {
+        try {
+            String token = authHeader.replace("Bearer ", "");
+            String email = jwtProcessor.getUsername(token);
+            UserDTO user = service.getUserByEmail(email);
+            List<org.ozea.point.dto.PointDTO> history = pointService.getPointHistory(UUID.fromString(user.getUserId()));
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", true);
+            response.put("history", history);
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            log.error("포인트 내역 조회 실패: {}", e.getMessage());
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", false);
+            response.put("message", "포인트 내역 조회 실패: " + e.getMessage());
             return ResponseEntity.badRequest().body(response);
         }
     }
