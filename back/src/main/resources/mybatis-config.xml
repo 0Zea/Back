@@ -13,6 +13,7 @@
         <package name="org.ozea.board.domain" />
         <package name="org.ozea.user.domain" />
         <package name="org.ozea.goal.domain" />
+        <package name="org.ozea.asset.domain"/>
     </typeAliases>
 
     <typeHandlers>
@@ -20,9 +21,10 @@
     </typeHandlers>
 
     <mappers>
-        <mapper resource="org/ozea/goal/mapper/GoalMapper.xml" />
+        <mapper resource="org/ozea/goal/mapper/GoalMapper.xml"/>
         <mapper resource="org/ozea/user/mapper/UserMapper.xml"/>
         <mapper resource="org/ozea/inquiry/mapper/InquiryMapper.xml"/>
+        <mapper resource="org/ozea/asset/mapper/AssetMapper.xml"/>
     </mappers>
 
 
