@@ -34,13 +34,23 @@ public class UserServiceImpl implements UserService {
     @Override
     public UserDTO signup(UserSignupDTO dto) {
         // 비밀번호 정책 검증
-        validatePassword(dto.getPassword());
-        
+//        validatePassword(dto.getPassword());
+
+        // 로컬 유저인 경우에만 비밀번호 검증
+        if (!dto.isKakao()) {
+            validatePassword(dto.getPassword());
+        }
+
         // DTO → VO
         User user = dto.toVO();
 
         // 비밀번호 암호화
-        user.setPassword(passwordEncoder.encode(user.getPassword()));
+//        user.setPassword(passwordEncoder.encode(user.getPassword()));
+        if (dto.getPassword() != null) {
+            user.setPassword(passwordEncoder.encode(dto.getPassword()));
+        } else {
+            user.setPassword(null);
+        }
 
         // DB 저장
         mapper.insertUser(user);

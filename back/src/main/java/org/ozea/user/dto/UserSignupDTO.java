@@ -23,6 +23,7 @@ public class UserSignupDTO {
     private Long salary;          // 월급
     private Long payAmount;       // 월 지출비
     private String mbti;          // 금융 MBTI
+    private boolean kakao;
 
     // DTO → VO
     public User toVO() {

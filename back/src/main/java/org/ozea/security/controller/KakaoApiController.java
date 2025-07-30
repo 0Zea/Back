@@ -9,6 +9,7 @@ import org.apache.http.impl.client.*;
 import org.apache.http.util.EntityUtils;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.message.BasicNameValuePair;
+import org.ozea.security.account.domain.CustomUser;
 import org.ozea.security.config.KakaoUserDetailsService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -60,7 +61,7 @@ public class KakaoApiController {
      * @throws Exception 예외 발생 시
      */
     @GetMapping("/api/auth/kakao/callback")
-    public ResponseEntity<AuthResultDTO> kakaoApiCallback(@RequestParam("code") String code) throws Exception {
+    public ResponseEntity<?> kakaoApiCallback(@RequestParam("code") String code) throws Exception {
         String accessToken = getAccessToken(code); // 인증 코드로 액세스 토큰을 발급받습니다.
         Map<String, Object> userInfo = getUserInfo(accessToken); // 액세스 토큰으로 사용자 정보를 조회합니다.
 
@@ -87,21 +88,40 @@ public class KakaoApiController {
         }
 
         // Spring Security 인증 처리를 수행합니다.
-        UserDetails userDetails = kakaoUserDetailsService.loadUserByUsername(email, nickname);
-        Authentication authentication = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+        //UserDetails userDetails = kakaoUserDetailsService.loadUserByUsername(email, nickname);
+        //Authentication authentication = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+        //SecurityContextHolder.getContext().setAuthentication(authentication);
+
+        // 👉 DB 저장 없이 유저 정보 조회
+        CustomUser customUser = kakaoUserDetailsService.loadKakaoUser(email, nickname);
+
+        // 👉 신규 유저인 경우: 401 반환
+        if (customUser.isNewUser()) {
+            Map<String, String> response = new HashMap<>();
+            response.put("email", email);
+            response.put("name", nickname);
+            return ResponseEntity.status(401).body(response);
+        }
+
+        // 👉 기존 유저인 경우: 로그인 처리
+        Authentication authentication = new UsernamePasswordAuthenticationToken(
+                customUser, null, customUser.getAuthorities()
+        );
         SecurityContextHolder.getContext().setAuthentication(authentication);
 
         // JWT 토큰 생성
         String token = jwtProcessor.generateToken(email);
 
         // 사용자 정보 DTO 구성
-        org.ozea.user.domain.User user = kakaoUserDetailsService.getUserByEmail(email);
-        UserInfoDTO userInfoDTO = UserInfoDTO.of(user);
+//        org.ozea.user.domain.User user = kakaoUserDetailsService.getUserByEmail(email);
+//        UserInfoDTO userInfoDTO = UserInfoDTO.of(user);
+        UserInfoDTO userInfoDTO = UserInfoDTO.of(customUser.getUser());
 
         // 토큰 + 사용자 정보 DTO 반환
         AuthResultDTO result = new AuthResultDTO(token, userInfoDTO);
 
-        return ResponseEntity.ok(result);
+//        return ResponseEntity.ok(result);
+        return ResponseEntity.ok(new AuthResultDTO(token, userInfoDTO));
     }
 
     /**
