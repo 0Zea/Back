@@ -20,6 +20,7 @@ foreign key(user_id) references USER(user_id)
 #            'intp',
 #            '01000000000',
 #            '2000-01-16',
+
 #            'female',
 #            10000000,
 #            1000000,
@@ -97,3 +98,5 @@ create table Inquiry(
 );
 select * from inquiry where info_id='1afe6ef6-67b0-11f0-b1df-8cb0e9d84583';
 select * from inquiry;
+
+delete from USER;
