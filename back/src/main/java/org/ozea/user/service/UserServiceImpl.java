@@ -13,6 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.Random;
+import java.util.UUID;
 
 @Log4j2
 @Service
@@ -134,26 +135,53 @@ public class UserServiceImpl implements UserService {
     
     // 비밀번호 변경
     @Override
-    @Transactional
     public boolean changePassword(String email, String newPassword) {
-        try {
-            User user = mapper.getUserByEmail(email);
-            if (user == null) {
-                return false;
-            }
-            
-            // 새 비밀번호 암호화
-            String encodedPassword = passwordEncoder.encode(newPassword);
-            user.setPassword(encodedPassword);
-            
-            // DB 업데이트
-            mapper.updateUser(user);
-            
-            return true;
-        } catch (Exception e) {
-            log.error("비밀번호 변경 실패: {}", e.getMessage());
-            return false;
+        // 비밀번호 정책 검증
+        validatePassword(newPassword);
+        
+        // 사용자 조회
+        User user = mapper.getUserByEmail(email);
+        if (user == null) {
+            throw new NoSuchElementException("사용자를 찾을 수 없습니다.");
         }
+        
+        // 비밀번호 암호화
+        String encodedPassword = passwordEncoder.encode(newPassword);
+        user.setPassword(encodedPassword);
+        
+        // DB 업데이트
+        mapper.updateUser(user);
+        
+        log.info("비밀번호 변경 성공: email={}", email);
+        return true;
+    }
+    
+    // 프로필 업데이트
+    @Override
+    @Transactional
+    public UserDTO updateUserProfile(User user) {
+        // 사용자 존재 여부 확인
+        User existingUser = mapper.getUserByEmail(user.getEmail());
+        if (existingUser == null) {
+            throw new NoSuchElementException("사용자를 찾을 수 없습니다.");
+        }
+        
+        // 업데이트할 필드들 설정
+        if (user.getName() != null) existingUser.setName(user.getName());
+        if (user.getMbti() != null) existingUser.setMbti(user.getMbti());
+        if (user.getPhoneNum() != null) existingUser.setPhoneNum(user.getPhoneNum());
+        if (user.getBirthDate() != null) existingUser.setBirthDate(user.getBirthDate());
+        if (user.getSex() != null) existingUser.setSex(user.getSex());
+        if (user.getSalary() != null) existingUser.setSalary(user.getSalary());
+        if (user.getPayAmount() != null) existingUser.setPayAmount(user.getPayAmount());
+        
+        // DB 업데이트
+        mapper.updateUser(existingUser);
+        
+        log.info("프로필 업데이트 성공: email={}", user.getEmail());
+        
+        // 업데이트된 사용자 정보 반환
+        return getUserByEmail(user.getEmail());
     }
     
     // 6자리 랜덤 인증번호 생성
@@ -164,5 +192,141 @@ public class UserServiceImpl implements UserService {
             code.append(random.nextInt(10));
         }
         return code.toString();
+    }
+
+    // 마이페이지 - 내 정보 조회
+    @Override
+    public UserDTO getMyInfo(UUID userId) {
+        log.info("내 정보 조회: userId={}", userId);
+        User user = mapper.findById(userId);
+        if (user == null) {
+            throw new RuntimeException("사용자를 찾을 수 없습니다.");
+        }
+        return UserDTO.of(user);
+    }
+
+    // 마이페이지 - 자산정보 수정
+    @Override
+    @Transactional
+    public UserDTO updateAssetInfo(UUID userId, Long salary, Long payAmount) {
+        log.info("자산정보 수정: userId={}, salary={}, payAmount={}", userId, salary, payAmount);
+        
+        User user = mapper.findById(userId);
+        if (user == null) {
+            throw new RuntimeException("사용자를 찾을 수 없습니다.");
+        }
+        
+        // 자산정보 업데이트
+        user.setSalary(salary);
+        user.setPayAmount(payAmount);
+        
+        mapper.updateUser(user);
+        
+        log.info("자산정보 수정 완료: userId={}", userId);
+        return UserDTO.of(user);
+    }
+
+    // 마이페이지 - MBTI 수정
+    @Override
+    @Transactional
+    public UserDTO updateMbti(UUID userId, String mbti) {
+        log.info("MBTI 수정: userId={}, mbti={}", userId, mbti);
+        
+        User user = mapper.findById(userId);
+        if (user == null) {
+            throw new RuntimeException("사용자를 찾을 수 없습니다.");
+        }
+        
+        // MBTI 유효성 검증
+        if (mbti == null || mbti.trim().isEmpty()) {
+            throw new RuntimeException("MBTI는 필수 입력 항목입니다.");
+        }
+        
+        // MBTI 업데이트
+        user.setMbti(mbti);
+        mapper.updateUser(user);
+        
+        log.info("MBTI 수정 완료: userId={}, mbti={}", userId, mbti);
+        return UserDTO.of(user);
+    }
+
+    // 마이페이지 - 비밀번호 수정
+    @Override
+    @Transactional
+    public boolean updatePassword(UUID userId, String newPassword) {
+        log.info("비밀번호 수정: userId={}", userId);
+        
+        User user = mapper.findById(userId);
+        if (user == null) {
+            throw new RuntimeException("사용자를 찾을 수 없습니다.");
+        }
+        
+        // 비밀번호 정책 검증
+        validatePassword(newPassword);
+        
+        // 비밀번호 암호화 후 업데이트
+        user.setPassword(passwordEncoder.encode(newPassword));
+        mapper.updateUser(user);
+        
+        log.info("비밀번호 수정 완료: userId={}", userId);
+        return true;
+    }
+    
+    // 마이페이지 - 현재 비밀번호 확인 후 비밀번호 수정
+    @Override
+    @Transactional
+    public boolean updatePasswordWithCurrentCheck(UUID userId, String currentPassword, String newPassword) {
+        log.info("현재 비밀번호 확인 후 비밀번호 수정: userId={}", userId);
+        
+        User user = mapper.findById(userId);
+        if (user == null) {
+            throw new RuntimeException("사용자를 찾을 수 없습니다.");
+        }
+        
+        // 현재 비밀번호 확인
+        boolean currentPasswordMatches = passwordEncoder.matches(currentPassword, user.getPassword()) || 
+                                       currentPassword.equals(user.getPassword());
+        
+        if (!currentPasswordMatches) {
+            log.warn("현재 비밀번호가 일치하지 않습니다: userId={}", userId);
+            return false;
+        }
+        
+        // 새 비밀번호가 현재 비밀번호와 같은지 확인
+        if (currentPassword.equals(newPassword)) {
+            throw new RuntimeException("새 비밀번호는 현재 비밀번호와 달라야 합니다.");
+        }
+        
+        // 비밀번호 정책 검증
+        validatePassword(newPassword);
+        
+        // 비밀번호 암호화 후 업데이트
+        user.setPassword(passwordEncoder.encode(newPassword));
+        mapper.updateUser(user);
+        
+        log.info("비밀번호 수정 완료: userId={}", userId);
+        return true;
+    }
+
+    // 마이페이지 - 회원 탈퇴
+    @Override
+    @Transactional
+    public boolean withdrawUser(UUID userId) {
+        log.info("회원 탈퇴: userId={}", userId);
+        
+        User user = mapper.findById(userId);
+        if (user == null) {
+            throw new RuntimeException("사용자를 찾을 수 없습니다.");
+        }
+        
+        try {
+            // 사용자와 관련된 모든 데이터 삭제 (외래키 제약조건 해결)
+            mapper.deleteUserData(userId);
+            log.info("회원 탈퇴 완료: userId={}", userId);
+            return true;
+        } catch (Exception e) {
+            log.error("회원 탈퇴 실패: userId={}, error={}", userId, e.getMessage());
+            throw new RuntimeException("회원 탈퇴 처리 중 오류가 발생했습니다: " + e.getMessage());
+        }
     }
 }

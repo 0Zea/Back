@@ -20,6 +20,7 @@ foreign key(user_id) references USER(user_id)
 #            'intp',
 #            '01000000000',
 #            '2000-01-16',
+
 #            'female',
 #            10000000,
 #            1000000,
@@ -120,3 +121,4 @@ create table notice(
                        foreign key(admin_id) references USER(user_id)
 );
 select * from notice;
+
