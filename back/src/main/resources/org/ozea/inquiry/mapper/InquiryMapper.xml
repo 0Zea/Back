@@ -4,6 +4,16 @@
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <!-- org.ozea.inquiry.mapper.InquiryMapper 인터페이스와 매핑되는 MyBatis 매퍼 파일입니다. -->
 <mapper namespace="org.ozea.inquiry.mapper.InquiryMapper">
+    <sql id="maskedUserName">
+        (
+            CASE
+            WHEN LENGTH(user_name) >= 2 THEN
+            CONCAT(SUBSTRING(user_name, 1, 1), '*', SUBSTRING(user_name, 3))
+            ELSE
+            user_name
+            END
+        )
+    </sql>
     <resultMap id="inquiryMap" type="org.ozea.inquiry.domain.InquiryVO">
         <id column="info_id" property="infoId" typeHandler="org.ozea.common.type.UUIDTypeHandler"/>
         <result column="user_id" property="userId" typeHandler="org.ozea.common.type.UUIDTypeHandler"/>
@@ -13,19 +23,24 @@
         <result column="is_answered" property="isAnswered"/>
         <result column="created_at" property="createdAt"/>
         <result column="answered_content" property="answeredContent"/>
+        <result column="view_count" property="viewCount"/>
     </resultMap>
     <insert id="create" parameterType="org.ozea.inquiry.domain.InquiryVO">
         INSERT INTO inquiry(
-        info_id, user_id, title, content, user_name, is_answered, created_at
+        info_id, user_id, title, content, user_name, is_answered
         ) VALUES(
         #{infoId, javaType=java.util.UUID, jdbcType=BINARY},
         #{userId, javaType=java.util.UUID, jdbcType=BINARY},
         #{title},
         #{content},
         #{userName},
-        false,
-        NOW()  <!-- DB 함수로 현재 시각 삽입 -->
+        false
         )
+    </insert>
+    <insert id="increaseViewCount">
+        UPDATE Inquiry
+        SET view_count = view_count + 1
+        WHERE info_id = #{infoId, javaType=java.util.UUID, jdbcType=BINARY};
     </insert>
     <update id="update">
         UPDATE inquiry
@@ -54,7 +69,16 @@
         delete from inquiry where info_id = #{infoId, javaType=java.util.UUID, jdbcType=BINARY}
     </delete>
     <select id="get" parameterType="java.util.UUID" resultMap="inquiryMap">
-        SELECT *
+        SELECT
+        info_id,
+        user_id,
+        title,
+        content,
+        is_answered,
+        created_at,
+        answered_content,
+        <include refid="maskedUserName"/> AS user_name,
+        view_count
         FROM inquiry
         WHERE info_id = #{infoId, javaType=java.util.UUID, jdbcType=BINARY}
     </select>
@@ -63,12 +87,31 @@
         select count(*) from inquiry
     </select>
     <select id="getPage" resultMap="inquiryMap">
-        SELECT *
+        SELECT
+        info_id,
+        user_id,
+        title,
+        content,
+        is_answered,
+        created_at,
+        answered_content,
+        <include refid="maskedUserName"/> AS user_name,
+        view_count
         FROM inquiry
-        ORDER BY created_at desc LIMIT #{offset}, #{amount}
+        ORDER BY created_at DESC
+        LIMIT #{offset}, #{amount}
     </select>
     <select id="findByTitleContaining" resultMap="inquiryMap">
-        SELECT *
+        SELECT
+        info_id,
+        user_id,
+        title,
+        content,
+        is_answered,
+        created_at,
+        answered_content,
+        <include refid="maskedUserName"/> AS user_name,
+        view_count
         FROM inquiry
         WHERE title LIKE CONCAT('%', #{keyword}, '%')
         ORDER BY created_at DESC
@@ -79,5 +122,21 @@
         SELECT COUNT(*)
         FROM inquiry
         WHERE title LIKE CONCAT('%', #{keyword}, '%')
+    </select>
+    <select id="getTopFaqInquiries" resultMap="inquiryMap">
+        SELECT
+        info_id,
+        user_id,
+        title,
+        content,
+        is_answered,
+        created_at,
+        answered_content,
+        <include refid="maskedUserName"/> AS user_name,
+        view_count
+        FROM inquiry
+        WHERE view_count >= 10
+        ORDER BY view_count DESC, created_at DESC
+        LIMIT 5
     </select>
 </mapper>

@@ -100,8 +100,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                         "/swagger-ui.html",
                         "/swagger-resources/**",
                         "/v2/api-docs",
-                        "/webjars/**",
-                        "/api/inquiry/**").permitAll() // 인증 없이 접근 허용
+                        "/webjars/**","api/inquiry/**","api/notice/**").permitAll() // 인증 없이 접근 허용
                 .antMatchers("/api/auth/**").permitAll() // 회원가입, 로그인 API
                 .antMatchers("/api/auth/kakao/callback").permitAll() // 카카오 로그인 API
                 .anyRequest().authenticated() // 그 외의 모든 요청은 인증된 사용자만 접근 가능합니다.
@@ -137,7 +136,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         configuration.setExposedHeaders(Arrays.asList("*"));
         configuration.setAllowCredentials(false);
         configuration.setMaxAge(3600L);
-        
+
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
         return source;

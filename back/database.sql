@@ -98,5 +98,27 @@ create table Inquiry(
 );
 select * from inquiry where info_id='1afe6ef6-67b0-11f0-b1df-8cb0e9d84583';
 select * from inquiry;
+drop table if exists Inquiry;
+CREATE TABLE Inquiry (
+                         info_id BINARY(16) NOT NULL PRIMARY KEY,
+                         user_id BINARY(16) NOT NULL,
+                         user_name VARCHAR(255) NOT NULL,
+                         content VARCHAR(1000) NOT NULL,
+                         title VARCHAR(500) NOT NULL,
+                         is_answered BOOLEAN NOT NULL,
+                         created_at DATETIME DEFAULT now(),
+                         answered_content VARCHAR(1000) NULL,
+                         view_count INT NOT NULL DEFAULT 0,
+                         FOREIGN KEY(user_id) REFERENCES USER(user_id)
+);
+DROP TABLE IF EXISTS notice;
+create table notice(
+                       notice_id BINARY(16) NOT NULL primary key,
+                       admin_id BINARY(16) NOT NULL,
+                       title varchar(500) not null,
+                       content varchar(1000) not null,
+                       created_at DATETIME DEFAULT now(),
+                       foreign key(admin_id) references USER(user_id)
+);
+select * from notice;
 
-delete from USER;

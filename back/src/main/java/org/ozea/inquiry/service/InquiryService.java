@@ -16,4 +16,6 @@ public interface InquiryService {
     InquiryDTO delete(UUID infoId);
     Page<InquiryDTO> getPage(PageRequest pageRequest);
     Page<InquiryDTO> findByTitleContaining(String keyword, PageRequest pageRequest);
+    void increaseViewCount(UUID infoId);
+    List<InquiryDTO> getFaqList();
 }
