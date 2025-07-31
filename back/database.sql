@@ -1,169 +1,228 @@
-use kongzea;
-drop table if exists Inquiry;
-create table Inquiry(
-info_id BINARY(16) NOT NULL primary key,
-user_id BINARY(16) NOT NULL,
-user_name varchar(255) not null,
-content varchar(1000) not null,
-title varchar(500) not null,
-is_answered boolean NOT null,
-created_at TIMESTAMP NOT null,
-answered_content VARcHAR(1000) null,
-foreign key(user_id) references USER(user_id)
+CREATE TABLE `Transaction` (
+                               `transaction_id`	INT	NOT NULL	COMMENT '인덱스 자동 증가+1',
+                               `account_id`	INT	NOT NULL	COMMENT '인덱스 자동 증가+1',
+                               `ts_type`	VARCHAR(255)	NOT NULL	COMMENT '거래 타입(입금, 출금, 상환)',
+                               `amount`	BIGINT	NOT NULL	COMMENT '거래 금액',
+                               `ts_date`	DATETIME	NOT NULL	COMMENT '거래 일시',
+                               `memo`	VARCHAR(255)	NULL	COMMENT '거래 내역'
 );
 
--- Point 테이블 추가
-DROP TABLE IF EXISTS Point;
-CREATE TABLE Point (
-    point_id BINARY(16) NOT NULL PRIMARY KEY,
-    user_id BINARY(16) NOT NULL,
-    point_amount INT NOT NULL,
-    type_detail VARCHAR(40) NOT NULL, -- 상세 내역
-    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    total_amount INT NOT NULL,
-    type INT NOT NULL, -- 1: 적립, 2: 출금
-    FOREIGN KEY(user_id) REFERENCES USER(user_id)
+CREATE TABLE `BankCode` (
+                            `bank_code`	VARCHAR(10)	NOT NULL	COMMENT '해당 은행 코드',
+                            `bank_icon`	VARCHAR(100)	NOT NULL	COMMENT '아이콘 URL',
+                            `bank_name`	VARCHAR(10)	NOT NULL	COMMENT '은행 이름'
 );
 
--- BankCode 테이블 추가
-DROP TABLE IF EXISTS BankCode;
-CREATE TABLE BankCode (
-    bank_code VARCHAR(10) NOT NULL PRIMARY KEY,
-    bank_name VARCHAR(100) NOT NULL,
-    bank_icon VARCHAR(255)
+CREATE TABLE `Point` (
+                         `point_id`	BINARY(16)	NOT NULL	COMMENT 'UUID(식별자)',
+                         `user_id`	BINARY(16)	NOT NULL	COMMENT 'UUID(식별자)',
+                         `point_amount`	INT	NOT NULL	COMMENT '적립 및 환급 포인트',
+                         `typeDetail`	VARCHAR(40)	NOT NULL	COMMENT '상세내역',
+                         `created_at`	TIMESTAMP	NOT NULL	COMMENT '적립한 시간',
+                         `total_amount`	INT	NOT NULL	COMMENT '소유한 포인트',
+                         `type`	INT	NOT NULL	COMMENT '적립/출금'
 );
 
--- 은행 코드 데이터 삽입
-INSERT INTO BankCode (bank_code, bank_name, bank_icon) VALUES
-('001', 'KB국민', '/images/banks/kb.png'),
-('002', '신한', '/images/banks/shinhan.png'),
-('003', '하나', '/images/banks/hana.png'),
-('004', '우리', '/images/banks/woori.png'),
-('005', 'NH농협', '/images/banks/nh.png'),
-('006', 'IBK기업', '/images/banks/ibk.png'),
-('007', 'KDB산업', '/images/banks/kdb.png'),
-('008', '신협', '/images/banks/shinhyup.png'),
-('009', 'SC제일', '/images/banks/sc.png'),
-('010', '우정사업본부', '/images/banks/post.png'),
-('011', '부산', '/images/banks/busan.png'),
-('012', 'iM뱅크', '/images/banks/im.png');
-
--- 샘플 포인트 데이터 추가 (테스트용)
-INSERT INTO Point (point_id, user_id, point_amount, type_detail, created_at, total_amount, type) VALUES
-(UNHEX(REPLACE(UUID(), '-', '')), UNHEX(REPLACE('ac7b2a8c-6a65-4ccf-aa88-327c20c38f27', '-', '')), 10000, '챌린지 성공', '2024-07-14 15:32:00', 10000, 1),
-(UNHEX(REPLACE(UUID(), '-', '')), UNHEX(REPLACE('ac7b2a8c-6a65-4ccf-aa88-327c20c38f27', '-', '')), 5000, '퀴즈 완료', '2024-07-12 12:00:00', 15000, 1),
-(UNHEX(REPLACE(UUID(), '-', '')), UNHEX(REPLACE('ac7b2a8c-6a65-4ccf-aa88-327c20c38f27', '-', '')), 20000, '환급', '2024-07-10 10:30:00', -5000, 2),
-(UNHEX(REPLACE(UUID(), '-', '')), UNHEX(REPLACE('ac7b2a8c-6a65-4ccf-aa88-327c20c38f27', '-', '')), 8000, '목표 달성', '2024-07-08 14:20:00', 15000, 1),
-(UNHEX(REPLACE(UUID(), '-', '')), UNHEX(REPLACE('ac7b2a8c-6a65-4ccf-aa88-327c20c38f27', '-', '')), 15000, '출금', '2024-07-05 16:45:00', 0, 2);
-
-# INSERT INTO user
-# VALUES (
-#            UNHEX(REPLACE(UUID(), '-', '')), -- 또는 UUID_TO_BIN(UUID())
-#            '김콕재',
-#            'jun@naver.com',
-#            '12',
-#            'intp',
-#            '01000000000',
-#            '2000-01-16',
-
-#            'female',
-#            10000000,
-#            1000000,
-#            'user'
-#        );
-# INSERT INTO user
-#          VALUES (
-#                     UNHEX(REPLACE(UUID(), '-', '')), -- 또는 UUID_TO_BIN(UUID())
-#                     '운영자',
-#                     'root@naver.com',
-#                     '12',
-#                     'intp',
-#                     '01000000000',
-#                     '2999-01-16',
-#                     'female',
-#                     10000000,
-#                     1000000,
-#                     'admin'
-#                 );
-select * from user;
-# 24a0f5c7-66d7-11f0-8ab4-8cb0e9d84583 김콕재 user
-# 3e7db2f4-66d7-11f0-8ab4-8cb0e9d84583 운영자 admin
-select * from inquiry;
-INSERT INTO inquiry
-VALUES (
-           UNHEX(REPLACE(UUID(), '-', '')),  -- UUID를 BINARY(16)으로 변환
-           UNHEX(REPLACE('24a0f5c7-66d7-11f0-8ab4-8cb0e9d84583', '-', '')),  -- 예시 user_id (실제로는 존재하는 user_id 사용)
-           '김콕재',
-           '문의 내용입니다.',
-           '문의 제목입니다.',
-           false,
-           '2024-07-01 15:30:00',  -- 원하는 TIMESTAMP 값
-           null
-       );
-INSERT INTO inquiry
-VALUES (
-           UNHEX(REPLACE(UUID(), '-', '')),  -- UUID를 BINARY(16)으로 변환
-           UNHEX(REPLACE('24a0f5c7-66d7-11f0-8ab4-8cb0e9d84583', '-', '')),  -- 예시 user_id (실제로는 존재하는 user_id 사용)
-           '김콕재',
-           '제 금융 정보가 업데이트가 안됩니다 ㅜㅜ',
-           '금융 정보 업데이트 오류',
-           false,
-           '2024-07-01 15:50:00',  -- 원하는 TIMESTAMP 값
-           null
-       );
-select *
-    from inquiry
-    where info_id = 'a94d8367-66e0-11f0-8ab4-8cb0e9d84583';
-select * from inquiry order by created_at desc;
-INSERT INTO inquiry
-                      VALUES (
-                                 UNHEX(REPLACE(UUID(), '-', '')),  -- UUID를 BINARY(16)으로 변환
-                                 UNHEX(REPLACE('24a0f5c7-66d7-11f0-8ab4-8cb0e9d84583', '-', '')),  -- 예시 user_id (실제로는 존재하는 user_id 사용)
-                                 '김콕재',
-                                 '제 금융 정보가 업데이트가 안됩니다 ㅜㅜ제 금융 정보가 업데이트가 안됩니다 ㅜㅜ제 금융 정보가 업데이트가 안됩니다 ㅜㅜ제 금융 정보가 업데이트가 안됩니다 ㅜㅜ제 금융 정보가 업데이트가 안됩니다 ㅜㅜ제 금융 정보가 업데이트가 안됩니다 ㅜㅜ제 금융 정보가 업데이트가 안됩니다 ㅜㅜ제 금융 정보가 업데이트가 안됩니다 ㅜㅜ제 금융 정보가 업데이트가 안됩니다 ㅜㅜ',
-                                 'content 최대 길이',
-                                 false,
-                                 '2024-07-01 15:50:00',  -- 원하는 TIMESTAMP 값
-                                 null
-                             );
-SELECT *
-FROM inquiry
-WHERE title LIKE CONCAT('%문의%') ORDER BY created_at DESC;
-drop table if exists Inquiry;
-create table Inquiry(
-                        info_id BINARY(16) NOT NULL primary key,
-                        user_id BINARY(16) NOT NULL,
-                        user_name varchar(255) not null,
-                        content varchar(1000) not null,
-                        title varchar(500) not null,
-                        is_answered boolean NOT null,
-                        created_at TIMESTAMP NOT null,
-                        answered_content VARcHAR(1000) null,
-                        foreign key(user_id) references USER(user_id)
+CREATE TABLE `Inquiry` (
+                           `info_id`	BINARY(16)	NOT NULL	COMMENT 'UUID(식별자)',
+                           `user_id`	BINARY(16)	NOT NULL	COMMENT 'UUID(식별자)',
+                           `user_name`	VARCHAR(255)	NULL,
+                           `content`	VARCHAR(1000)	NOT NULL	COMMENT '문의 내용',
+                           `title`	VARCHAR(500)	NOT NULL	COMMENT '문의 제목',
+                           `is_answered`	BOOLEAN	NOT NULL	COMMENT '답변 O, X(관리자가 수정 시 True)',
+                           `created_at`	TIMESTAMP	NOT NULL	COMMENT '문의 등록일자',
+                           `answered_content`	VARCHAR(1000)	NULL	COMMENT '답변 내용',
+                           `view_count`	INT	NOT NULL	COMMENT '자주 물어보는 사항 필터'
 );
-select * from inquiry where info_id='1afe6ef6-67b0-11f0-b1df-8cb0e9d84583';
-select * from inquiry;
-drop table if exists Inquiry;
-CREATE TABLE Inquiry (
-                         info_id BINARY(16) NOT NULL PRIMARY KEY,
-                         user_id BINARY(16) NOT NULL,
-                         user_name VARCHAR(255) NOT NULL,
-                         content VARCHAR(1000) NOT NULL,
-                         title VARCHAR(500) NOT NULL,
-                         is_answered BOOLEAN NOT NULL,
-                         created_at DATETIME DEFAULT now(),
-                         answered_content VARCHAR(1000) NULL,
-                         view_count INT NOT NULL DEFAULT 0,
-                         FOREIGN KEY(user_id) REFERENCES USER(user_id)
+
+CREATE TABLE `Notice` (
+                          `Notice_id`	BINARY(16)	NOT NULL	COMMENT 'UUID(식별자)',
+                          `admin_id`	BINARY(16)	NOT NULL	COMMENT 'UUID(식별자)/User.user(admin)',
+                          `title`	VARCHAR(500)	NOT NULL	COMMENT '공지사항 제목',
+                          `content`	VARCHAR(1000)	NOT NULL	COMMENT '공지사항 내용',
+                          `created_at`	DATETIME	NOT NULL	COMMENT '공지사항 등록일자'
 );
-DROP TABLE IF EXISTS notice;
-create table notice(
-                       notice_id BINARY(16) NOT NULL primary key,
-                       admin_id BINARY(16) NOT NULL,
-                       title varchar(500) not null,
-                       content varchar(1000) not null,
-                       created_at DATETIME DEFAULT now(),
-                       foreign key(admin_id) references USER(user_id)
+
+CREATE TABLE `Product` (
+                           `fin_prdt_cd`	VARCHAR(50)	NOT NULL,
+                           `dcls_month`	VARCHAR(6)	NOT NULL,
+                           `fin_co_no`	VARCHAR(20)	NOT NULL,
+                           `kor_co_nm`	VARCHAR(100)	NOT NULL,
+                           `fin_prdt_nm`	VARCHAR(255)	NOT NULL,
+                           `join_way`	VARCHAR(500)	NULL,
+                           `mtrt_int`	VARCHAR(255)	NULL,
+                           `spcl_cnd`	VARCHAR(500)	NULL,
+                           `join_deny`	VARCHAR(10)	NULL,
+                           `join_member`	VARCHAR(255)	NULL,
+                           `etc_note`	VARCHAR(1000)	NULL,
+                           `max_limit`	BIGINT	NULL,
+                           `dcls_strt_day`	VARCHAR(10)	NULL,
+                           `dcls_end_day`	VARCHAR(10)	NULL,
+                           `fin_co_subm_day`	VARCHAR(14)	NULL
 );
-select * from notice;
+
+CREATE TABLE `Financial Term` (
+                                  `id`	INT	NOT NULL,
+                                  `description`	VARCHAR(1000)	NOT NULL	COMMENT '용어 설명',
+                                  `categoty`	VARCHAR(10)	NOT NULL	COMMENT '용어 종류',
+                                  `title`	VARCHAR(50)	NOT NULL	COMMENT '용어 이름'
+);
+
+CREATE TABLE `AnnuityOption` (
+                                 `option_id`	INT	NULL,
+                                 `fin_prdt_cd`	VARCHAR(50)	NOT NULL	COMMENT '금융상품 코드',
+                                 `fin_co_no`	varchar(20)	NOT NULL	COMMENT '금융회사코드',
+                                 `pnsn_entr_age`	INT	NULL	COMMENT '가입 나이',
+                                 `mon_paym_atm`	INT	NULL	COMMENT '월 납입 금액(예: 10 -> 10만원)',
+                                 `paym_prd`	INT	NULL	COMMENT '납입 기간 (예: 10 -> 10년)',
+                                 `pnsn_strt_age`	INT	NULL	COMMENT '연금 수령 시작 나이 (예: 60 -> 60세)',
+                                 `pnsn_recp_amt`	BIGINT	NULL	COMMENT '예상 연금 수령액 (원 단위)',
+                                 `pnsn_recp_trm_nm`	VARCHAR(50)	NULL	COMMENT '연금 수령기간 명칭'
+);
+
+CREATE TABLE `BankAccount` (
+                               `account_id`	INT	NOT NULL	COMMENT 'auto increment',
+                               `user_id`	BINARY(16)	NOT NULL	COMMENT 'UUID(식별자)',
+                               `goal_id`	BINARY(16)	NULL	COMMENT 'UUID(식별자)',
+                               `bank_name`	VARCHAR(100)	NOT NULL	COMMENT '은행이름',
+                               `account_num`	VARCHAR(255)	NOT NULL	COMMENT '계좌 번호',
+                               `account_type`	VARCHAR(255)	NOT NULL	COMMENT '예/적금,대출',
+                               `balance`	BIGINT	NOT NULL	COMMENT '계좌 잔액'
+);
+
+CREATE TABLE `ProductOption` (
+                                 `option_id`	INT	NULL,
+                                 `fin_prdt_cd`	VARCHAR(50)	NOT NULL,
+                                 `fin_co_no`	varchar(20)	NOT NULL	COMMENT '금융회사코드',
+                                 `pnsn_entr_age`	INT	NULL	COMMENT '가입 나이',
+                                 `mon_paym_atm`	INT	NULL	COMMENT '월 납입 금액(예: 10 -> 10만원)',
+                                 `paym_prd`	INT	NULL	COMMENT '납입 기간 (예: 10 -> 10년)',
+                                 `pnsn_strt_age`	INT	NULL	COMMENT '연금 수령 시작 나이 (예: 60 -> 60세)',
+                                 `pnsn_recp_amt`	BIGINT	NULL	COMMENT '예상 연금 수령액 (원 단위)',
+                                 `pnsn_recp_trm_nm`	VARCHAR(50)	NULL	COMMENT '연금 수령기간 명칭'
+);
+
+CREATE TABLE `Quiz` (
+                        `quiz_id`	INT	NOT NULL	COMMENT 'auto increment',
+                        `question`	VARCHAR(255)	NOT NULL	COMMENT '문제',
+                        `answer`	VARCHAR(50)	NOT NULL	COMMENT '정답(O,X /단답)',
+                        `quiz_type`	VARCHAR(50)	NOT NULL	COMMENT 'OX/short'
+);
+
+CREATE TABLE `User` (
+                        `user_id`	BINARY(16)	NOT NULL	COMMENT 'UUID(식별자)',
+                        `name`	VARCHAR(255)	NOT NULL	COMMENT '사용자 이름',
+                        `email`	VARCHAR(255)	NOT NULL	COMMENT '사용자 이메일',
+                        `password`	VARCHAR(255)	NULL	COMMENT '사용자 비밀번호',
+                        `phone_num`	VARCHAR(50)	NOT NULL	COMMENT '전화번호',
+                        `mbti`	VARCHAR(10)	NOT NULL	COMMENT '금융성향',
+                        `birth_date`	DATE	NOT NULL	COMMENT '사용자 생년월일',
+                        `sex`	VARCHAR(10)	NOT NULL	COMMENT '사용자 성별',
+                        `salary`	BIGINT	NOT NULL	COMMENT '사용자 연봉',
+                        `pay_amount`	BIGINT	NOT NULL	COMMENT '사용자 고정 지출 비용',
+                        `role`	VARCHAR(10)	NOT NULL	COMMENT '권한(디폴트 user), or admin',
+                        `kakao_access_token`	VARCHAR(500)	NULL	COMMENT '카카오 액세스 토큰'
+);
+
+CREATE TABLE `UserQuiz` (
+                            `user_quiz_id`	BINARY(16)	NOT NULL	COMMENT 'UUID(식별자)',
+                            `user_id`	BINARY(16)	NOT NULL	COMMENT 'UUID(식별자)',
+                            `quiz_id`	INT	NOT NULL	COMMENT 'auto increment',
+                            `is_correct`	BOOLEAN	NOT NULL	COMMENT '정답 확인',
+                            `answered_at`	TIMESTAMP	NOT NULL	COMMENT '하루에 횟수 한 번 제한'
+);
+
+CREATE TABLE `Annuity` (
+                           `fin_prdt_cd`	VARCHAR(50)	NOT NULL	COMMENT '금융상품 코드',
+                           `fin_co_no`	VARCHAR(255)	NOT NULL	COMMENT '금융회사코드',
+                           `dcls_month`	varchar(10)	NOT NULL	COMMENT '공시제출원(YYYYMM)',
+                           `kor_co_nm`	VARCHAR(255)	NOT NULL	COMMENT '회사명',
+                           `fin_prdt_nm`	VARCHAR(255)	NOT NULL	COMMENT '상품명',
+                           `join_way`	TEXT	NOT NULL	COMMENT '가입 방법',
+                           `pnsn_kind`	VARCHAR(10)	NOT NULL	COMMENT '연금 유형 코드',
+                           `pnsn_kind_nm`	VARCHAR(50)	NOT NULL	COMMENT '연금 유형 이름',
+                           `mntn_cnt`	BIGINT	NULL	COMMENT '유지 계좌 수 또는 총액',
+                           `prdt_type_nm`	VARCHAR(50)	NOT NULL	COMMENT '상품 유형',
+                           `avg_prft_rate`	DECIMAL(5, 2)	NULL	COMMENT '평균 수익률 (%)',
+                           `dcls_rate`	DECIMAL(5, 2)	NULL	COMMENT '공시 수익률 (%)',
+                           `guar_rate`	DECIMAL(5, 2)	NULL	COMMENT '보장 수익률 (%)',
+                           `btrm_prft_rate_1`	DECIMAL(5, 2)	NULL	COMMENT '수익률 항목 1',
+                           `btrm_prft_rate_2`	DECIMAL(5, 2)	NULL	COMMENT '수익률 항목 2',
+                           `btrm_prft_rate_3`	DECIMAL(5, 2)	NULL	COMMENT '수익률 항목 3',
+                           `etc`	TEXT	NULL	COMMENT '기타',
+                           `dcls_strt_day`	DATE	NULL	COMMENT '공시 시작일',
+                           `dcls_end_day`	DATE	NULL	COMMENT '공시 종료일'
+);
+
+CREATE TABLE `Goal` (
+                        `goal_id`	BINARY(16)	NOT NULL	COMMENT 'UUID(식별자)',
+                        `user_id`	BINARY(16)	NOT NULL	COMMENT 'UUID(식별자)',
+                        `goal_name`	VARCHAR(255)	NOT NULL	COMMENT '목표 이름',
+                        `target_amount`	BIGINT	NOT NULL	COMMENT '목표 금액',
+                        `save_amount`	BIGINT	NOT NULL	COMMENT '목표 까지 달성 금액',
+                        `start_date`	DATE	NOT NULL	COMMENT '목표 시작일',
+                        `end_date`	DATE	NOT NULL	COMMENT '목표 종료일',
+                        `status`	VARCHAR(10)	NOT NULL	COMMENT '상태(성공, 진행, 실패)',
+                        `deposit_date`	INT	NOT NULL	COMMENT '입금 날짜(프론트에서 처리)'
+);
+
+ALTER TABLE `Transaction` ADD CONSTRAINT `PK_TRANSACTION` PRIMARY KEY (
+                                                                       `transaction_id`
+    );
+
+ALTER TABLE `BankCode` ADD CONSTRAINT `PK_BANKCODE` PRIMARY KEY (
+                                                                 `bank_code`
+    );
+
+ALTER TABLE `Point` ADD CONSTRAINT `PK_POINT` PRIMARY KEY (
+                                                           `point_id`
+    );
+
+ALTER TABLE `Inquiry` ADD CONSTRAINT `PK_INQUIRY` PRIMARY KEY (
+                                                               `info_id`
+    );
+
+ALTER TABLE `Notice` ADD CONSTRAINT `PK_NOTICE` PRIMARY KEY (
+                                                             `Notice_id`
+    );
+
+ALTER TABLE `Product` ADD CONSTRAINT `PK_PRODUCT` PRIMARY KEY (
+                                                               `fin_prdt_cd`
+    );
+
+ALTER TABLE `Financial Term` ADD CONSTRAINT `PK_FINANCIAL TERM` PRIMARY KEY (
+                                                                             `id`
+    );
+
+ALTER TABLE `AnnuityOption` ADD CONSTRAINT `PK_ANNUITYOPTION` PRIMARY KEY (
+                                                                           `option_id`
+    );
+
+ALTER TABLE `BankAccount` ADD CONSTRAINT `PK_BANKACCOUNT` PRIMARY KEY (
+                                                                       `account_id`
+    );
+
+ALTER TABLE `ProductOption` ADD CONSTRAINT `PK_PRODUCTOPTION` PRIMARY KEY (
+                                                                           `option_id`
+    );
+
+ALTER TABLE `Quiz` ADD CONSTRAINT `PK_QUIZ` PRIMARY KEY (
+                                                         `quiz_id`
+    );
+
+ALTER TABLE `User` ADD CONSTRAINT `PK_USER` PRIMARY KEY (
+                                                         `user_id`
+    );
+
+ALTER TABLE `UserQuiz` ADD CONSTRAINT `PK_USERQUIZ` PRIMARY KEY (
+                                                                 `user_quiz_id`
+    );
+
+ALTER TABLE `Annuity` ADD CONSTRAINT `PK_ANNUITY` PRIMARY KEY (
+                                                               `fin_prdt_cd`
+    );
+
+ALTER TABLE `Goal` ADD CONSTRAINT `PK_GOAL` PRIMARY KEY (
+                                                         `goal_id`
+    );
 

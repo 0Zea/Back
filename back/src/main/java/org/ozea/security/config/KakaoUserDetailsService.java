@@ -60,9 +60,41 @@ public class KakaoUserDetailsService implements UserDetailsService {
         }
         return new CustomUser(user, isNewUser);
     }
+    
+    // 카카오 액세스 토큰을 포함한 로그인 메서드
+    public UserDetails loadUserByUsername(String email, String nickname, String accessToken, String refreshToken) throws UsernameNotFoundException {
+        User user = userMapper.getUserByEmail(email);
+        boolean isNewUser = false;
+        if (user == null) {
+            isNewUser = true;
+            user = new User();
+            user.setUserId(UUID.randomUUID());
+            user.setEmail(email);
+            if (nickname == null || nickname.isEmpty()) {
+                nickname = "카카오사용자";
+            }
+            user.setName(nickname);
+            user.setMbti("xxxx");
+            user.setPhoneNum("000-0000-0000");
+            user.setBirthDate(java.time.LocalDate.now());
+            user.setSex("female");
+            user.setSalary(0L);
+            user.setPayAmount(0L);
+            user.setRole("USER");
+            user.setKakaoAccessToken(accessToken);
+            userMapper.insertUserWithEmail(user);
+        } else {
+            // 기존 사용자의 경우 토큰 업데이트
+            user.setKakaoAccessToken(accessToken);
+            userMapper.updateUser(user);
+        }
+        return new CustomUser(user, isNewUser);
+    }
 
     @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
         return loadUserByUsername(email, null);
     }
+    
+
 }

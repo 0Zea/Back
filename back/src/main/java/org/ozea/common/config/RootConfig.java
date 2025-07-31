@@ -1,5 +1,8 @@
 package org.ozea.common.config;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import lombok.extern.slf4j.Slf4j;
@@ -12,10 +15,13 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.EnableAspectJAutoProxy;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 import javax.sql.DataSource;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 /**
  * Spring의 Root Application Context를 설정하는 클래스.
@@ -27,6 +33,7 @@ import javax.sql.DataSource;
 @EnableTransactionManagement // 어노테이션 기반의 트랜잭션 관리를 활성화합니다.
 @ComponentScan(basePackages = {"org.ozea"}) // org.ozea 패키지 내의 컴포넌트들을 스캔하여 빈으로 등록합니다.
 @MapperScan(basePackages = {"org.ozea.user.mapper", "org.ozea.goal.mapper", "org.ozea.inquiry.mapper", "org.ozea.asset.mapper","org.ozea.notice.mapper", "org.ozea.point.mapper", "org.ozea.bank.mapper"}) // 도메인별 매퍼 패키지들을 스캔합니다.
+@EnableAspectJAutoProxy
 public class RootConfig {
     @Value("${jdbc.driver}") String driver;
     @Value("${jdbc.url}") String url;
@@ -59,9 +66,30 @@ public class RootConfig {
     }
 
     @Bean
-    public DataSourceTransactionManager transactionManager(){
-        DataSourceTransactionManager manager = new DataSourceTransactionManager(dataSource());
-        return manager;
+    public DataSourceTransactionManager transactionManager(DataSource dataSource) {
+        return new DataSourceTransactionManager(dataSource);
     }
 
+    @Bean
+    public ObjectMapper objectMapper() {
+        ObjectMapper objectMapper = new ObjectMapper();
+        
+        // JavaTimeModule 등록
+        JavaTimeModule javaTimeModule = new JavaTimeModule();
+        
+        // LocalDateTime 직렬화 형식 설정 (ISO 문자열 형식)
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss");
+        javaTimeModule.addSerializer(LocalDateTime.class, new LocalDateTimeSerializer(formatter));
+        
+        // LocalDateTime 역직렬화 설정도 추가
+        javaTimeModule.addDeserializer(LocalDateTime.class, 
+            new com.fasterxml.jackson.datatype.jsr310.deser.LocalDateTimeDeserializer(formatter));
+        
+        objectMapper.registerModule(javaTimeModule);
+        
+        // 날짜/시간 관련 설정
+        objectMapper.disable(com.fasterxml.jackson.databind.SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+        
+        return objectMapper;
+    }
 }

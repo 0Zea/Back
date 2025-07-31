@@ -58,6 +58,24 @@ public interface UserMapper {
      * @param userId 삭제할 사용자의 UUID
      */
     void deleteUserData(UUID userId);
+    
+    /**
+     * 사용자의 포인트 내역을 삭제합니다.
+     * @param userId 삭제할 사용자의 UUID
+     */
+    void deleteUserPoints(UUID userId);
+    
+    /**
+     * 사용자의 목표 정보를 삭제합니다.
+     * @param userId 삭제할 사용자의 UUID
+     */
+    void deleteUserGoals(UUID userId);
+    
+    /**
+     * 사용자의 문의 내역을 삭제합니다.
+     * @param userId 삭제할 사용자의 UUID
+     */
+    void deleteUserInquiries(UUID userId);
 
     default User findByEmail(String email) {
         return null;

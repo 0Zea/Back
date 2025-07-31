@@ -1,7 +1,5 @@
 package org.ozea.security.util;
 
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.Jws;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
@@ -43,7 +41,7 @@ public class JwtProcessor {
 
     // JWT 검증(유효 기간 검증) - 해석 불가인 경우 예외 발생
     public boolean validateToken(String token) {
-        Jws<Claims> claims = Jwts.parserBuilder()
+        Jwts.parserBuilder()
                 .setSigningKey(key)
                 .build()
                 .parseClaimsJws(token);

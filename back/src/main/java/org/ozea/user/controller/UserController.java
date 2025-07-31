@@ -117,6 +117,30 @@ public class UserController {
         lastAttemptTime.remove(email);
     }
 
+    // UUID 검증 및 변환
+    private UUID validateAndParseUserId(String userIdStr) {
+        if (userIdStr == null || userIdStr.trim().isEmpty()) {
+            throw new IllegalArgumentException("사용자 ID가 null이거나 비어있습니다.");
+        }
+        
+        try {
+            return UUID.fromString(userIdStr);
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException("사용자 ID 형식이 올바르지 않습니다.");
+        }
+    }
+
+    // 공통 응답 생성
+    private Map<String, Object> createResponse(boolean success, String message, Object data) {
+        Map<String, Object> response = new HashMap<>();
+        response.put("success", success);
+        response.put("message", message);
+        if (data != null) {
+            response.put("data", data);
+        }
+        return response;
+    }
+
     // 이메일 중복 확인
     @GetMapping("/signup/check/{email}")
     public ResponseEntity<Boolean> checkEmail(@PathVariable String email) {
@@ -383,54 +407,31 @@ public class UserController {
                 return ResponseEntity.badRequest().body(response);
             }
             
-            // userId가 null이거나 잘못된 형식인지 확인
-            if (user.getUserId() == null || user.getUserId().trim().isEmpty()) {
-                log.error("❌ 사용자 ID가 null이거나 비어있습니다: {}", user.getUserId());
-                Map<String, Object> response = new HashMap<>();
-                response.put("success", false);
-                response.put("message", "사용자 ID가 올바르지 않습니다.");
-                return ResponseEntity.badRequest().body(response);
-            }
-            
             UUID userId;
             try {
-                userId = UUID.fromString(user.getUserId());
-                log.info("👤 사용자 정보 조회 성공: userId={}", userId);
+                userId = validateAndParseUserId(user.getUserId());
             } catch (IllegalArgumentException e) {
-                log.error("❌ 잘못된 UUID 형식입니다: {}", user.getUserId());
-                Map<String, Object> response = new HashMap<>();
-                response.put("success", false);
-                response.put("message", "사용자 ID 형식이 올바르지 않습니다.");
-                return ResponseEntity.badRequest().body(response);
+                log.error("사용자 ID 검증 실패: {}", e.getMessage());
+                return ResponseEntity.badRequest().body(createResponse(false, e.getMessage(), null));
             }
             
             Long salary = request.get("salary") != null ? Long.valueOf(request.get("salary").toString()) : 0L;
             Long payAmount = request.get("payAmount") != null ? Long.valueOf(request.get("payAmount").toString()) : 0L;
-            log.info("💵 자산정보: salary={}, payAmount={}", salary, payAmount);
+            log.info("자산정보: salary={}, payAmount={}", salary, payAmount);
             
             // 자산정보 유효성 검증
             if (salary < 0 || payAmount < 0) {
-                log.error("❌ 자산정보가 음수입니다: salary={}, payAmount={}", salary, payAmount);
-                Map<String, Object> response = new HashMap<>();
-                response.put("success", false);
-                response.put("message", "자산정보는 0 이상이어야 합니다.");
-                return ResponseEntity.badRequest().body(response);
+                log.error("자산정보가 음수입니다: salary={}, payAmount={}", salary, payAmount);
+                return ResponseEntity.badRequest().body(createResponse(false, "자산정보는 0 이상이어야 합니다.", null));
             }
             
             UserDTO updatedUser = service.updateAssetInfo(userId, salary, payAmount);
-            log.info("✅ 자산정보 수정 성공: userId={}", userId);
+            log.info("자산정보 수정 성공: userId={}", userId);
             
-            Map<String, Object> response = new HashMap<>();
-            response.put("success", true);
-            response.put("message", "자산정보가 성공적으로 수정되었습니다.");
-            response.put("user", updatedUser);
-            return ResponseEntity.ok(response);
+            return ResponseEntity.ok(createResponse(true, "자산정보가 성공적으로 수정되었습니다.", updatedUser));
         } catch (Exception e) {
-            log.error("❌ 자산정보 수정 실패: {}", e.getMessage(), e);
-            Map<String, Object> response = new HashMap<>();
-            response.put("success", false);
-            response.put("message", "자산정보 수정에 실패했습니다: " + e.getMessage());
-            return ResponseEntity.badRequest().body(response);
+            log.error("자산정보 수정 실패: {}", e.getMessage(), e);
+            return ResponseEntity.badRequest().body(createResponse(false, "자산정보 수정에 실패했습니다: " + e.getMessage(), null));
         }
     }
 
@@ -438,12 +439,10 @@ public class UserController {
     @PutMapping("/mbti")
     public ResponseEntity<Map<String, Object>> updateMbti(@RequestHeader("Authorization") String authHeader,
                                                           @RequestBody Map<String, String> request) {
-        log.info("🧠 MBTI 수정 요청: Authorization={}, request={}", authHeader, request);
         try {
             // JWT 토큰에서 사용자 이메일 추출
             String token = authHeader.substring(7); // "Bearer " 제거
             String email = jwtProcessor.getUsername(token);
-            log.info("📧 JWT에서 추출된 이메일: {}", email);
             
             // 이메일로 사용자 정보 조회
             UserDTO user = service.getUserByEmail(email);
@@ -570,15 +569,16 @@ public class UserController {
         }
     }
 
+
+
     // 마이페이지 - 회원 탈퇴
     @DeleteMapping("/withdraw")
     public ResponseEntity<Map<String, Object>> withdrawUser(@RequestHeader("Authorization") String authHeader) {
-        log.info("🚪 회원 탈퇴 요청: Authorization={}", authHeader);
+        log.info("회원 탈퇴 요청: email={}", jwtProcessor.getUsername(authHeader.substring(7)));
         try {
             // JWT 토큰에서 사용자 이메일 추출
             String token = authHeader.substring(7); // "Bearer " 제거
             String email = jwtProcessor.getUsername(token);
-            log.info("📧 JWT에서 추출된 이메일: {}", email);
             
             // 이메일로 사용자 정보 조회
             UserDTO user = service.getUserByEmail(email);
@@ -605,14 +605,14 @@ public class UserController {
             }
             
             boolean success = service.withdrawUser(userId);
-            log.info("✅ 회원 탈퇴 성공: userId={}", userId);
+            log.info("회원 탈퇴 성공: userId={}", userId);
             
             Map<String, Object> response = new HashMap<>();
             response.put("success", success);
             response.put("message", success ? "회원 탈퇴가 성공적으로 처리되었습니다." : "회원 탈퇴 처리에 실패했습니다.");
             return ResponseEntity.ok(response);
         } catch (Exception e) {
-            log.error("❌ 회원 탈퇴 실패: {}", e.getMessage(), e);
+            log.error("회원 탈퇴 실패: {}", e.getMessage(), e);
             Map<String, Object> response = new HashMap<>();
             response.put("success", false);
             response.put("message", "회원 탈퇴 처리에 실패했습니다: " + e.getMessage());
@@ -620,47 +620,8 @@ public class UserController {
         }
     }
 
-    // 테스트용 사용자 생성 (개발 중에만 사용)
-    @PostMapping("/test-user")
-    public ResponseEntity<Map<String, Object>> createTestUser() {
-        try {
-            // 테스트용 사용자 정보
-            UserSignupDTO testUser = UserSignupDTO.builder()
-                    .name("테스트 사용자")
-                    .email("test@example.com")
-                    .password("Test123!@#")
-                    .phoneNum("010-1234-5678")
-                    .birthDate(java.time.LocalDate.of(1990, 1, 1))
-                    .sex("male")
-                    .salary(3000000L)
-                    .payAmount(1000000L)
-                    .mbti("신중한 분석가")
-                    .build();
-            
-            UserDTO createdUser = service.signup(testUser);
-            
-            // JWT 토큰 생성
-            String token = jwtProcessor.generateToken(createdUser.getEmail());
-            
-            Map<String, Object> response = new HashMap<>();
-            response.put("success", true);
-            response.put("message", "테스트 사용자가 생성되었습니다.");
-            response.put("user", createdUser);
-            response.put("token", token);
-            
-            log.info("✅ 테스트 사용자 생성 성공: email={}, token={}", createdUser.getEmail(), token.substring(0, 50) + "...");
-            
-            return ResponseEntity.ok(response);
-        } catch (Exception e) {
-            log.error("❌ 테스트 사용자 생성 실패: {}", e.getMessage(), e);
-            Map<String, Object> response = new HashMap<>();
-            response.put("success", false);
-            response.put("message", "테스트 사용자 생성에 실패했습니다: " + e.getMessage());
-            return ResponseEntity.badRequest().body(response);
-        }
-    }
 
-    // 내 포인트 조회
+
     @GetMapping("/points")
     public ResponseEntity<Map<String, Object>> getMyPoints(@RequestHeader("Authorization") String authHeader) {
         try {
@@ -689,6 +650,7 @@ public class UserController {
             String email = jwtProcessor.getUsername(token);
             UserDTO user = service.getUserByEmail(email);
             List<org.ozea.point.dto.PointDTO> history = pointService.getPointHistory(UUID.fromString(user.getUserId()));
+            
             Map<String, Object> response = new HashMap<>();
             response.put("success", true);
             response.put("history", history);
