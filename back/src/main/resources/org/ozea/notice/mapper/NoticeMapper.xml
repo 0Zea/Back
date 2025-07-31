@@ -10,7 +10,6 @@
         <result column="title" property="title"/>
         <result column="content" property="content"/>
         <result column="created_at" property="createdAt"/>
-        <result column="created_at" property="createdAt"/>
     </resultMap>
     <insert id="create">
         INSERT INTO notice(
