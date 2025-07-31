@@ -32,7 +32,6 @@ public class GoalController {
         return ResponseEntity.ok(recommendations);
     }
 
-
     @GetMapping("/accounts/{userId}")
     @ApiOperation(value = "사용자 계좌 목록 조회", notes = "사용자의 보유 계좌를 조회합니다.")
     public ResponseEntity<?> getAccountsByUser(@PathVariable UUID userId) {
@@ -61,8 +60,13 @@ public class GoalController {
     @ApiOperation(value = "목표 생성", notes = "사용자의 목표를 생성합니다.")
     public ResponseEntity<?> createGoal(@RequestBody GoalCreateRequestDto request,
                                         @RequestParam UUID userId) {
-        goalService.createGoal(userId, request);
-        return ResponseEntity.ok(Map.of("message", "목표가 성공적으로 등록되었습니다."));
+        UUID goalId = UUID.randomUUID(); // 👉 직접 생성
+        goalService.createGoal(userId, request, goalId); // goalId 전달
+
+        return ResponseEntity.ok(Map.of(
+                "message", "목표가 성공적으로 등록되었습니다.",
+                "goal_id", goalId.toString() // 프론트에 전달!
+        ));
     }
 
     @GetMapping

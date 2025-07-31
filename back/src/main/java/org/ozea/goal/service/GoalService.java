@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.UUID;
 
 public interface GoalService {
-    void createGoal(UUID userId, GoalCreateRequestDto request);
+    void createGoal(UUID userId, GoalCreateRequestDto request, UUID goalId);
     List<GoalListResponseDto> getGoalsByUserId(UUID userId);
     GoalDetailResponseDto getGoalById(UUID goalId);
     List<LinkedAccountDto> getAccountsByUserId(UUID userId);

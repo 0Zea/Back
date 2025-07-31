@@ -31,7 +31,7 @@ public class GoalServiceImpl implements GoalService {
     @Autowired
     private UserMapper userMapper;
     @Override
-    public void createGoal(UUID userId, GoalCreateRequestDto requestDto) {
+    public void createGoal(UUID userId, GoalCreateRequestDto requestDto, UUID goalId) {
         // 1. 목표 기간 계산
         LocalDate startDate = requestDto.getStart_date();
         LocalDate endDate = requestDto.getEnd_date();
@@ -59,7 +59,7 @@ public class GoalServiceImpl implements GoalService {
         }
 
         // 7. insert
-        goalMapper.insertGoal(requestDto.toEntity(userId));
+        goalMapper.insertGoal(requestDto.toEntity(userId, goalId));
     }
 
     @Override
