@@ -30,9 +30,9 @@ public class GoalCreateRequestDto {
     @ApiModelProperty(value = "입금 날짜", example = "15") // 매달 15일
     private int deposit_date;
 
-    public Goal toEntity(UUID userId) {
+    public Goal toEntity(UUID userId, UUID goalId) {
         return Goal.builder()
-                .goalId(UUID.randomUUID())
+                .goalId(goalId)
                 .userId(userId)
                 .goalName(goal_name)
                 .targetAmount(target_amount)
