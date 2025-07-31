@@ -31,7 +31,7 @@ public class GoalServiceImpl implements GoalService {
     @Autowired
     private UserMapper userMapper;
     @Override
-    public void createGoal(UUID userId, GoalCreateRequestDto requestDto) {
+    public void createGoal(UUID userId, GoalCreateRequestDto requestDto, UUID goalId) {
         // 1. 목표 기간 계산
         LocalDate startDate = requestDto.getStart_date();
         LocalDate endDate = requestDto.getEnd_date();
@@ -59,7 +59,7 @@ public class GoalServiceImpl implements GoalService {
         }
 
         // 7. insert
-        goalMapper.insertGoal(requestDto.toEntity(userId));
+        goalMapper.insertGoal(requestDto.toEntity(userId, goalId));
     }
 
     @Override
@@ -134,18 +134,18 @@ public class GoalServiceImpl implements GoalService {
     }
 
     @Override
-    public void deleteGoal(UUID goalId, UUID userId) {
+    public void deleteGoal(UUID goalId) {
         goalMapper.unlinkAllAccountsFromGoal(goalId);
 
-        int deleted = goalMapper.deleteByGoalIdAndUserId(goalId, userId);
+        int deleted = goalMapper.deleteByGoalIdAndUserId(goalId);
         if (deleted == 0) {
             throw new IllegalArgumentException("해당 목표가 존재하지 않거나 권한이 없습니다.");
         }
     }
 
     @Override
-    public void updateGoal(UUID goalId, UUID userId, GoalUpdateRequestDto dto) {
-        int updated = goalMapper.updateGoalByIdAndUserId(goalId, userId, dto);
+    public void updateGoal(UUID goalId, GoalUpdateRequestDto dto) {
+        int updated = goalMapper.updateGoalByIdAndUserId(goalId, dto);
         if (updated == 0) {
             throw new IllegalArgumentException("해당 목표가 존재하지 않거나 권한이 없습니다.");
         }

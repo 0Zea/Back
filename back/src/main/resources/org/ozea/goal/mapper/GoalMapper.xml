@@ -73,7 +73,6 @@
     <delete id="deleteByGoalIdAndUserId">
         DELETE FROM goal
         WHERE goal_id = #{goalId, jdbcType=BINARY, javaType=java.util.UUID}
-          AND user_id = #{userId, jdbcType=BINARY, javaType=java.util.UUID}
     </delete>
 
     <select id="findAllByUserId" resultType="org.ozea.goal.domain.Goal">
@@ -97,7 +96,6 @@
             end_date = #{dto.end_date},
             deposit_date = #{dto.deposit_date}
         WHERE goal_id = #{goalId, jdbcType=BINARY, javaType=java.util.UUID}
-          AND user_id = #{userId, jdbcType=BINARY, javaType=java.util.UUID}
     </update>
 
     <select id="findLinkedAccountsByGoalId" resultType="org.ozea.goal.dto.response.LinkedAccountDto">
