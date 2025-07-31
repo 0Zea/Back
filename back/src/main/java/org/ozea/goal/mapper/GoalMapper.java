@@ -14,9 +14,8 @@ import java.util.UUID;
 public interface GoalMapper {
     List<Goal> findAllByUserId(UUID userId);
     Goal findByGoalId(UUID goalId);
-    int deleteByGoalIdAndUserId(@Param("goalId") UUID goalId, @Param("userId") UUID userId);
+    int deleteByGoalIdAndUserId(@Param("goalId") UUID goalId);
     int updateGoalByIdAndUserId(@Param("goalId") UUID goalId,
-                                @Param("userId") UUID userId,
                                 @Param("dto") GoalUpdateRequestDto dto);
     void insertGoal(Goal goal);
     long sumTargetAmountOverlappingGoals(@Param("userId") UUID userId,

@@ -15,8 +15,8 @@ public interface GoalService {
     List<GoalListResponseDto> getGoalsByUserId(UUID userId);
     GoalDetailResponseDto getGoalById(UUID goalId);
     List<LinkedAccountDto> getAccountsByUserId(UUID userId);
-    void deleteGoal(UUID goalId, UUID userId);
-    void updateGoal(UUID goalId, UUID userId, GoalUpdateRequestDto dto);
+    void deleteGoal(UUID goalId);
+    void updateGoal(UUID goalId, GoalUpdateRequestDto dto);
     void linkAccountToGoal(UUID goalId, int accountId);
     void unlinkAccount(int accountId);
     List<ProductRecommendResponseDto> recommendProducts(UUID goalId);
