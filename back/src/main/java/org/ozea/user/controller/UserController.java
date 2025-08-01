@@ -163,6 +163,22 @@ public class UserController {
         }
     }
 
+    // 카카오 사용자 회원가입 완료 (기존 임시 사용자 정보 업데이트)
+    @PostMapping("/signup/kakao")
+    public ResponseEntity<?> signupKakao(@RequestBody UserSignupDTO user) {
+        try {
+            log.info("카카오 회원가입 요청 받음: {}", user);
+            UserDTO result = service.signupKakao(user);
+            if (result == null) {
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("카카오 회원가입 실패");
+            }
+            return ResponseEntity.ok(result);
+        } catch (Exception e) {
+            log.error("카카오 회원가입 중 예외 발생: {}", e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("카카오 회원가입 중 예외 발생: " + e.getMessage());
+        }
+    }
+
 
     // 이메일을 기준으로 사용자 정보를 조회
     @GetMapping("/user/{email}")

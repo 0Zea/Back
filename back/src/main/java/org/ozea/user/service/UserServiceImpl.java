@@ -60,6 +60,55 @@ public class UserServiceImpl implements UserService {
         // 저장된 사용자 정보 조회 후 DTO 반환
         return getUserByEmail(user.getEmail());
     }
+
+    // 카카오 회원가입 (기존 임시 사용자 정보 업데이트)
+    @Transactional
+    @Override
+    public UserDTO signupKakao(UserSignupDTO dto) {
+        log.info("카카오 회원가입 서비스 호출: email={}, name={}", dto.getEmail(), dto.getName());
+        
+        // 기존 카카오 사용자 확인
+        User existingUser = mapper.getUserByEmail(dto.getEmail());
+        
+        if (existingUser == null) {
+            // 기존 사용자가 없으면 새로 생성
+            log.info("기존 사용자가 없어 새로 생성합니다: email={}", dto.getEmail());
+            existingUser = new User();
+            existingUser.setUserId(UUID.randomUUID());
+            existingUser.setEmail(dto.getEmail());
+            existingUser.setName(dto.getName());
+            existingUser.setPhoneNum(dto.getPhoneNum());
+            existingUser.setBirthDate(dto.getBirthDate());
+            existingUser.setSex(dto.getSex());
+            existingUser.setSalary(dto.getSalary());
+            existingUser.setPayAmount(dto.getPayAmount());
+            existingUser.setMbti(dto.getMbti());
+            existingUser.setRole("USER");
+            existingUser.setPassword(""); // 카카오 사용자는 비밀번호 없음
+            
+            // DB에 새 사용자 저장
+            mapper.insertUser(existingUser);
+            log.info("새 사용자 생성 완료: userId={}", existingUser.getUserId());
+        } else {
+            log.info("기존 사용자 발견: userId={}", existingUser.getUserId());
+
+            // 기존 사용자 정보 업데이트
+            existingUser.setName(dto.getName());
+            existingUser.setPhoneNum(dto.getPhoneNum());
+            existingUser.setBirthDate(dto.getBirthDate());
+            existingUser.setSex(dto.getSex());
+            existingUser.setSalary(dto.getSalary());
+            existingUser.setPayAmount(dto.getPayAmount());
+            existingUser.setMbti(dto.getMbti());
+
+            // DB 업데이트
+            mapper.updateUser(existingUser);
+            log.info("사용자 정보 업데이트 완료");
+        }
+
+        // 업데이트된 사용자 정보 조회 후 DTO 반환
+        return getUserByEmail(existingUser.getEmail());
+    }
     
     // 비밀번호 정책 검증
     private void validatePassword(String password) {

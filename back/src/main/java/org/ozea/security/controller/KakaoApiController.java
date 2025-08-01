@@ -35,6 +35,8 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Map;
 import java.util.UUID;
+import java.util.HashMap;
+import org.ozea.user.domain.User;
 
 /**
  * 카카오 API를 처리하는 컨트롤러입니다.
@@ -59,10 +61,12 @@ public class KakaoApiController {
     private String kakaoRedirectUri;
 
     @GetMapping("/callback")
-    public ResponseEntity<AuthResultDTO> kakaoApiCallback(@RequestParam("code") String code) {
+    public ResponseEntity<?> kakaoApiCallback(@RequestParam("code") String code) {
+        log.info("카카오 콜백 요청 받음: code={}", code);
         try {
             // 1. 인증 코드로 액세스 토큰 요청
             String accessToken = getAccessToken(code);
+            log.info("카카오 액세스 토큰 획득 성공");
 
             // 2. 액세스 토큰으로 사용자 정보 요청
             Map<String, Object> userInfo = getUserInfo(accessToken);
@@ -92,11 +96,24 @@ public class KakaoApiController {
                 throw new IllegalStateException("nickname is missing. profile: " + profile);
             }
 
-            // 4. 리프레시 토큰 (현재는 빈 문자열로 설정)
-            String refreshToken = "";
+            // 4. 기존 사용자 확인
+            User existingUser = kakaoUserDetailsService.getUserByEmail(email);
+            
+            if (existingUser == null) {
+                // 새로운 사용자인 경우, 임시 사용자 생성
+                CustomUser customUser = (CustomUser) kakaoUserDetailsService.loadUserByUsername(email, nickname, accessToken, "");
+                
+                // 회원가입 정보를 포함한 응답
+                Map<String, Object> responseBody = new HashMap<>();
+                responseBody.put("email", email);
+                responseBody.put("name", nickname);
+                responseBody.put("accessToken", accessToken);
+                
+                return ResponseEntity.status(401).body(responseBody);
+            }
 
-            // 5. 사용자 정보 처리 (토큰 포함)
-            CustomUser customUser = (CustomUser) kakaoUserDetailsService.loadUserByUsername(email, nickname, accessToken, refreshToken);
+            // 5. 기존 사용자인 경우 로그인 처리
+            CustomUser customUser = (CustomUser) kakaoUserDetailsService.loadUserByUsername(email, nickname, accessToken, "");
 
             // 6. JWT 토큰 생성
             String token = jwtProcessor.generateToken(email);

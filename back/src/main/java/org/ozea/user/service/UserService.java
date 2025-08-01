@@ -11,6 +11,7 @@ import java.util.UUID;
 public interface UserService {
     boolean checkEmail(String email);       // 이메일 중복 확인
     UserDTO signup(UserSignupDTO dto);      // 회원가입
+    UserDTO signupKakao(UserSignupDTO dto); // 카카오 회원가입 (기존 임시 사용자 정보 업데이트)
     UserDTO getUserByEmail(String email);   // 이메일을 기준으로 사용자 정보를 조회
     UserDTO login(String email, String password); // 로그인
     
