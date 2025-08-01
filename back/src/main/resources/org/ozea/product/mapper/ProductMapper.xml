@@ -3,6 +3,68 @@
         PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
+
 <mapper namespace="org.ozea.product.mapper.ProductMapper">
+
+    <resultMap id="ProductWithOptionsMap" type="org.ozea.product.dto.response.ProductResponseDto">
+        <id property="finPrdtCd" column="fin_prdt_cd"/>
+        <result property="dclsMonth" column="dcls_month"/>
+        <result property="finCoNo" column="fin_co_no"/>
+        <result property="korCoNm" column="kor_co_nm"/>
+        <result property="finPrdtNm" column="fin_prdt_nm"/>
+        <result property="joinWay" column="join_way"/>
+        <result property="mtrtInt" column="mtrt_int"/>
+        <result property="spclCnd" column="spcl_cnd"/>
+        <result property="joinDeny" column="join_deny"/>
+        <result property="joinMember" column="join_member"/>
+        <result property="etcNote" column="etc_note"/>
+        <result property="maxLimit" column="max_limit"/>
+        <result property="dclsStrtDay" column="dcls_strt_day"/>
+        <result property="dclsEndDay" column="dcls_end_day"/>
+        <result property="finCoSubmDay" column="fin_co_subm_day"/>
+
+        <collection property="options" ofType="org.ozea.product.dto.response.ProductOptionDto">
+            <id property="optionId" column="option_id"/>
+            <result property="intrRateType" column="intr_rate_type"/>
+            <result property="intrRateTypeNm" column="intr_rate_type_nm"/>
+            <result property="rsrvType" column="rsrv_type"/>
+            <result property="rsrvTypeNm" column="rsrv_type_nm"/>
+            <result property="saveTrm" column="save_trm"/>
+            <result property="intrRate" column="intr_rate"/>
+            <result property="intrRate2" column="intr_rate2"/>
+        </collection>
+    </resultMap>
+
+    <select id="findAllProductsWithOptions" resultMap="ProductWithOptionsMap">
+        SELECT
+        p.fin_prdt_cd,
+        p.dcls_month,
+        p.fin_co_no,
+        p.kor_co_nm,
+        p.fin_prdt_nm,
+        p.join_way,
+        p.mtrt_int,
+        p.spcl_cnd,
+        p.join_deny,
+        p.join_member,
+        p.etc_note,
+        p.max_limit,
+        p.dcls_strt_day,
+        p.dcls_end_day,
+        p.fin_co_subm_day,
+
+        o.option_id,
+        o.intr_rate_type,
+        o.intr_rate_type_nm,
+        o.rsrv_type,
+        o.rsrv_type_nm,
+        o.save_trm,
+        o.intr_rate,
+        o.intr_rate2
+
+        FROM product p
+        JOIN productoption o ON p.fin_prdt_cd = o.fin_prdt_cd
+        ORDER BY p.fin_prdt_cd, o.save_trm
+    </select>
 
 </mapper>

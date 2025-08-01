@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="org.ozea.point.mapper.PointMapper">
+
+    <select id="findByUserId" resultType="org.ozea.point.domain.Point">
+        SELECT
+            point_id,
+            user_id,
+            point_amount,
+            type_detail,
+            created_at,
+            total_amount,
+            type
+        FROM Point
+        WHERE user_id = #{userId, jdbcType=BINARY, javaType=java.util.UUID}
+        ORDER BY created_at DESC
+    </select>
+
+    <select id="findByUserIdAndType" resultType="org.ozea.point.domain.Point">
+        SELECT
+            point_id,
+            user_id,
+            point_amount,
+            type_detail,
+            created_at,
+            total_amount,
+            type
+        FROM Point
+        WHERE user_id = #{userId, jdbcType=BINARY, javaType=java.util.UUID}
+          AND type = #{type}
+        ORDER BY created_at DESC
+    </select>
+
+    <insert id="insertPoint" parameterType="org.ozea.point.domain.Point">
+        INSERT INTO Point (
+            point_id,
+            user_id,
+            point_amount,
+            type_detail,
+            created_at,
+            total_amount,
+            type
+        ) VALUES (
+            #{pointId, jdbcType=BINARY, javaType=java.util.UUID},
+            #{userId, jdbcType=BINARY, javaType=java.util.UUID},
+            #{pointAmount},
+            #{typeDetail},
+            #{createdAt},
+            #{totalAmount},
+            #{type}
+        )
+    </insert>
+
+    <select id="getTotalPointsByUserId" resultType="java.lang.Integer">
+        SELECT COALESCE(SUM(
+            CASE 
+                WHEN type = 1 THEN point_amount
+                WHEN type = 2 THEN -point_amount
+                ELSE 0
+            END
+        ), 0)
+        FROM Point
+        WHERE user_id = #{userId, jdbcType=BINARY, javaType=java.util.UUID}
+    </select>
+
+</mapper> 

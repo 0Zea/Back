@@ -28,5 +28,5 @@ public class User {
     private Long salary; // 급여
     private Long payAmount; // 지불 금액
     private String role;      // 사용자 역할 (e.g., 'user', 'admin')
-
+    private String kakaoAccessToken; // 카카오 액세스 토큰
 } 
