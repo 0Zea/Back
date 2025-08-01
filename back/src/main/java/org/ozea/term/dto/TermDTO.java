@@ -23,13 +23,4 @@ public class TermDTO {
                 .category(vo.getCategory())
                 .build();
     }
-
-    public TermVO toVo() {
-        return TermVO.builder()
-                .id(id)
-                .title(title)
-                .description(description)
-                .category(category)
-                .build();
-    }
 }
