@@ -23,7 +23,8 @@ import org.springframework.web.servlet.view.JstlView;
         "org.ozea.notice.controller",
         "org.ozea.inquiry.controller",
         "org.ozea.asset.controller",
-        "org.ozea.product.controller"
+        "org.ozea.product.controller",
+        "org.ozea.term.controller"
 }) // 컨트롤러 패키지들을 스캔하여 빈으로 등록합니다.
 public class ServletConfig  implements WebMvcConfigurer {
 
