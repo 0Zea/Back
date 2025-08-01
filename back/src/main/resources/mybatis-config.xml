@@ -14,6 +14,7 @@
         <package name="org.ozea.goal.domain" />
         <package name="org.ozea.notice.domain" />
         <package name="org.ozea.asset.domain"/>
+        <package name="org.ozea.product.domain"/>
     </typeAliases>
 
     <typeHandlers>
@@ -26,6 +27,7 @@
         <mapper resource="org/ozea/inquiry/mapper/InquiryMapper.xml"/>
         <mapper resource="org/ozea/notice/mapper/NoticeMapper.xml"/>
         <mapper resource="org/ozea/asset/mapper/AssetMapper.xml"/>
+        <mapper resource="org/ozea/product/mapper/ProductMapper.xml"/>
     </mappers>
 
 
