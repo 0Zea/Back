@@ -6,12 +6,12 @@ import org.ozea.user.domain.User;
 import org.ozea.user.mapper.UserMapper;
 import org.ozea.user.dto.UserDTO;
 import org.ozea.user.dto.UserSignupDTO;
+import org.ozea.security.client.KakaoApiClient;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.NoSuchElementException;
-import java.util.Optional;
 import java.util.Random;
 import java.util.UUID;
 
@@ -23,6 +23,7 @@ public class UserServiceImpl implements UserService {
     final PasswordEncoder passwordEncoder;
     final VerificationCodeService verificationCodeService;
     final EmailService emailService;
+    final KakaoApiClient kakaoApiClient;
 
     // 이메일 중복 확인
     @Override
@@ -58,6 +59,55 @@ public class UserServiceImpl implements UserService {
 
         // 저장된 사용자 정보 조회 후 DTO 반환
         return getUserByEmail(user.getEmail());
+    }
+
+    // 카카오 회원가입 (기존 임시 사용자 정보 업데이트)
+    @Transactional
+    @Override
+    public UserDTO signupKakao(UserSignupDTO dto) {
+        log.info("카카오 회원가입 서비스 호출: email={}, name={}", dto.getEmail(), dto.getName());
+        
+        // 기존 카카오 사용자 확인
+        User existingUser = mapper.getUserByEmail(dto.getEmail());
+        
+        if (existingUser == null) {
+            // 기존 사용자가 없으면 새로 생성
+            log.info("기존 사용자가 없어 새로 생성합니다: email={}", dto.getEmail());
+            existingUser = new User();
+            existingUser.setUserId(UUID.randomUUID());
+            existingUser.setEmail(dto.getEmail());
+            existingUser.setName(dto.getName());
+            existingUser.setPhoneNum(dto.getPhoneNum());
+            existingUser.setBirthDate(dto.getBirthDate());
+            existingUser.setSex(dto.getSex());
+            existingUser.setSalary(dto.getSalary());
+            existingUser.setPayAmount(dto.getPayAmount());
+            existingUser.setMbti(dto.getMbti());
+            existingUser.setRole("USER");
+            existingUser.setPassword(""); // 카카오 사용자는 비밀번호 없음
+            
+            // DB에 새 사용자 저장
+            mapper.insertUser(existingUser);
+            log.info("새 사용자 생성 완료: userId={}", existingUser.getUserId());
+        } else {
+            log.info("기존 사용자 발견: userId={}", existingUser.getUserId());
+
+            // 기존 사용자 정보 업데이트
+            existingUser.setName(dto.getName());
+            existingUser.setPhoneNum(dto.getPhoneNum());
+            existingUser.setBirthDate(dto.getBirthDate());
+            existingUser.setSex(dto.getSex());
+            existingUser.setSalary(dto.getSalary());
+            existingUser.setPayAmount(dto.getPayAmount());
+            existingUser.setMbti(dto.getMbti());
+
+            // DB 업데이트
+            mapper.updateUser(existingUser);
+            log.info("사용자 정보 업데이트 완료");
+        }
+
+        // 업데이트된 사용자 정보 조회 후 DTO 반환
+        return getUserByEmail(existingUser.getEmail());
     }
     
     // 비밀번호 정책 검증
@@ -330,13 +380,64 @@ public class UserServiceImpl implements UserService {
         }
         
         try {
-            // 사용자와 관련된 모든 데이터 삭제 (외래키 제약조건 해결)
+            // 카카오 연동 해제 (카카오 로그인 사용자인 경우)
+            try {
+                unlinkKakaoAccount(user);
+            } catch (Exception e) {
+                log.warn("카카오 연동 해제 실패: {}", e.getMessage());
+            }
+            
+            // 외래키 제약조건을 고려한 삭제 순서
+            // 1. 포인트 내역 삭제
+            try {
+                mapper.deleteUserPoints(userId);
+            } catch (Exception e) {
+                log.warn("포인트 내역 삭제 실패: {}", e.getMessage());
+            }
+            
+            // 2. 문의 내역 삭제
+            try {
+                mapper.deleteUserInquiries(userId);
+            } catch (Exception e) {
+                log.warn("문의 내역 삭제 실패: {}", e.getMessage());
+            }
+            
+            // 3. 목표 정보 삭제
+            try {
+                mapper.deleteUserGoals(userId);
+            } catch (Exception e) {
+                log.warn("목표 정보 삭제 실패: {}", e.getMessage());
+            }
+            
+            // 4. 마지막으로 사용자 정보 삭제
             mapper.deleteUserData(userId);
+            
             log.info("회원 탈퇴 완료: userId={}", userId);
             return true;
         } catch (Exception e) {
             log.error("회원 탈퇴 실패: userId={}, error={}", userId, e.getMessage());
             throw new RuntimeException("회원 탈퇴 처리 중 오류가 발생했습니다: " + e.getMessage());
+        }
+    }
+    
+
+    
+    // 카카오 연동 해제 (내부 메서드)
+    private void unlinkKakaoAccount(User user) {
+        try {
+            String accessToken = user.getKakaoAccessToken();
+            
+            // 카카오 액세스 토큰이 있는 경우에만 연동 해제 시도
+            if (accessToken != null && !accessToken.isEmpty()) {
+                // 카카오 연동 해제 API 호출
+                boolean success = kakaoApiClient.unlink(accessToken);
+                
+                if (!success) {
+                    log.warn("카카오 연동 해제 실패: email={}", user.getEmail());
+                }
+            }
+        } catch (Exception e) {
+            log.warn("카카오 연동 해제 중 오류: email={}, error={}", user.getEmail(), e.getMessage());
         }
     }
 }

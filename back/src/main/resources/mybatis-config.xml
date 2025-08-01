@@ -14,6 +14,8 @@
         <package name="org.ozea.goal.domain" />
         <package name="org.ozea.notice.domain" />
         <package name="org.ozea.asset.domain"/>
+        <package name="org.ozea.point.domain" />
+        <package name="org.ozea.bank.domain" />
         <package name="org.ozea.product.domain"/>
     </typeAliases>
 
@@ -27,6 +29,8 @@
         <mapper resource="org/ozea/inquiry/mapper/InquiryMapper.xml"/>
         <mapper resource="org/ozea/notice/mapper/NoticeMapper.xml"/>
         <mapper resource="org/ozea/asset/mapper/AssetMapper.xml"/>
+        <mapper resource="org/ozea/point/mapper/PointMapper.xml"/>
+        <mapper resource="org/ozea/bank/mapper/BankCodeMapper.xml"/>
         <mapper resource="org/ozea/product/mapper/ProductMapper.xml"/>
     </mappers>
 
