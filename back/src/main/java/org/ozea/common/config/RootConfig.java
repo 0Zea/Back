@@ -26,7 +26,7 @@ import javax.sql.DataSource;
 @Slf4j
 @EnableTransactionManagement // 어노테이션 기반의 트랜잭션 관리를 활성화합니다.
 @ComponentScan(basePackages = {"org.ozea"}) // org.ozea 패키지 내의 컴포넌트들을 스캔하여 빈으로 등록합니다.
-@MapperScan(basePackages = {"org.ozea.user.mapper", "org.ozea.goal.mapper", "org.ozea.inquiry.mapper", "org.ozea.asset.mapper","org.ozea.notice.mapper", "org.ozea.product.mapper"}) // 도메인별 매퍼 패키지들을 스캔합니다.
+@MapperScan(basePackages = {"org.ozea.user.mapper", "org.ozea.goal.mapper", "org.ozea.inquiry.mapper", "org.ozea.asset.mapper","org.ozea.notice.mapper", "org.ozea.product.mapper", "org.ozea.term.mapper"}) // 도메인별 매퍼 패키지들을 스캔합니다.
 public class RootConfig {
     @Value("${jdbc.driver}") String driver;
     @Value("${jdbc.url}") String url;

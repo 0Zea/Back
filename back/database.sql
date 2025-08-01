@@ -122,3 +122,4 @@ create table notice(
 );
 select * from notice;
 
+select * from financialterm where category='보험';
