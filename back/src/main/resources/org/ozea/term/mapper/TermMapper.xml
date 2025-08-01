@@ -5,6 +5,6 @@
 <!-- org.ozea.term.mapper.TermMapper 인터페이스와 매핑되는 MyBatis 매퍼 파일입니다. -->
 <mapper namespace="org.ozea.term.mapper.TermMapper">
     <select id="getList" resultType="org.ozea.term.domain.TermVO">
-        select * from financialterm
+        select * from financialterm order by id desc
     </select>
 </mapper>
