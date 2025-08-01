@@ -95,6 +95,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                         "/additional-info",
                         "/callback",
                         "/goal/**",
+                        "/product/**",
                         "/mbti-survey",
                         // 🔽 Swagger 경로 추가
                         "/swagger-ui.html",
