@@ -20,6 +20,8 @@ public interface UserService {
     boolean sendVerificationCode(String email);             // 인증번호 발송
     boolean verifyCode(String email, String code);          // 인증번호 확인
     boolean changePassword(String email, String newPassword); // 비밀번호 변경
+    boolean sendSignupVerificationCode(String email);       // 회원가입용 인증번호 발송
+    boolean verifySignupCode(String email, String code);    // 회원가입용 인증번호 확인
     
     // 프로필 업데이트
     UserDTO updateUserProfile(User user);   // 사용자 프로필 업데이트

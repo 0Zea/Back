@@ -1,41 +1,24 @@
 package org.ozea.security.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.apache.http.HttpResponse;
-import org.apache.http.NameValuePair;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.*;
-import org.apache.http.impl.client.*;
-import org.apache.http.util.EntityUtils;
-import org.apache.http.client.entity.UrlEncodedFormEntity;
-import org.apache.http.message.BasicNameValuePair;
 import org.ozea.security.account.domain.CustomUser;
 import org.ozea.security.config.KakaoUserDetailsService;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.http.ResponseEntity;
-import org.ozea.security.account.domain.CustomUser;
 import org.ozea.security.account.dto.AuthResultDTO;
 import org.ozea.security.account.dto.UserInfoDTO;
-import org.ozea.security.config.KakaoUserDetailsService;
 import org.ozea.security.util.JwtProcessor;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import javax.servlet.http.HttpServletRequest;
 
 import java.util.Map;
 import java.util.UUID;
-import java.util.HashMap;
 import org.ozea.user.domain.User;
 
 /**
@@ -61,12 +44,16 @@ public class KakaoApiController {
     private String kakaoRedirectUri;
 
     @GetMapping("/callback")
-    public ResponseEntity<?> kakaoApiCallback(@RequestParam("code") String code) {
-        log.info("카카오 콜백 요청 받음: code={}", code);
+    public ResponseEntity<?> kakaoApiCallback(@RequestParam(value = "code", required = false) String code, HttpServletRequest request) {
+        
+        if (code == null || code.isEmpty()) {
+            log.error("카카오 인증 코드가 없습니다.");
+            return ResponseEntity.badRequest().body("카카오 인증 코드가 필요합니다.");
+        }
+        
         try {
             // 1. 인증 코드로 액세스 토큰 요청
             String accessToken = getAccessToken(code);
-            log.info("카카오 액세스 토큰 획득 성공");
 
             // 2. 액세스 토큰으로 사용자 정보 요청
             Map<String, Object> userInfo = getUserInfo(accessToken);
@@ -103,13 +90,14 @@ public class KakaoApiController {
                 // 새로운 사용자인 경우, 임시 사용자 생성
                 CustomUser customUser = (CustomUser) kakaoUserDetailsService.loadUserByUsername(email, nickname, accessToken, "");
                 
-                // 회원가입 정보를 포함한 응답
-                Map<String, Object> responseBody = new HashMap<>();
-                responseBody.put("email", email);
-                responseBody.put("name", nickname);
-                responseBody.put("accessToken", accessToken);
+                // 새로운 사용자에게도 임시 JWT 토큰 발급 (추가 정보 입력을 위해)
+                String token = jwtProcessor.generateToken(email);
                 
-                return ResponseEntity.status(401).body(responseBody);
+                // 새로운 사용자 정보를 포함한 응답
+                UserInfoDTO userInfoDTO = UserInfoDTO.of(customUser.getUser());
+                AuthResultDTO result = new AuthResultDTO(token, userInfoDTO, true);
+                
+                return ResponseEntity.ok(result);
             }
 
             // 5. 기존 사용자인 경우 로그인 처리
@@ -121,7 +109,7 @@ public class KakaoApiController {
             // 7. 응답 데이터 생성
             UserInfoDTO userInfoDTO = UserInfoDTO.of(customUser.getUser());
 
-            AuthResultDTO result = new AuthResultDTO(token, userInfoDTO);
+            AuthResultDTO result = new AuthResultDTO(token, userInfoDTO, false);
 
             return ResponseEntity.ok(result);
         } catch (Exception e) {

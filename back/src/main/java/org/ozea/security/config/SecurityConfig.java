@@ -17,7 +17,6 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.crypto.password.NoOpPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
@@ -101,14 +100,15 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                         "/swagger-ui.html",
                         "/swagger-resources/**",
                         "/v2/api-docs",
-                        "/webjars/**","api/inquiry/**","api/notice/**").permitAll() // 인증 없이 접근 허용
-                .antMatchers("/api/auth/**").permitAll() // 회원가입, 로그인 API
-                .antMatchers("/api/auth/kakao/callback").permitAll() // 카카오 로그인 API
+                        "/webjars/**",
+                        "api/inquiry/**",
+                        "api/notice/**",
+                        "/api/auth/**",
+                        "/api/auth/kakao/callback").permitAll() // 인증 없이 접근 허용
                 .anyRequest().authenticated() // 그 외의 모든 요청은 인증된 사용자만 접근 가능합니다.
                 .and();
                 // 임시로 필터 비활성화 (실무에서는 활성화해야 함)
-                // .addFilterBefore(jwtUsernamePasswordAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class) // 로그인 인증 필터 등록
-                // .addFilterAfter(jwtAuthenticationFilter(), JwtUsernamePasswordAuthenticationFilter.class); // JWT 토큰 검증 필터 등록 (인증 후 요청마다 실행됨)
+                // .addFilterAfter(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class); // JWT 토큰 검증 필터 등록 (인증 후 요청마다 실행됨)
     }
 
     /**
