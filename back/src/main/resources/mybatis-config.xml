@@ -17,6 +17,8 @@
         <package name="org.ozea.point.domain" />
         <package name="org.ozea.bank.domain" />
         <package name="org.ozea.product.domain"/>
+        <package name="org.ozea.term.domain"/>
+        <package name="org.ozea.quiz.domain"/>
     </typeAliases>
 
     <typeHandlers>
@@ -32,6 +34,8 @@
         <mapper resource="org/ozea/point/mapper/PointMapper.xml"/>
         <mapper resource="org/ozea/bank/mapper/BankCodeMapper.xml"/>
         <mapper resource="org/ozea/product/mapper/ProductMapper.xml"/>
+        <mapper resource="org/ozea/term/mapper/TermMapper.xml"/>
+        <mapper resource="org/ozea/quiz/mapper/QuizMapper.xml"/>
     </mappers>
 
 
