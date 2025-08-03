@@ -14,11 +14,11 @@ import java.util.UUID;
 @NoArgsConstructor
 @Builder
 public class NoticeDTO {
-    private String noticeId;               // UUID → String
-    private String adminId;               // UUID → String
-    private String content;              // 문의 내용
-    private String title;                // 문의 제목
-    private Date createdAt;     // 등록 일자
+    private String noticeId;
+    private String adminId;
+    private String content;
+    private String title;
+    private Date createdAt;
 
     public static NoticeDTO of(NoticeVO vo) {
         return vo == null ? null : NoticeDTO.builder()

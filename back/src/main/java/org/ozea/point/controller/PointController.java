@@ -83,7 +83,6 @@ public class PointController {
             );
             return ResponseEntity.ok(response);
         } catch (Exception e) {
-            log.error("포인트 출금 실패: {}", e.getMessage());
             Map<String, Object> response = Map.of(
                 "success", false,
                 "message", e.getMessage()

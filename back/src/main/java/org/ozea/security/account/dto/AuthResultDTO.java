@@ -10,4 +10,5 @@ import lombok.NoArgsConstructor;
 public class AuthResultDTO {
     String token;
     UserInfoDTO user;
+    boolean isNewUser = false;
 }

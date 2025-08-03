@@ -29,21 +29,16 @@ public class UserController {
     final JwtProcessor jwtProcessor;
     final PointService pointService;
 
-    // Rate Limiting을 위한 맵
     private final Map<String, AtomicInteger> loginAttempts = new ConcurrentHashMap<>();
     private final Map<String, Long> lastAttemptTime = new ConcurrentHashMap<>();
-    private static final int MAX_ATTEMPTS = 5; // 5분당 최대 5회
-    private static final long ATTEMPT_WINDOW = 5 * 60 * 1000; // 5분
+    private static final int MAX_ATTEMPTS = 5;
+    private static final long ATTEMPT_WINDOW = 5 * 60 * 1000;
 
-    // 로그인 (실무 수준 - JWT 토큰 사용 + Rate Limiting)
     @PostMapping("/login")
     public ResponseEntity<Map<String, Object>> login(@RequestBody Map<String, String> request) {
         String email = request.get("email");
         String password = request.get("password");
         
-        log.info("로그인 시도: email={}", email);
-        
-        // Rate Limiting 체크
         if (isRateLimited(email)) {
             Map<String, Object> response = new HashMap<>();
             response.put("success", false);
@@ -56,10 +51,8 @@ public class UserController {
         try {
             UserDTO user = service.login(email, password);
 
-            // 실제 JWT 토큰 생성
             String token = jwtProcessor.generateToken(user.getEmail());
 
-            // 성공 시 Rate Limiting 카운터 리셋
             resetRateLimit(email);
 
             Map<String, Object> response = new HashMap<>();
@@ -68,16 +61,11 @@ public class UserController {
             response.put("message", "로그인 성공");
             response.put("token", token);
             response.put("tokenType", "Bearer");
-            response.put("expiresIn", 300); // 5분
-
-            log.info("로그인 성공: email={}, userId={}", email, user.getUserId());
+            response.put("expiresIn", 300);
 
             return ResponseEntity.ok(response);
         } catch (Exception e) {
-            // 실패 시 Rate Limiting 카운터 증가
             incrementRateLimit(email);
-
-            log.error("로그인 실패: {}", e.getMessage());
 
             Map<String, Object> response = new HashMap<>();
             response.put("success", false);
@@ -87,7 +75,6 @@ public class UserController {
         }
     }
 
-    // Rate Limiting 체크
     private boolean isRateLimited(String email) {
         AtomicInteger attempts = loginAttempts.get(email);
         Long lastAttempt = lastAttemptTime.get(email);
@@ -167,7 +154,7 @@ public class UserController {
     @PostMapping("/signup/kakao")
     public ResponseEntity<?> signupKakao(@RequestBody UserSignupDTO user) {
         try {
-            log.info("카카오 회원가입 요청 받음: {}", user);
+    
             UserDTO result = service.signupKakao(user);
             if (result == null) {
                 return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("카카오 회원가입 실패");
@@ -206,6 +193,33 @@ public class UserController {
         String email = request.get("email");
         
         boolean success = service.sendVerificationCode(email);
+        
+        Map<String, Object> response = new HashMap<>();
+        response.put("success", success);
+        
+        return ResponseEntity.ok(response);
+    }
+    
+    // 회원가입용 인증번호 발송
+    @PostMapping("/signup/send-verification-code")
+    public ResponseEntity<Map<String, Object>> sendSignupVerificationCode(@RequestBody Map<String, String> request) {
+        String email = request.get("email");
+        
+        boolean success = service.sendSignupVerificationCode(email);
+        
+        Map<String, Object> response = new HashMap<>();
+        response.put("success", success);
+        
+        return ResponseEntity.ok(response);
+    }
+    
+    // 회원가입용 인증번호 확인
+    @PostMapping("/signup/verify-code")
+    public ResponseEntity<Map<String, Object>> verifySignupCode(@RequestBody Map<String, String> request) {
+        String email = request.get("email");
+        String code = request.get("code");
+        
+        boolean success = service.verifySignupCode(email, code);
         
         Map<String, Object> response = new HashMap<>();
         response.put("success", success);
@@ -261,7 +275,7 @@ public class UserController {
             response.put("tokenType", "Bearer");
             response.put("expiresIn", 300);
             
-            log.info("토큰 갱신 성공: email={}", email);
+    
             
             return ResponseEntity.ok(response);
         } catch (Exception e) {
@@ -359,7 +373,7 @@ public class UserController {
             response.put("message", "프로필 업데이트 성공");
             response.put("user", updatedUser);
             
-            log.info("프로필 업데이트 성공: email={}", email);
+    
             
             return ResponseEntity.ok(response);
         } catch (Exception e) {
@@ -376,16 +390,14 @@ public class UserController {
     // 마이페이지 - 내 정보 조회
     @GetMapping("/me")
     public ResponseEntity<Map<String, Object>> getMyInfo(@RequestHeader("Authorization") String authHeader) {
-        log.info("🔍 내 정보 조회 요청: Authorization={}", authHeader);
+
         try {
             // JWT 토큰에서 사용자 이메일 추출
             String token = authHeader.substring(7); // "Bearer " 제거
             String email = jwtProcessor.getUsername(token);
-            log.info("📧 JWT에서 추출된 이메일: {}", email);
             
             // 이메일로 사용자 정보 조회
             UserDTO user = service.getUserByEmail(email);
-            log.info("✅ 사용자 정보 조회 성공: userId={}", user.getUserId());
             
             Map<String, Object> response = new HashMap<>();
             response.put("success", true);
@@ -405,8 +417,7 @@ public class UserController {
     @PutMapping("/asset")
     public ResponseEntity<Map<String, Object>> updateAssetInfo(@RequestHeader("Authorization") String authHeader,
                                                               @RequestBody Map<String, Object> request) {
-        log.info("💰 자산정보 수정 요청: Authorization={}", authHeader);
-        log.info("💰 요청 데이터: {}", request);
+
         
         try {
             // JWT 토큰에서 사용자 이메일 추출
@@ -419,10 +430,8 @@ public class UserController {
             }
             
             String token = authHeader.substring(7); // "Bearer " 제거
-            log.info("🔐 추출된 토큰: {}", token.substring(0, Math.min(50, token.length())) + "...");
             
             String email = jwtProcessor.getUsername(token);
-            log.info("📧 JWT에서 추출된 이메일: {}", email);
             
             // 이메일로 사용자 정보 조회
             UserDTO user = service.getUserByEmail(email);
@@ -444,7 +453,7 @@ public class UserController {
             
             Long salary = request.get("salary") != null ? Long.valueOf(request.get("salary").toString()) : 0L;
             Long payAmount = request.get("payAmount") != null ? Long.valueOf(request.get("payAmount").toString()) : 0L;
-            log.info("자산정보: salary={}, payAmount={}", salary, payAmount);
+
             
             // 자산정보 유효성 검증
             if (salary < 0 || payAmount < 0) {
@@ -453,7 +462,7 @@ public class UserController {
             }
             
             UserDTO updatedUser = service.updateAssetInfo(userId, salary, payAmount);
-            log.info("자산정보 수정 성공: userId={}", userId);
+
             
             return ResponseEntity.ok(createResponse(true, "자산정보가 성공적으로 수정되었습니다.", updatedUser));
         } catch (Exception e) {
@@ -486,7 +495,6 @@ public class UserController {
             UUID userId;
             try {
                 userId = UUID.fromString(user.getUserId());
-                log.info("👤 사용자 정보 조회 성공: userId={}", userId);
             } catch (IllegalArgumentException e) {
                 log.error("❌ 잘못된 UUID 형식입니다: {}", user.getUserId());
                 Map<String, Object> response = new HashMap<>();
@@ -503,10 +511,8 @@ public class UserController {
                 response.put("message", "MBTI는 필수 입력 항목입니다.");
                 return ResponseEntity.badRequest().body(response);
             }
-            log.info("🧠 MBTI: {}", mbti);
             
             UserDTO updatedUser = service.updateMbti(userId, mbti);
-            log.info("✅ MBTI 수정 성공: userId={}, mbti={}", userId, mbti);
             
             Map<String, Object> response = new HashMap<>();
             response.put("success", true);
@@ -526,12 +532,11 @@ public class UserController {
     @PutMapping("/password")
     public ResponseEntity<Map<String, Object>> updatePassword(@RequestHeader("Authorization") String authHeader,
                                                              @RequestBody Map<String, String> request) {
-        log.info("🔐 비밀번호 수정 요청: Authorization={}", authHeader);
+
         try {
             // JWT 토큰에서 사용자 이메일 추출
             String token = authHeader.substring(7); // "Bearer " 제거
             String email = jwtProcessor.getUsername(token);
-            log.info("📧 JWT에서 추출된 이메일: {}", email);
             
             // 이메일로 사용자 정보 조회
             UserDTO user = service.getUserByEmail(email);
@@ -578,10 +583,7 @@ public class UserController {
                 return ResponseEntity.badRequest().body(response);
             }
             
-            log.info("🔐 현재 비밀번호 길이: {}, 새 비밀번호 길이: {}", currentPassword.length(), newPassword.length());
-            
             boolean success = service.updatePasswordWithCurrentCheck(userId, currentPassword, newPassword);
-            log.info("✅ 비밀번호 수정 성공: userId={}", userId);
             
             Map<String, Object> response = new HashMap<>();
             response.put("success", success);
@@ -599,7 +601,7 @@ public class UserController {
     // 마이페이지 - 회원 탈퇴
     @DeleteMapping("/withdraw")
     public ResponseEntity<Map<String, Object>> withdrawUser(@RequestHeader("Authorization") String authHeader) {
-        log.info("회원 탈퇴 요청: email={}", jwtProcessor.getUsername(authHeader.substring(7)));
+
         try {
             // JWT 토큰에서 사용자 이메일 추출
             String token = authHeader.substring(7); // "Bearer " 제거
@@ -630,7 +632,6 @@ public class UserController {
             }
             
             boolean success = service.withdrawUser(userId);
-            log.info("회원 탈퇴 성공: userId={}", userId);
             
             Map<String, Object> response = new HashMap<>();
             response.put("success", success);

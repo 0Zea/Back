@@ -15,9 +15,6 @@ public class KakaoApiClient {
     private static final String KAKAO_API_BASE_URL = "https://kapi.kakao.com";
     private final HttpClient httpClient = HttpClient.newHttpClient();
     
-    /**
-     * 카카오 연동 해제 (액세스 토큰만 사용)
-     */
     public boolean unlink(String accessToken) {
         try {
             HttpRequest request = HttpRequest.newBuilder()
@@ -31,7 +28,6 @@ public class KakaoApiClient {
             
             return response.statusCode() == 200;
         } catch (Exception e) {
-            log.error("카카오 연동 해제 중 오류: {}", e.getMessage());
             return false;
         }
     }

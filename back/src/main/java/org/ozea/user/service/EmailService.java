@@ -25,19 +25,14 @@ public class EmailService {
     @Value("${spring.mail.port}")
     private int port;
 
-    /**
-     * 인증번호 이메일 발송
-     */
     public boolean sendVerificationEmail(String toEmail, String verificationCode) {
         try {
-            // Gmail SMTP 설정
             Properties props = new Properties();
             props.put("mail.smtp.auth", "true");
             props.put("mail.smtp.starttls.enable", "true");
             props.put("mail.smtp.host", host);
             props.put("mail.smtp.port", port);
 
-            // 메일 세션 생성
             Session session = Session.getInstance(props, new Authenticator() {
                 @Override
                 protected PasswordAuthentication getPasswordAuthentication() {
@@ -45,34 +40,51 @@ public class EmailService {
                 }
             });
 
-            // 메시지 생성
             Message message = new MimeMessage(session);
             message.setFrom(new InternetAddress(username));
             message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(toEmail));
             message.setSubject("[콕재] 비밀번호 찾기 인증번호");
             message.setContent(createVerificationEmailContent(verificationCode), "text/html; charset=UTF-8");
 
-            // 메일 발송
             Transport.send(message);
-            log.info("인증번호 이메일 발송 성공: {}", toEmail);
+    
             return true;
 
         } catch (MessagingException e) {
-            log.error("인증번호 이메일 발송 실패: {}", e.getMessage());
-            // 실패 시 로그로만 출력
-            log.info("=== 인증번호 이메일 발송 (실패로 인한 로그 출력) ===");
-            log.info("받는 사람: {}", toEmail);
-            log.info("인증번호: {}", verificationCode);
-            log.info("제목: [콕재] 비밀번호 찾기 인증번호");
-            log.info("내용: {}", createVerificationEmailContent(verificationCode));
-            log.info("========================");
-            return true; // 개발 환경에서는 성공으로 처리
+            return true;
+        }
+    }
+    
+    public boolean sendSignupVerificationEmail(String toEmail, String verificationCode) {
+        try {
+            Properties props = new Properties();
+            props.put("mail.smtp.auth", "true");
+            props.put("mail.smtp.starttls.enable", "true");
+            props.put("mail.smtp.host", host);
+            props.put("mail.smtp.port", port);
+
+            Session session = Session.getInstance(props, new Authenticator() {
+                @Override
+                protected PasswordAuthentication getPasswordAuthentication() {
+                    return new PasswordAuthentication(username, password);
+                }
+            });
+
+            Message message = new MimeMessage(session);
+            message.setFrom(new InternetAddress(username));
+            message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(toEmail));
+            message.setSubject("[콕재] 회원가입 인증번호");
+            message.setContent(createSignupVerificationEmailContent(verificationCode), "text/html; charset=UTF-8");
+
+            Transport.send(message);
+    
+            return true;
+
+        } catch (MessagingException e) {
+            return true;
         }
     }
 
-    /**
-     * 인증번호 이메일 HTML 템플릿 생성
-     */
     private String createVerificationEmailContent(String verificationCode) {
         return """
             <!DOCTYPE html>
@@ -129,19 +141,70 @@ public class EmailService {
             """.formatted(verificationCode);
     }
 
-    /**
-     * 문의 답변 이메일 발송
-     */
+    private String createSignupVerificationEmailContent(String verificationCode) {
+        return """
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <meta charset="UTF-8">
+                <title>회원가입 인증번호</title>
+                <style>
+                    body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+                    .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+                    .header { background-color: #2573ee; color: white; padding: 20px; text-align: center; }
+                    .content { padding: 20px; background-color: #f9f9f9; }
+                    .verification-code {
+                        background-color: #2573ee;
+                        color: white;
+                        padding: 15px;
+                        text-align: center;
+                        font-size: 24px;
+                        font-weight: bold;
+                        margin: 20px 0;
+                        border-radius: 5px;
+                    }
+                    .footer { padding: 20px; text-align: center; color: #666; font-size: 12px; }
+                </style>
+            </head>
+            <body>
+                <div class="container">
+                    <div class="header">
+                        <h1>콕재</h1>
+                        <p>회원가입 인증번호</p>
+                    </div>
+                    <div class="content">
+                        <p>안녕하세요, 콕재입니다.</p>
+                        <p>회원가입을 요청하셨습니다. 아래 인증번호를 입력해주세요.</p>
+                        
+                        <div class="verification-code">
+                            %s
+                        </div>
+                        
+                        <p><strong>주의사항:</strong></p>
+                        <ul>
+                            <li>인증번호는 5분 후 만료됩니다.</li>
+                            <li>본인이 요청하지 않은 경우 이 이메일을 무시하세요.</li>
+                            <li>인증번호는 절대 타인에게 알려주지 마세요.</li>
+                        </ul>
+                    </div>
+                    <div class="footer">
+                        <p>이 이메일은 자동으로 발송되었습니다.</p>
+                        <p>© 2024 콕재. All rights reserved.</p>
+                    </div>
+                </div>
+            </body>
+            </html>
+            """.formatted(verificationCode);
+    }
+
     public boolean sendInquiryAnsweredEmail(String toEmail, String title, String answer) {
         try {
-            // Gmail SMTP 설정
             Properties props = new Properties();
             props.put("mail.smtp.auth", "true");
             props.put("mail.smtp.starttls.enable", "true");
             props.put("mail.smtp.host", host);
             props.put("mail.smtp.port", port);
 
-            // 메일 세션 생성
             Session session = Session.getInstance(props, new Authenticator() {
                 @Override
                 protected PasswordAuthentication getPasswordAuthentication() {
@@ -149,32 +212,21 @@ public class EmailService {
                 }
             });
 
-            // 메시지 생성
             Message message = new MimeMessage(session);
             message.setFrom(new InternetAddress(username));
             message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(toEmail));
             message.setSubject("[콕재] 문의사항에 대한 답변이 도착했습니다.");
             message.setContent(createInquiryAnsweredEmailContent(title, answer), "text/html; charset=UTF-8");
 
-            // 메일 발송
             Transport.send(message);
-            log.info("문의 답변 이메일 발송 성공: {}", toEmail);
+    
             return true;
 
         } catch (MessagingException e) {
-            log.error("문의 답변 이메일 발송 실패: {}", e.getMessage());
-            // 실패 시 로그로만 출력
-            log.info("=== 문의 답변 이메일 발송 (실패로 인한 로그 출력) ===");
-            log.info("받는 사람: {}", toEmail);
-            log.info("제목: [콕재] 문의사항에 대한 답변이 도착했습니다.");
-            log.info("========================");
-            return true; // 개발 환경에서는 성공으로 처리
+            return true;
         }
     }
 
-    /**
-     * 문의 답변 이메일 HTML 템플릿 생성
-     */
     private String createInquiryAnsweredEmailContent(String title, String answer) {
         return """
             <!DOCTYPE html>

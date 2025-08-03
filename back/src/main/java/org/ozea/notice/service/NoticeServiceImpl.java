@@ -20,14 +20,14 @@ public class NoticeServiceImpl implements NoticeService{
     final private NoticeMapper mapper;
     @Override
     public NoticeDTO get(UUID noticeId) {
-        log.info("get......" + noticeId);
+
         NoticeDTO notice = NoticeDTO.of(mapper.get(noticeId));
         return Optional.ofNullable(notice).orElseThrow(NoSuchElementException::new);
     }
 
     @Override
     public NoticeDTO create(NoticeDTO notice) {
-        log.info("create......" + notice);
+
         if (notice.getNoticeId() == null) {
             notice.setNoticeId(UUID.randomUUID().toString());
         }
@@ -39,14 +39,14 @@ public class NoticeServiceImpl implements NoticeService{
     @Override
     public NoticeDTO update(UUID noticeId, NoticeDTO notice) {
         NoticeVO noticeVO = notice.toVo();
-        log.info("update vo........"+noticeVO);
+
         mapper.update(noticeId, noticeVO);
         return get(noticeId);
     }
 
     @Override
     public NoticeDTO delete(UUID noticeId) {
-        log.info("delete........"+noticeId);
+
         NoticeDTO notice = get(noticeId);
         mapper.delete(noticeId);
         return notice;
@@ -62,7 +62,7 @@ public class NoticeServiceImpl implements NoticeService{
 
     @Override
     public Page<NoticeDTO> findByTitleContaining(String keyword, PageRequest pageRequest) {
-        log.info("findByTitleContaining... title: {}", keyword);
+
         List<NoticeVO> notices = mapper.findByTitleContaining(keyword, pageRequest);
         int totalCount = mapper.getTotalCountByTitle(keyword);
         return Page.of(pageRequest, totalCount,

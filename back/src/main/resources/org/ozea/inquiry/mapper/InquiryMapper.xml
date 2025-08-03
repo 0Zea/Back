@@ -27,14 +27,15 @@
     </resultMap>
     <insert id="create" parameterType="org.ozea.inquiry.domain.InquiryVO">
         INSERT INTO inquiry(
-        info_id, user_id, title, content, user_name, is_answered
+        info_id, user_id, title, content, user_name, is_answered, created_at
         ) VALUES(
         #{infoId, javaType=java.util.UUID, jdbcType=BINARY},
         #{userId, javaType=java.util.UUID, jdbcType=BINARY},
         #{title},
         #{content},
         #{userName},
-        false
+        false,
+        NOW()
         )
     </insert>
     <update id="increaseViewCount">
