@@ -33,13 +33,11 @@ public class HomeController {
         return "index";
     }
 
-    // 회원가입
     @GetMapping("/signup")
     public String showSignupPage() {
-        return "signup"; // /WEB-INF/views/signup.jsp 로 포워딩됨 (viewResolver 사용 시)
+        return "signup";
     }
 
-    // 회원가입 폼 제출 처리
     @PostMapping("/signup")
     public String processSignup(HttpServletRequest request) {
         String name = request.getParameter("name");
@@ -49,7 +47,7 @@ public class HomeController {
         user.setUserId(java.util.UUID.randomUUID());
         user.setName(name);
         user.setEmail(email);
-        user.setPassword(password); // 실제 서비스에서는 암호화 필요
+        user.setPassword(password);
         user.setMbti("미입력");
         user.setPhoneNum("000-0000-0000");
         user.setBirthDate(java.time.LocalDate.of(1900, 1, 1));
@@ -58,15 +56,13 @@ public class HomeController {
         user.setPayAmount(0L);
         user.setRole("USER");
         userMapper.insertUser(user);
-        // 세션에 email 저장
         request.getSession().setAttribute("email", email);
         return "redirect:/additional-info";
     }
 
-    // 로컬 로그인
     @GetMapping("/local-login")
     public String showLocalLoginPage() {
-        return "local-login"; // → 실제 파일: /WEB-INF/views/local-login.jsp
+        return "local-login";
     }
 
     /**

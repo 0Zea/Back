@@ -69,7 +69,7 @@ public class KakaoUserDetailsService implements UserDetailsService {
                 nickname = "카카오사용자";
             }
             user.setName(nickname);
-            user.setMbti("xxxx");
+            user.setMbti("미입력");
             user.setPhoneNum("000-0000-0000");
             user.setBirthDate(java.time.LocalDate.now());
             user.setSex("female");

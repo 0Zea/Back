@@ -25,19 +25,14 @@ public class EmailService {
     @Value("${spring.mail.port}")
     private int port;
 
-    /**
-     * 인증번호 이메일 발송
-     */
     public boolean sendVerificationEmail(String toEmail, String verificationCode) {
         try {
-            // Gmail SMTP 설정
             Properties props = new Properties();
             props.put("mail.smtp.auth", "true");
             props.put("mail.smtp.starttls.enable", "true");
             props.put("mail.smtp.host", host);
             props.put("mail.smtp.port", port);
 
-            // 메일 세션 생성
             Session session = Session.getInstance(props, new Authenticator() {
                 @Override
                 protected PasswordAuthentication getPasswordAuthentication() {
@@ -45,44 +40,29 @@ public class EmailService {
                 }
             });
 
-            // 메시지 생성
             Message message = new MimeMessage(session);
             message.setFrom(new InternetAddress(username));
             message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(toEmail));
             message.setSubject("[콕재] 비밀번호 찾기 인증번호");
             message.setContent(createVerificationEmailContent(verificationCode), "text/html; charset=UTF-8");
 
-            // 메일 발송
             Transport.send(message);
-            log.info("인증번호 이메일 발송 성공: {}", toEmail);
+    
             return true;
 
         } catch (MessagingException e) {
-            log.error("인증번호 이메일 발송 실패: {}", e.getMessage());
-            // 실패 시 로그로만 출력
-            log.info("=== 인증번호 이메일 발송 (실패로 인한 로그 출력) ===");
-            log.info("받는 사람: {}", toEmail);
-            log.info("인증번호: {}", verificationCode);
-            log.info("제목: [콕재] 비밀번호 찾기 인증번호");
-            log.info("내용: {}", createVerificationEmailContent(verificationCode));
-            log.info("========================");
-            return true; // 개발 환경에서는 성공으로 처리
+            return true;
         }
     }
     
-    /**
-     * 회원가입용 인증번호 이메일 발송
-     */
     public boolean sendSignupVerificationEmail(String toEmail, String verificationCode) {
         try {
-            // Gmail SMTP 설정
             Properties props = new Properties();
             props.put("mail.smtp.auth", "true");
             props.put("mail.smtp.starttls.enable", "true");
             props.put("mail.smtp.host", host);
             props.put("mail.smtp.port", port);
 
-            // 메일 세션 생성
             Session session = Session.getInstance(props, new Authenticator() {
                 @Override
                 protected PasswordAuthentication getPasswordAuthentication() {
@@ -90,34 +70,21 @@ public class EmailService {
                 }
             });
 
-            // 메시지 생성
             Message message = new MimeMessage(session);
             message.setFrom(new InternetAddress(username));
             message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(toEmail));
             message.setSubject("[콕재] 회원가입 인증번호");
             message.setContent(createSignupVerificationEmailContent(verificationCode), "text/html; charset=UTF-8");
 
-            // 메일 발송
             Transport.send(message);
-            log.info("회원가입 인증번호 이메일 발송 성공: {}", toEmail);
+    
             return true;
 
         } catch (MessagingException e) {
-            log.error("회원가입 인증번호 이메일 발송 실패: {}", e.getMessage());
-            // 실패 시 로그로만 출력
-            log.info("=== 회원가입 인증번호 이메일 발송 (실패로 인한 로그 출력) ===");
-            log.info("받는 사람: {}", toEmail);
-            log.info("인증번호: {}", verificationCode);
-            log.info("제목: [콕재] 회원가입 인증번호");
-            log.info("내용: {}", createSignupVerificationEmailContent(verificationCode));
-            log.info("========================");
-            return true; // 개발 환경에서는 성공으로 처리
+            return true;
         }
     }
 
-    /**
-     * 인증번호 이메일 HTML 템플릿 생성
-     */
     private String createVerificationEmailContent(String verificationCode) {
         return """
             <!DOCTYPE html>
@@ -174,9 +141,6 @@ public class EmailService {
             """.formatted(verificationCode);
     }
 
-    /**
-     * 회원가입용 인증번호 이메일 HTML 템플릿 생성
-     */
     private String createSignupVerificationEmailContent(String verificationCode) {
         return """
             <!DOCTYPE html>
@@ -233,19 +197,14 @@ public class EmailService {
             """.formatted(verificationCode);
     }
 
-    /**
-     * 문의 답변 이메일 발송
-     */
     public boolean sendInquiryAnsweredEmail(String toEmail, String title, String answer) {
         try {
-            // Gmail SMTP 설정
             Properties props = new Properties();
             props.put("mail.smtp.auth", "true");
             props.put("mail.smtp.starttls.enable", "true");
             props.put("mail.smtp.host", host);
             props.put("mail.smtp.port", port);
 
-            // 메일 세션 생성
             Session session = Session.getInstance(props, new Authenticator() {
                 @Override
                 protected PasswordAuthentication getPasswordAuthentication() {
@@ -253,32 +212,21 @@ public class EmailService {
                 }
             });
 
-            // 메시지 생성
             Message message = new MimeMessage(session);
             message.setFrom(new InternetAddress(username));
             message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(toEmail));
             message.setSubject("[콕재] 문의사항에 대한 답변이 도착했습니다.");
             message.setContent(createInquiryAnsweredEmailContent(title, answer), "text/html; charset=UTF-8");
 
-            // 메일 발송
             Transport.send(message);
-            log.info("문의 답변 이메일 발송 성공: {}", toEmail);
+    
             return true;
 
         } catch (MessagingException e) {
-            log.error("문의 답변 이메일 발송 실패: {}", e.getMessage());
-            // 실패 시 로그로만 출력
-            log.info("=== 문의 답변 이메일 발송 (실패로 인한 로그 출력) ===");
-            log.info("받는 사람: {}", toEmail);
-            log.info("제목: [콕재] 문의사항에 대한 답변이 도착했습니다.");
-            log.info("========================");
-            return true; // 개발 환경에서는 성공으로 처리
+            return true;
         }
     }
 
-    /**
-     * 문의 답변 이메일 HTML 템플릿 생성
-     */
     private String createInquiryAnsweredEmailContent(String title, String answer) {
         return """
             <!DOCTYPE html>

@@ -26,14 +26,14 @@ public class AssetController {
 
     @GetMapping("/{userId}/summary")
     public ResponseEntity<AssetDTO> getUserAssetSummary(@PathVariable UUID userId) {
-        log.info("사용자 자산 요약 API 호출: userId = {}", userId);
+
         AssetDTO assetDTO = assetService.getUserAssetSummary(userId);
         return ResponseEntity.ok(assetDTO);
     }
 
     @GetMapping("/{userId}/accounts")
     public ResponseEntity<List<BankAccountDTO>> getUserBankAccounts(@PathVariable UUID userId) {
-        log.info("사용자 계좌 목록 API 호출: userId = {}", userId);
+
         List<BankAccountDTO> accounts = assetService.getUserBankAccounts(userId);
         return ResponseEntity.ok(accounts);
     }

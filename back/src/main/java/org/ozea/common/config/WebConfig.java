@@ -14,10 +14,7 @@ import java.util.Arrays;
 
 @Slf4j
 @Configuration
-//@PropertySource({"classpath:/application.properties"})
 public class WebConfig extends AbstractAnnotationConfigDispatcherServletInitializer {
-
-//    @Value("${upload.maxFileSize}") Long maxFileSize;
 
     @Override
     protected Class<?>[] getRootConfigClasses() {
@@ -40,21 +37,16 @@ public class WebConfig extends AbstractAnnotationConfigDispatcherServletInitiali
         };
     }
 
-    // POST body 문자 인코딩 필터 설정 - UTF-8 설정
     protected Filter[] getServletFilters() {
         CharacterEncodingFilter characterEncodingFilter = new CharacterEncodingFilter();
         characterEncodingFilter.setEncoding("UTF-8");
         characterEncodingFilter.setForceEncoding(true);
 
-        // CORS 필터 추가
         CorsFilter corsFilter = new CorsFilter(corsConfigurationSource());
 
         return new Filter[] {characterEncodingFilter, corsFilter};
     }
 
-    /**
-     * CORS 설정
-     */
     private CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOriginPatterns(Arrays.asList("*"));

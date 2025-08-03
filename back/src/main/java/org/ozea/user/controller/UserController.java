@@ -29,21 +29,16 @@ public class UserController {
     final JwtProcessor jwtProcessor;
     final PointService pointService;
 
-    // Rate Limiting을 위한 맵
     private final Map<String, AtomicInteger> loginAttempts = new ConcurrentHashMap<>();
     private final Map<String, Long> lastAttemptTime = new ConcurrentHashMap<>();
-    private static final int MAX_ATTEMPTS = 5; // 5분당 최대 5회
-    private static final long ATTEMPT_WINDOW = 5 * 60 * 1000; // 5분
+    private static final int MAX_ATTEMPTS = 5;
+    private static final long ATTEMPT_WINDOW = 5 * 60 * 1000;
 
-    // 로그인 (실무 수준 - JWT 토큰 사용 + Rate Limiting)
     @PostMapping("/login")
     public ResponseEntity<Map<String, Object>> login(@RequestBody Map<String, String> request) {
         String email = request.get("email");
         String password = request.get("password");
         
-
-        
-        // Rate Limiting 체크
         if (isRateLimited(email)) {
             Map<String, Object> response = new HashMap<>();
             response.put("success", false);
@@ -56,10 +51,8 @@ public class UserController {
         try {
             UserDTO user = service.login(email, password);
 
-            // 실제 JWT 토큰 생성
             String token = jwtProcessor.generateToken(user.getEmail());
 
-            // 성공 시 Rate Limiting 카운터 리셋
             resetRateLimit(email);
 
             Map<String, Object> response = new HashMap<>();
@@ -68,16 +61,11 @@ public class UserController {
             response.put("message", "로그인 성공");
             response.put("token", token);
             response.put("tokenType", "Bearer");
-            response.put("expiresIn", 300); // 5분
-
-
+            response.put("expiresIn", 300);
 
             return ResponseEntity.ok(response);
         } catch (Exception e) {
-            // 실패 시 Rate Limiting 카운터 증가
             incrementRateLimit(email);
-
-            log.error("로그인 실패: {}", e.getMessage());
 
             Map<String, Object> response = new HashMap<>();
             response.put("success", false);
@@ -87,7 +75,6 @@ public class UserController {
         }
     }
 
-    // Rate Limiting 체크
     private boolean isRateLimited(String email) {
         AtomicInteger attempts = loginAttempts.get(email);
         Long lastAttempt = lastAttemptTime.get(email);
@@ -508,7 +495,6 @@ public class UserController {
             UUID userId;
             try {
                 userId = UUID.fromString(user.getUserId());
-                log.info("👤 사용자 정보 조회 성공: userId={}", userId);
             } catch (IllegalArgumentException e) {
                 log.error("❌ 잘못된 UUID 형식입니다: {}", user.getUserId());
                 Map<String, Object> response = new HashMap<>();

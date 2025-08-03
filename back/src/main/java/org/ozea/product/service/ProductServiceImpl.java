@@ -40,28 +40,28 @@ public class ProductServiceImpl implements ProductService {
         return switch (mbti) {
             case "신속한 승부사" -> products.stream()
                     .filter(p -> hasShortTerm(p, 6) && isFreeSaving(p) && isHighRate(p))
-                    .sorted(rate2Desc()) // 우대금리 정렬
+                    .sorted(rate2Desc())
                     .limit(5)
                     .map(p -> toDto(p, "단기 + 자유 적립 고금리 상품"))
                     .toList();
 
             case "신중한 승부사" -> products.stream()
                     .filter(p -> hasLongTerm(p, 12) && isBigBank(p.getKorCoNm()))
-                    .sorted(avgIntrRateDesc()) // 평균 기본금리 기준
+                    .sorted(avgIntrRateDesc())
                     .limit(5)
                     .map(p -> toDto(p, "안정적이고 장기적인 상품"))
                     .toList();
 
             case "신속한 분석가" -> products.stream()
                     .filter(p -> hasShortTerm(p, 6))
-                    .sorted(rateDesc()) // 기본금리 기준
+                    .sorted(rateDesc())
                     .limit(5)
                     .map(p -> toDto(p, "짧고 빠르게 회전 가능한 상품"))
                     .toList();
 
             case "신중한 분석가" -> products.stream()
                     .filter(p -> hasLongTerm(p, 12))
-                    .sorted(rate2Desc()) // 우대금리 기준
+                    .sorted(rate2Desc())
                     .limit(5)
                     .map(p -> toDto(p, "장기 분석 기반 추천"))
                     .toList();

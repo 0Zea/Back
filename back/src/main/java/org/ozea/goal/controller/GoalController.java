@@ -60,13 +60,23 @@ public class GoalController {
     @ApiOperation(value = "목표 생성", notes = "사용자의 목표를 생성합니다.")
     public ResponseEntity<?> createGoal(@RequestBody GoalCreateRequestDto request,
                                         @RequestParam UUID userId) {
-        UUID goalId = UUID.randomUUID(); // 👉 직접 생성
-        goalService.createGoal(userId, request, goalId); // goalId 전달
+        try {
+            UUID goalId = UUID.randomUUID();
+            goalService.createGoal(userId, request, goalId);
 
-        return ResponseEntity.ok(Map.of(
-                "message", "목표가 성공적으로 등록되었습니다.",
-                "goal_id", goalId.toString() // 프론트에 전달!
-        ));
+            return ResponseEntity.ok(Map.of(
+                    "message", "목표가 성공적으로 등록되었습니다.",
+                    "goal_id", goalId.toString()
+            ));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(Map.of(
+                    "error", e.getMessage()
+            ));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of(
+                    "error", "목표 생성 중 오류가 발생했습니다: " + e.getMessage()
+            ));
+        }
     }
 
     @GetMapping
@@ -90,7 +100,6 @@ public class GoalController {
         return ResponseEntity.ok(Map.of("message", "목표가 삭제되었습니다."));
     }
 
-
     @PutMapping("/{goalId}")
     @ApiOperation(value = "목표 수정", notes = "goalId에 해당하는 목표를 수정합니다.")
     public ResponseEntity<?> updateGoal(@PathVariable UUID goalId,
@@ -98,5 +107,4 @@ public class GoalController {
         goalService.updateGoal(goalId , dto);
         return ResponseEntity.ok(Map.of("message", "목표가 수정되었습니다."));
     }
-
 }

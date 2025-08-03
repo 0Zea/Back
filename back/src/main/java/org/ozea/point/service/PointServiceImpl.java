@@ -54,7 +54,7 @@ public class PointServiceImpl implements PointService {
                 .build();
 
         pointMapper.insertPoint(point);
-        log.info("포인트 적립 완료: 사용자={}, 금액={}, 사유={}", userId, amount, reason);
+
     }
 
     @Override
@@ -85,6 +85,6 @@ public class PointServiceImpl implements PointService {
                 .build();
 
         pointMapper.insertPoint(point);
-        log.info("포인트 출금 완료: 사용자={}, 금액={}, 사유={}", userId, amount, reason);
+
     }
 } 

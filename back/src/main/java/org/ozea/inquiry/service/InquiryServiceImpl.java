@@ -22,30 +22,52 @@ public class InquiryServiceImpl implements InquiryService {
     final private InquiryMapper mapper;
     final private UserMapper userMapper;
     final private EmailService emailService;
-    // 기존 메서드들...
 
     @Override
     public InquiryDTO get(UUID infoId) {
-        log.info("get......" + infoId);
         InquiryDTO inquiry = InquiryDTO.of(mapper.get(infoId));
         return Optional.ofNullable(inquiry).orElseThrow(NoSuchElementException::new);
     }
 
     @Override
     public InquiryDTO create(InquiryDTO inquiry) {
-        log.info("create......" + inquiry);
-        if (inquiry.getInfoId() == null) {
-            inquiry.setInfoId(UUID.randomUUID().toString()); // DTO가 String이므로 toString() 유지
+        if (inquiry.getUserId() == null || inquiry.getUserId().trim().isEmpty()) {
+            throw new IllegalArgumentException("사용자 ID가 필요합니다.");
         }
+        if (inquiry.getTitle() == null || inquiry.getTitle().trim().isEmpty()) {
+            throw new IllegalArgumentException("제목이 필요합니다.");
+        }
+        if (inquiry.getContent() == null || inquiry.getContent().trim().isEmpty()) {
+            throw new IllegalArgumentException("내용이 필요합니다.");
+        }
+
+        if (inquiry.getUserName() == null || inquiry.getUserName().trim().isEmpty()) {
+            try {
+                User user = userMapper.findById(UUID.fromString(inquiry.getUserId()));
+                if (user != null && user.getName() != null) {
+                    inquiry.setUserName(user.getName());
+                } else {
+                    inquiry.setUserName("사용자");
+                }
+            } catch (Exception e) {
+                inquiry.setUserName("사용자");
+            }
+        }
+
+        if (inquiry.getInfoId() == null) {
+            inquiry.setInfoId(UUID.randomUUID().toString());
+        }
+        
         InquiryVO inquiryVO = inquiry.toVo();
+        
         mapper.create(inquiryVO);
-        return get(inquiryVO.getInfoId()); // VO의 UUID를 String으로 변환해서 get 호출
+        return get(inquiryVO.getInfoId());
     }
 
     @Override
     public InquiryDTO update(UUID infoId, InquiryDTO inquiry) {
         InquiryVO inquiryVO = inquiry.toVo();
-        log.info("update vo........" + inquiryVO);
+
         mapper.update(infoId, inquiryVO);
         return get(infoId);
     }
@@ -53,28 +75,21 @@ public class InquiryServiceImpl implements InquiryService {
     @Override
     public InquiryDTO updateAnswered(UUID infoId, InquiryDTO inquiry) {
         InquiryVO inquiryVO = inquiry.toVo();
-        log.info("update answer vo........" + inquiryVO);
+
         mapper.updateAnswered(infoId, inquiryVO);
         InquiryDTO inq = get(infoId);
 
-        if (inq.getUserId() != null) { // Assuming InquiryDTO has a getUserId() method
-            User user = userMapper.findById(UUID.fromString(inq.getUserId())); // Use findById to get the User object
-            // 최초 답변만 이메일을 보내도록 함
+        if (inq.getUserId() != null) {
+            User user = userMapper.findById(UUID.fromString(inq.getUserId()));
             if (user != null && user.getEmail() != null && inquiryVO.getIsAnswered() != null) {
-                // Actual email sending
                 emailService.sendInquiryAnsweredEmail(user.getEmail(), inquiryVO.getTitle(), inquiryVO.getAnsweredContent());
-            } else {
-                log.warn("User or user email not found for inquiryId: {}", infoId);
             }
-        } else {
-            log.warn("UserId not found for inquiryId: {}", infoId);
         }
         return inq;
     }
 
     @Override
     public InquiryDTO delete(UUID infoId) {
-        log.info("delete........" + infoId);
         InquiryDTO inquiry = get(infoId);
         mapper.delete(infoId);
         return inquiry;
@@ -90,7 +105,6 @@ public class InquiryServiceImpl implements InquiryService {
 
     @Override
     public Page<InquiryDTO> findByTitleContaining(String keyword, PageRequest pageRequest) {
-        log.info("findByTitleContaining... title: {}", keyword);
         List<InquiryVO> inquiries = mapper.findByTitleContaining(keyword, pageRequest);
         int totalCount = mapper.getTotalCountByTitle(keyword);
         return Page.of(pageRequest, totalCount,
@@ -104,7 +118,6 @@ public class InquiryServiceImpl implements InquiryService {
 
     @Override
     public List<InquiryDTO> getFaqList() {
-        log.info("getFaqList......");
         return mapper.getTopFaqInquiries().stream()
                 .map(InquiryDTO::of)
                 .toList();

@@ -11,13 +11,13 @@ import java.util.UUID;
 @AllArgsConstructor
 @Builder
 public class InquiryVO {
-    private UUID infoId;         // UUID → String
-    private UUID userId;         // UUID → String
+    private UUID infoId;
+    private UUID userId;
     private String userName;
-    private String content;            // 문의 내용
-    private String title;              // 문의 제목
-    private Boolean isAnswered;        // 답변 여부 (O/X)
-    private Date createdAt;   // 등록 일자
-    private String answeredContent;    // 답변 내용 (nullable)
+    private String content;
+    private String title;
+    private Boolean isAnswered;
+    private Date createdAt;
+    private String answeredContent;
     private Integer viewCount;
 }
