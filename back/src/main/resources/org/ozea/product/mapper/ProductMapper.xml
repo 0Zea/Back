@@ -3,7 +3,6 @@
         PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
-
 <mapper namespace="org.ozea.product.mapper.ProductMapper">
 
     <resultMap id="ProductWithOptionsMap" type="org.ozea.product.dto.response.ProductResponseDto">
@@ -66,5 +65,115 @@
         JOIN productoption o ON p.fin_prdt_cd = o.fin_prdt_cd
         ORDER BY p.fin_prdt_cd, o.save_trm
     </select>
+
+    <select id="filterProducts" resultType="org.ozea.product.dto.response.ProductListResponseDto">
+        SELECT
+        p.fin_prdt_cd AS finPrdtCd,
+        p.fin_prdt_nm AS productName,
+        p.kor_co_nm AS bankName,
+        MAX(o.intr_rate) AS intrRate,
+        MAX(o.intr_rate2) AS intrRate2
+        FROM product p
+        JOIN productoption o ON p.fin_prdt_cd = o.fin_prdt_cd
+        <where>
+            <!-- 은행명 필터 -->
+            <if test="filter.bankNames != null and filter.bankNames.size > 0">
+                p.kor_co_nm IN
+                <foreach item="bank" collection="filter.bankNames" open="(" separator="," close=")">
+                    #{bank}
+                </foreach>
+            </if>
+
+            <!-- 가입대상 필터 -->
+            <if test="filter.joinMembers != null and filter.joinMembers.size > 0">
+                AND p.join_member IN
+                <foreach item="member" collection="filter.joinMembers" open="(" separator="," close=")">
+                    #{member}
+                </foreach>
+            </if>
+
+            <!-- 상품유형 필터 -->
+            <if test="filter.productType != null and filter.productType != ''">
+                AND p.fin_prdt_nm LIKE CONCAT('%', #{filter.productType}, '%')
+            </if>
+
+            <!-- 기간 필터 -->
+            <if test="filter.minSaveTrm != null">
+                AND o.save_trm &gt;= #{filter.minSaveTrm}
+            </if>
+            <if test="filter.maxSaveTrm != null">
+                AND o.save_trm &lt;= #{filter.maxSaveTrm}
+            </if>
+
+            <!-- 금액 필터 -->
+            <if test="filter.minAmount != null">
+                AND p.max_limit &gt;= #{filter.minAmount}
+            </if>
+            <if test="filter.maxAmount != null">
+                AND p.max_limit &lt;= #{filter.maxAmount}
+            </if>
+
+            <!-- 우대조건 필터 -->
+            <if test="filter.hasSpclCnd != null and filter.hasSpclCnd == true">
+                AND p.spcl_cnd IS NOT NULL AND p.spcl_cnd != ''
+            </if>
+        </where>
+        GROUP BY p.fin_prdt_cd, p.fin_prdt_nm, p.kor_co_nm
+        ORDER BY intrRate2 DESC
+    </select>
+
+
+    <select id="getProductDetail" resultType="org.ozea.product.dto.response.ProductDetailResponseDto">
+        SELECT
+            fin_prdt_nm AS productName,
+            kor_co_nm AS bankName,
+            max_limit AS maxLimit,
+            join_way AS joinWay,
+            mtrt_int AS mtrtInt,
+            spcl_cnd AS spclCnd,
+            join_member AS joinMember,
+            etc_note AS etcNote
+        FROM product
+        WHERE fin_prdt_cd = #{finPrdtCd}
+    </select>
+
+    <select id="getProductOptions" resultType="org.ozea.product.dto.response.ProductOptionDto">
+        SELECT
+            option_id AS optionId,
+            intr_rate_type AS intrRateType,
+            intr_rate_type_nm AS intrRateTypeNm,
+            rsrv_type AS rsrvType,
+            rsrv_type_nm AS rsrvTypeNm,
+            save_trm AS saveTrm,
+            intr_rate AS intrRate,
+            intr_rate2 AS intrRate2
+        FROM productoption
+        WHERE fin_prdt_cd = #{finPrdtCd}
+    </select>
+
+    <select id="getProducts" resultType="org.ozea.product.dto.response.ProductListResponseDto">
+        SELECT
+            p.fin_prdt_cd AS finPrdtCd,
+            p.fin_prdt_nm AS productName,
+            p.kor_co_nm AS bankName,
+            MAX(po.intr_rate) AS intrRate,
+            MAX(po.intr_rate2) AS intrRate2
+        FROM productoption po
+                 JOIN product p ON po.fin_prdt_cd = p.fin_prdt_cd
+        GROUP BY p.fin_prdt_cd, p.fin_prdt_nm, p.kor_co_nm
+        ORDER BY intrRate2 DESC
+            LIMIT #{size} OFFSET #{offset}
+    </select>
+
+    <select id="countAllProducts" resultType="int">
+        SELECT COUNT(*) FROM (
+                                 SELECT
+                                     p.fin_prdt_nm, p.kor_co_nm
+                                 FROM productoption po
+                                          JOIN product p ON po.fin_prdt_cd = p.fin_prdt_cd
+                                 GROUP BY p.fin_prdt_nm, p.kor_co_nm
+                             ) AS grouped
+    </select>
+
 
 </mapper>

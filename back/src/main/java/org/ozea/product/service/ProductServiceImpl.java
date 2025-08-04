@@ -1,9 +1,8 @@
 package org.ozea.product.service;
 
 import lombok.RequiredArgsConstructor;
-import org.ozea.product.dto.response.MbtiRecommendResponseDto;
-import org.ozea.product.dto.response.ProductOptionDto;
-import org.ozea.product.dto.response.ProductResponseDto;
+import org.ozea.product.dto.request.ProductFilterRequestDto;
+import org.ozea.product.dto.response.*;
 import org.ozea.product.mapper.ProductMapper;
 import org.ozea.user.domain.User;
 import org.ozea.user.mapper.UserMapper;
@@ -23,10 +22,29 @@ public class ProductServiceImpl implements ProductService {
 
 
     @Override
-    public List<ProductResponseDto> getAllProductsWithOptions() {
-        return productMapper.findAllProductsWithOptions();
+    public List<ProductListResponseDto> getProductList(int page, int size) {
+        int offset = (page - 1) * size;
+        return productMapper.getProducts(offset, size);
+    }
+    @Override
+    public ProductDetailResponseDto getProductDetail(String finPrdtCd) {
+        ProductDetailResponseDto detail = productMapper.getProductDetail(finPrdtCd);
+        if (detail == null) {
+            throw new IllegalArgumentException("해당 상품이 존재하지 않습니다: " + finPrdtCd);
+        }
+        List<ProductOptionDto> options = productMapper.getProductOptions(finPrdtCd);
+        detail.setOptions(options);
+        return detail;
     }
 
+    @Override
+    public int getTotalProductCount() {
+        return productMapper.countAllProducts();
+    }
+    @Override
+    public List<ProductListResponseDto> filterProducts(ProductFilterRequestDto filterDto) {
+        return productMapper.filterProducts(filterDto);
+    }
     @Override
     public List<MbtiRecommendResponseDto> getRecommendedProductsByMbti(UUID userId) {
         User user = userMapper.findById(userId);
