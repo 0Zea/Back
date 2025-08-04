@@ -135,4 +135,8 @@
     <delete id="deleteUserInquiries" parameterType="java.util.UUID">
         DELETE FROM Inquiry WHERE user_id = #{userId, jdbcType=BINARY, javaType=java.util.UUID}
     </delete>
+    
+    <delete id="deleteUserQuiz" parameterType="java.util.UUID">
+        DELETE FROM UserQuiz WHERE user_id = #{userId, jdbcType=BINARY, javaType=java.util.UUID}
+    </delete>
 </mapper> 

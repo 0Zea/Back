@@ -28,6 +28,8 @@ public interface UserMapper {
     void deleteUserGoals(UUID userId);
     
     void deleteUserInquiries(UUID userId);
+    
+    void deleteUserQuiz(UUID userId);
 
     default User findByEmail(String email) {
         return null;

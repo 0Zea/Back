@@ -348,6 +348,12 @@ public class UserServiceImpl implements UserService {
             }
 
             try {
+                mapper.deleteUserQuiz(userId);
+            } catch (Exception e) {
+                log.warn("퀴즈 내역 삭제 실패: {}", e.getMessage());
+            }
+
+            try {
                 mapper.deleteUserGoals(userId);
             } catch (Exception e) {
                 log.warn("목표 정보 삭제 실패: {}", e.getMessage());
