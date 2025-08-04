@@ -30,36 +30,29 @@ public class GoalServiceImpl implements GoalService {
     private GoalMapper goalMapper;
     @Autowired
     private UserMapper userMapper;
+    
     @Override
-    public void createGoal(UUID userId, GoalCreateRequestDto requestDto) {
-        // 1. 목표 기간 계산
+    public void createGoal(UUID userId, GoalCreateRequestDto requestDto, UUID goalId) {
         LocalDate startDate = requestDto.getStart_date();
         LocalDate endDate = requestDto.getEnd_date();
         long totalMonths = ChronoUnit.MONTHS.between(startDate, endDate) + 1;
 
-        // 2. 사용자 정보 조회
         User user = userMapper.findById(userId);
         if (user == null) {
             throw new IllegalArgumentException("사용자가 존재하지 않습니다.");
         }
 
-        // 3. 월 순이익 계산
         long monthlyIncome = user.getSalary() - user.getPayAmount();
         long totalExpectedIncome = monthlyIncome * totalMonths;
 
-        // 4. 기존 목표 금액 합산
         long existingTargetAmount = goalMapper.sumTargetAmountOverlappingGoals(userId, startDate, endDate);
 
-        // 5. 새 목표 금액
         long newTargetAmount = requestDto.getTarget_amount();
 
-        // 6. 목표 가능 여부 판단
         if (existingTargetAmount + newTargetAmount > totalExpectedIncome) {
             throw new IllegalArgumentException("해당 기간 순이익을 초과하여 목표를 생성할 수 없습니다.");
         }
-
-        // 7. insert
-        goalMapper.insertGoal(requestDto.toEntity(userId));
+        goalMapper.insertGoal(requestDto.toEntity(userId, goalId));
     }
 
     @Override
@@ -71,11 +64,10 @@ public class GoalServiceImpl implements GoalService {
 
         int goalDuration = Period.between(goal.getStartDate(), goal.getEndDate()).getYears();
         long goalAmount = goal.getTargetAmount();
-        long savePerMonth = goalAmount / (goalDuration * 12);  // 단순화된 계산
+        long savePerMonth = goalAmount / (goalDuration * 12);
 
         List<ProductRecommendResponseDto> candidates = goalMapper.findProductsWithOptions();
 
-        // 정렬 예시: 우대금리 내림차순
         return candidates.stream()
                 .sorted(Comparator.comparing(ProductRecommendResponseDto::getIntrRate2).reversed())
                 .limit(5)
@@ -90,7 +82,6 @@ public class GoalServiceImpl implements GoalService {
                 .collect(Collectors.toList());
     }
 
-
     @Override
     public List<LinkedAccountDto> getAccountsByUserId(UUID userId) {
         return goalMapper.findAccountsByUserId(userId);
@@ -98,15 +89,12 @@ public class GoalServiceImpl implements GoalService {
 
     @Override
     public void linkAccountToGoal(UUID goalId, int accountId) {
-        // 중복 연동 방지 로직 (이미 계좌에 goal_id가 있다면 예외)
         Integer count = goalMapper.isAccountAlreadyLinked(accountId);
         if (count != null && count > 0) {
             throw new IllegalStateException("이미 다른 목표에 연동된 계좌입니다.");
         }
-        // 연동 수행
         goalMapper.linkAccountToGoal(goalId, accountId);
     }
-
 
     @Override
     public List<GoalListResponseDto> getGoalsByUserId(UUID userId) {
@@ -134,24 +122,20 @@ public class GoalServiceImpl implements GoalService {
     }
 
     @Override
-    public void deleteGoal(UUID goalId, UUID userId) {
+    public void deleteGoal(UUID goalId) {
         goalMapper.unlinkAllAccountsFromGoal(goalId);
 
-        int deleted = goalMapper.deleteByGoalIdAndUserId(goalId, userId);
+        int deleted = goalMapper.deleteByGoalIdAndUserId(goalId);
         if (deleted == 0) {
             throw new IllegalArgumentException("해당 목표가 존재하지 않거나 권한이 없습니다.");
         }
     }
 
     @Override
-    public void updateGoal(UUID goalId, UUID userId, GoalUpdateRequestDto dto) {
-        int updated = goalMapper.updateGoalByIdAndUserId(goalId, userId, dto);
+    public void updateGoal(UUID goalId, GoalUpdateRequestDto dto) {
+        int updated = goalMapper.updateGoalByIdAndUserId(goalId, dto);
         if (updated == 0) {
             throw new IllegalArgumentException("해당 목표가 존재하지 않거나 권한이 없습니다.");
         }
     }
-
-
-
-
 }

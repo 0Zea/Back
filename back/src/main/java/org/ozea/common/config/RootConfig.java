@@ -1,5 +1,8 @@
-package org.ozea.config;
+package org.ozea.common.config;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import lombok.extern.slf4j.Slf4j;
@@ -12,33 +15,31 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.EnableAspectJAutoProxy;
 import org.springframework.context.annotation.PropertySource;
-import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
-
+import javax.annotation.PreDestroy;
 import javax.sql.DataSource;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
-/**
- * Spring의 Root Application Context를 설정하는 클래스.
- * 데이터베이스 연결, 트랜잭션 관리 등 백엔드 관련 설정을 담당합니다.
- */
 @Configuration
-@PropertySource({"classpath:/application.properties"}) // application.properties 파일의 설정을 불러옵니다.
+@PropertySource({"classpath:/application.properties"})
 @Slf4j
-@EnableTransactionManagement // 어노테이션 기반의 트랜잭션 관리를 활성화합니다.
-@ComponentScan(basePackages = {"org.ozea"}) // org.ozea 패키지 내의 컴포넌트들을 스캔하여 빈으로 등록합니다.
-@MapperScan(basePackages = {"org.ozea.user.mapper", "org.ozea.goal.mapper", "org.ozea.inquiry.mapper"}) // 도메인별 매퍼 패키지들을 스캔합니다.
+@EnableTransactionManagement
+@ComponentScan(basePackages = {"org.ozea"})
+@MapperScan(basePackages = {"org.ozea.user.mapper", "org.ozea.goal.mapper",
+        "org.ozea.inquiry.mapper", "org.ozea.asset.mapper","org.ozea.notice.mapper",
+        "org.ozea.point.mapper", "org.ozea.bank.mapper", "org.ozea.product.mapper",
+        "org.ozea.term.mapper", "org.ozea.quiz.mapper"})
+@EnableAspectJAutoProxy
 public class RootConfig {
     @Value("${jdbc.driver}") String driver;
     @Value("${jdbc.url}") String url;
     @Value("${jdbc.username}") String username;
     @Value("${jdbc.password}") String password;
-
-    @Bean
-    public static PropertySourcesPlaceholderConfigurer propertySourcesPlaceholderConfigurer() {
-        return new PropertySourcesPlaceholderConfigurer();
-    }
 
     @Bean
     public DataSource dataSource() {
@@ -48,6 +49,14 @@ public class RootConfig {
         config.setJdbcUrl(url);
         config.setUsername(username);
         config.setPassword(password);
+
+        config.setLeakDetectionThreshold(60000);
+        config.setConnectionTimeout(30000);
+        config.setMaximumPoolSize(10);
+        config.setMinimumIdle(5);
+        config.setIdleTimeout(300000);
+        config.setMaxLifetime(1200000);
+        config.setValidationTimeout(5000);
 
         HikariDataSource dataSource = new HikariDataSource(config);
         return dataSource;
@@ -60,15 +69,44 @@ public class RootConfig {
     public SqlSessionFactory sqlSessionFactory() throws Exception {
         SqlSessionFactoryBean sqlSessionFactory = new SqlSessionFactoryBean();
         sqlSessionFactory.setConfigLocation(
-                applicationContext.getResource("classpath:/mybatis-config.xml")); // mybatis-config.xml 파일 위치를 설정합니다.
-        sqlSessionFactory.setDataSource(dataSource()); // 데이터 소스를 설정합니다.
+                applicationContext.getResource("classpath:/mybatis-config.xml"));
+        sqlSessionFactory.setDataSource(dataSource());
         return (SqlSessionFactory) sqlSessionFactory.getObject();
     }
 
     @Bean
-    public DataSourceTransactionManager transactionManager(){
-        DataSourceTransactionManager manager = new DataSourceTransactionManager(dataSource());
-        return manager;
+    public DataSourceTransactionManager transactionManager(DataSource dataSource) {
+        return new DataSourceTransactionManager(dataSource);
     }
 
+    @Bean
+    public ObjectMapper objectMapper() {
+        ObjectMapper objectMapper = new ObjectMapper();
+
+        JavaTimeModule javaTimeModule = new JavaTimeModule();
+
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss");
+        javaTimeModule.addSerializer(LocalDateTime.class, new LocalDateTimeSerializer(formatter));
+
+        javaTimeModule.addDeserializer(LocalDateTime.class,
+            new com.fasterxml.jackson.datatype.jsr310.deser.LocalDateTimeDeserializer(formatter));
+
+        objectMapper.registerModule(javaTimeModule);
+
+        objectMapper.disable(com.fasterxml.jackson.databind.SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+
+        return objectMapper;
+    }
+
+    @PreDestroy
+    public void cleanup() {
+        try {
+            Class.forName("com.mysql.cj.jdbc.AbandonedConnectionCleanupThread");
+            java.lang.reflect.Method method = Class.forName("com.mysql.cj.jdbc.AbandonedConnectionCleanupThread")
+                    .getMethod("checkedShutdown");
+            method.invoke(null);
+
+        } catch (Exception e) {
+        }
+    }
 }

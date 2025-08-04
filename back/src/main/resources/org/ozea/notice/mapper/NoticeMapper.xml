@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- org.ozea.notice.mapper.NoticeMapper 인터페이스와 매핑되는 MyBatis 매퍼 파일입니다. -->
+<mapper namespace="org.ozea.notice.mapper.NoticeMapper">
+    <resultMap id="noticeMap" type="org.ozea.notice.domain.NoticeVO">
+        <id column="notice_id" property="noticeId" typeHandler="org.ozea.common.type.UUIDTypeHandler"/>
+        <result column="admin_id" property="adminId" typeHandler="org.ozea.common.type.UUIDTypeHandler"/>
+        <result column="title" property="title"/>
+        <result column="content" property="content"/>
+        <result column="created_at" property="createdAt"/>
+    </resultMap>
+    <insert id="create">
+        INSERT INTO notice(
+        notice_id, admin_id, title, content
+        ) VALUES(
+        #{noticeId, javaType=java.util.UUID, jdbcType=BINARY},
+        #{adminId, javaType=java.util.UUID, jdbcType=BINARY},
+        #{title},
+        #{content}
+        )
+    </insert>
+    <update id="update">
+        UPDATE notice
+        <set>
+            <if test="notice.title != null">
+                title = #{notice.title},
+            </if>
+            <if test="notice.content != null">
+                content = #{notice.content},
+            </if>
+        </set>
+        WHERE
+            notice_id = #{noticeId, javaType=java.util.UUID, jdbcType=BINARY}
+    </update>
+    <delete id="delete" parameterType="java.util.UUID" >
+        delete from notice where notice_id = #{noticeId, javaType=java.util.UUID, jdbcType=BINARY}
+    </delete>
+    <select id="getTotalCount" resultType="java.lang.Integer">
+        select count(*) from notice
+    </select>
+    <select id="getPage" resultMap="noticeMap">
+        SELECT * FROM notice
+        ORDER BY created_at DESC
+        LIMIT #{offset}, #{amount}
+    </select>
+    <select id="get" parameterType="java.util.UUID" resultMap="noticeMap">
+        SELECT * FROM notice
+        WHERE notice_id = #{noticeId, javaType=java.util.UUID, jdbcType=BINARY}
+    </select>
+    <select id="findByTitleContaining" resultMap="noticeMap">
+        SELECT * FROM notice
+        WHERE title LIKE CONCAT('%', #{keyword}, '%')
+        ORDER BY created_at DESC
+        LIMIT #{pageRequest.offset}, #{pageRequest.amount}
+    </select>
+    <select id="getTotalCountByTitle" resultType="java.lang.Integer">
+        SELECT COUNT(*)
+        FROM notice
+        WHERE title LIKE CONCAT('%', #{keyword}, '%')
+    </select>
+</mapper>

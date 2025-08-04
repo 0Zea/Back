@@ -17,7 +17,6 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.crypto.password.NoOpPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
@@ -37,30 +36,18 @@ import org.springframework.http.HttpMethod;
 @RequiredArgsConstructor
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
-    // Kakao 기반 유저 조회 서비스 (UserDetailsService 구현체)
     private final KakaoUserDetailsService kakaoUserDetailsService;
     private final LocalUserDetailsService localUserDetailsService;
 
     public void init() {
-        log.info("✅ SecurityConfig 초기화됨");
+
     }
 
-    /**
-     * 사용자 정보를 가져오는 UserDetailsService를 빈으로 등록합니다.
-     * @return KakaoUserDetailsService 객체
-     */
     @Bean
     public UserDetailsService userDetailsService() {
-//        return new KakaoUserDetailsService(); // KakaoUserDetailsService 인스턴스 반환
-        return localUserDetailsService; // KakaoUserDetailsService 말고 로컬로 설정
+        return localUserDetailsService;
     }
 
-    /**
-     * AuthenticationManager를 설정합니다.
-     * UserDetailsService와 PasswordEncoder를 사용하여 인증을 처리합니다.
-     * @param auth AuthenticationManagerBuilder 객체
-     * @throws Exception 설정 중 예외 발생 시
-     */
     @Override
     protected void configure(AuthenticationManagerBuilder auth) throws Exception {
         auth.userDetailsService(userDetailsService()).passwordEncoder(passwordEncoder());
@@ -74,19 +61,18 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Override
     public void configure(WebSecurity web) throws Exception {
-        // static resources, ignoring security
         web.ignoring().antMatchers("/resources/**");
     }
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         http
-            .cors().and()  // CORS 설정 추가
-            .csrf().disable() // CSRF 보호 기능을 비활성화합니다. (개발 편의를 위해, 운영 환경에서는 활성화를 권장합니다.)
-            .formLogin().disable() // 기존 form 로그인 사용 안함
-            .httpBasic().disable() // 기본 로그인 방식 사용 안함
-            .authorizeRequests() // 요청에 대한 접근 권한을 설정합니다.
-                .antMatchers(HttpMethod.OPTIONS, "/**").permitAll() // OPTIONS 요청 허용
+            .cors().and()
+            .csrf().disable()
+            .formLogin().disable()
+            .httpBasic().disable()
+            .authorizeRequests()
+                .antMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                 .antMatchers("/",
                         "/signup",
                         "/login",
@@ -95,20 +81,20 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                         "/additional-info",
                         "/callback",
                         "/goal/**",
+                        "/products/**",
                         "/mbti-survey",
-                        // 🔽 Swagger 경로 추가
+
                         "/swagger-ui.html",
                         "/swagger-resources/**",
                         "/v2/api-docs",
                         "/webjars/**",
-                        "/api/inquiry/**").permitAll() // 인증 없이 접근 허용
-                .antMatchers("/api/auth/**").permitAll() // 회원가입, 로그인 API
-                .antMatchers("/api/auth/kakao/callback").permitAll() // 카카오 로그인 API
-                .anyRequest().authenticated() // 그 외의 모든 요청은 인증된 사용자만 접근 가능합니다.
+                        "api/inquiry/**",
+                        "api/notice/**",
+                        "/api/auth/**",
+                        "/api/auth/kakao/callback").permitAll()
+                .anyRequest().authenticated()
                 .and();
-                // 임시로 필터 비활성화 (실무에서는 활성화해야 함)
-                // .addFilterBefore(jwtUsernamePasswordAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class) // 로그인 인증 필터 등록
-                // .addFilterAfter(jwtAuthenticationFilter(), JwtUsernamePasswordAuthenticationFilter.class); // JWT 토큰 검증 필터 등록 (인증 후 요청마다 실행됨)
+
     }
 
     /**
@@ -119,9 +105,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
      */
     @Bean
     public PasswordEncoder passwordEncoder() {
-        // For demonstration purposes, using NoOpPasswordEncoder.
-        // In a real application, use a strong password encoder like BCryptPasswordEncoder.
-//        return NoOpPasswordEncoder.getInstance();
+        
         return new BCryptPasswordEncoder();
     }
 
@@ -137,46 +121,44 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         configuration.setExposedHeaders(Arrays.asList("*"));
         configuration.setAllowCredentials(false);
         configuration.setMaxAge(3600L);
-        
+
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
         return source;
     }
 
-    // 6-1. 사용자 로그인 시 이메일/비밀번호 받아서 인증 시도 → 성공/실패 핸들러 지정
+    
     @Bean
     public JwtUsernamePasswordAuthenticationFilter jwtUsernamePasswordAuthenticationFilter() throws Exception {
         JwtUsernamePasswordAuthenticationFilter filter = new JwtUsernamePasswordAuthenticationFilter(authenticationManagerBean(), loginSuccessHandler(), loginFailureHandler());
 
         filter.setFilterProcessesUrl("/api/auth/login");
-
         filter.setAuthenticationSuccessHandler(loginSuccessHandler());
         filter.setAuthenticationFailureHandler(loginFailureHandler());
 
         return filter;
     }
 
-    // 6-2. 로그인 성공 시 JWT 토큰 발급
+    
     @Bean
     public LoginSuccessHandler loginSuccessHandler() {
         return new LoginSuccessHandler(jwtProcessor());
     }
 
-    // 6-3. 로그인 실패 시 에러 처리
+    
     @Bean
     public LoginFailureHandler loginFailureHandler() {
         return new LoginFailureHandler();
     }
 
-    // 7. 매 요청마다 Authorization 헤더에서 JWT를 꺼내 인증 처리
+    
     @Bean
     public JwtAuthenticationFilter jwtAuthenticationFilter() {
         return new JwtAuthenticationFilter(jwtProcessor(), userDetailsService());
     }
 
-    // 8. JWT 발급 및 검증 유틸 객체 등록
     @Bean
     public JwtProcessor jwtProcessor() {
-        return new JwtProcessor(); // JWT 관련 로직 클래스
+        return new JwtProcessor();
     }
 }

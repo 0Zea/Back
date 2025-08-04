@@ -2,10 +2,9 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
-<!-- org.ozea.user.mapper.UserMapper 인터페이스와 매핑되는 MyBatis 매퍼 파일입니다. -->
 <mapper namespace="org.ozea.user.mapper.UserMapper">
 
-    <select id="findById" parameterType="java.util.UUID" resultType="User">
+    <select id="findById" parameterType="java.util.UUID" resultType="org.ozea.user.domain.User">
         SELECT
             user_id,
             name,
@@ -17,13 +16,13 @@
             sex,
             salary,
             pay_amount,
-            role
+            role,
+            kakao_access_token
         FROM USER
-        WHERE user_id = #{userId}
+        WHERE user_id = #{userId, jdbcType=BINARY, javaType=java.util.UUID}
     </select>
 
-    <!-- 이메일을 기준으로 사용자 정보를 조회하는 SQL 쿼리입니다. -->
-    <select id="getUserByEmail" parameterType="String" resultType="User">
+    <select id="getUserByEmail" parameterType="String" resultType="org.ozea.user.domain.User">
         SELECT
             user_id,
             name,
@@ -35,12 +34,12 @@
             sex,
             salary,
             pay_amount,
-            role
+            role,
+            kakao_access_token
         FROM USER
         WHERE email = #{email}
     </select>
 
-    <!-- 새로운 사용자 정보를 데이터베이스에 삽입하는 SQL 쿼리입니다. -->
     <insert id="insertUser" parameterType="org.ozea.user.domain.User">
         INSERT INTO USER(user_id,
                          email,
@@ -52,7 +51,8 @@
                          sex,
                          salary,
                          pay_amount,
-                         role)
+                         role,
+                         kakao_access_token)
         VALUES (#{userId, jdbcType=BINARY, javaType=java.util.UUID},
                 #{email, jdbcType=VARCHAR},
                 #{name, jdbcType=VARCHAR},
@@ -63,7 +63,8 @@
                 #{sex, jdbcType=VARCHAR},
                 #{salary, jdbcType=BIGINT},
                 #{payAmount, jdbcType=BIGINT},
-                #{role, jdbcType=VARCHAR})
+                #{role, jdbcType=VARCHAR},
+                #{kakaoAccessToken, jdbcType=VARCHAR})
     </insert>
 
     <insert id="insertUserWithEmail" parameterType="org.ozea.user.domain.User">
@@ -78,7 +79,8 @@
             sex,
             salary,
             pay_amount,
-            role
+            role,
+            kakao_access_token
         ) VALUES (
             #{userId, jdbcType=BINARY, javaType=java.util.UUID},
             #{email, jdbcType=VARCHAR},
@@ -90,7 +92,8 @@
             #{sex, jdbcType=VARCHAR},
             #{salary, jdbcType=BIGINT},
             #{payAmount, jdbcType=BIGINT},
-            #{role, jdbcType=VARCHAR}
+            #{role, jdbcType=VARCHAR},
+            #{kakaoAccessToken, jdbcType=VARCHAR}
         )
     </insert>
 
@@ -104,12 +107,32 @@
             sex = #{sex},
             salary = #{salary},
             pay_amount = #{payAmount},
-            role = #{role}
-        WHERE email = #{email}
+            role = #{role},
+            kakao_access_token = #{kakaoAccessToken}
+        WHERE user_id = #{userId, jdbcType=BINARY, javaType=java.util.UUID}
     </update>
 
-    <!-- 이메일 중복 확인  -->
     <select id="checkEmail" parameterType="string" resultType="boolean">
         SELECT COUNT(*) > 0 FROM USER WHERE email = #{email}
     </select>
+    
+    <delete id="deleteUser" parameterType="java.util.UUID">
+        DELETE FROM USER WHERE user_id = #{userId, jdbcType=BINARY, javaType=java.util.UUID}
+    </delete>
+    
+    <delete id="deleteUserData" parameterType="java.util.UUID">
+        DELETE FROM USER WHERE user_id = #{userId, jdbcType=BINARY, javaType=java.util.UUID}
+    </delete>
+    
+    <delete id="deleteUserPoints" parameterType="java.util.UUID">
+        DELETE FROM Point WHERE user_id = #{userId, jdbcType=BINARY, javaType=java.util.UUID}
+    </delete>
+    
+    <delete id="deleteUserGoals" parameterType="java.util.UUID">
+        DELETE FROM Goal WHERE user_id = #{userId, jdbcType=BINARY, javaType=java.util.UUID}
+    </delete>
+    
+    <delete id="deleteUserInquiries" parameterType="java.util.UUID">
+        DELETE FROM Inquiry WHERE user_id = #{userId, jdbcType=BINARY, javaType=java.util.UUID}
+    </delete>
 </mapper> 

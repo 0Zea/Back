@@ -21,6 +21,20 @@ public class KakaoUserDetailsService implements UserDetailsService {
     @Autowired
     private UserMapper userMapper;
 
+    public CustomUser loadKakaoUser(String email, String nickname) {
+        User user = userMapper.getUserByEmail(email);
+        boolean isNewUser = false;
+
+        if (user == null) {
+            isNewUser = true;
+            user = new User();
+            user.setEmail(email);
+            user.setName(nickname != null ? nickname : "카카오사용자");
+        }
+
+        return new CustomUser(user, isNewUser); // DB insert 제거
+    }
+
     /**
      * 외부에서 이메일로 User를 조회할 수 있도록 public 메서드 제공
      */
@@ -38,6 +52,13 @@ public class KakaoUserDetailsService implements UserDetailsService {
     // nickname을 받아 name에 저장하는 오버로드 메서드
     public UserDetails loadUserByUsername(String email, String nickname) throws UsernameNotFoundException {
         User user = userMapper.getUserByEmail(email);
+        if (user == null) throw new UsernameNotFoundException("유저 없음");
+        return new CustomUser(user, false);
+    }
+    
+    // 카카오 액세스 토큰을 포함한 로그인 메서드
+    public UserDetails loadUserByUsername(String email, String nickname, String accessToken, String refreshToken) throws UsernameNotFoundException {
+        User user = userMapper.getUserByEmail(email);
         boolean isNewUser = false;
         if (user == null) {
             isNewUser = true;
@@ -47,16 +68,20 @@ public class KakaoUserDetailsService implements UserDetailsService {
             if (nickname == null || nickname.isEmpty()) {
                 nickname = "카카오사용자";
             }
-            user.setName(nickname); // name만 저장
-            // 나머지 필드는 null로 저장
-            user.setMbti("xxxx");
+            user.setName(nickname);
+            user.setMbti("미입력");
             user.setPhoneNum("000-0000-0000");
             user.setBirthDate(java.time.LocalDate.now());
             user.setSex("female");
             user.setSalary(0L);
             user.setPayAmount(0L);
             user.setRole("USER");
+            user.setKakaoAccessToken(accessToken);
             userMapper.insertUserWithEmail(user);
+        } else {
+            // 기존 사용자의 경우 토큰 업데이트
+            user.setKakaoAccessToken(accessToken);
+            userMapper.updateUser(user);
         }
         return new CustomUser(user, isNewUser);
     }
@@ -65,4 +90,6 @@ public class KakaoUserDetailsService implements UserDetailsService {
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
         return loadUserByUsername(email, null);
     }
+    
+
 }

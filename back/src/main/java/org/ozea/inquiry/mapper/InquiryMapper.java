@@ -15,8 +15,8 @@ public interface InquiryMapper {
     public int update(@Param("infoId") UUID infoId, @Param("inquiry") InquiryVO inquiry);
     public int updateAnswered(@Param("infoId") UUID infoId, @Param("inquiry") InquiryVO inquiry);
     public int delete(@Param("infoId") UUID infoId);
-    //검색 기능
     List<InquiryVO> findByTitleContaining(@Param("keyword") String keyword,@Param("pageRequest")  PageRequest pageRequest);
     int getTotalCountByTitle(String keyword);
-
+    void increaseViewCount(UUID infoId);
+    List<InquiryVO> getTopFaqInquiries();
 }

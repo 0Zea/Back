@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="org.ozea.bank.mapper.BankCodeMapper">
+
+    <select id="findAllActive" resultType="org.ozea.bank.domain.BankCode">
+        SELECT
+            bank_code,
+            bank_name,
+            bank_icon
+        FROM BankCode
+        ORDER BY bank_name
+    </select>
+
+    <select id="findByBankCode" resultType="org.ozea.bank.domain.BankCode">
+        SELECT
+            bank_code,
+            bank_name,
+            bank_icon
+        FROM BankCode
+        WHERE bank_code = #{bankCode}
+    </select>
+
+    <insert id="insertBankCode" parameterType="org.ozea.bank.domain.BankCode">
+        INSERT INTO BankCode (
+            bank_code,
+            bank_name,
+            bank_icon
+        ) VALUES (
+            #{bankCode},
+            #{bankName},
+            #{bankIcon}
+        )
+    </insert>
+
+    <update id="updateBankCode" parameterType="org.ozea.bank.domain.BankCode">
+        UPDATE BankCode
+        SET
+            bank_name = #{bankName},
+            bank_icon = #{bankIcon}
+        WHERE bank_code = #{bankCode}
+    </update>
+
+    <delete id="deleteBankCode">
+        DELETE FROM BankCode
+        WHERE bank_code = #{bankCode}
+    </delete>
+
+</mapper> 

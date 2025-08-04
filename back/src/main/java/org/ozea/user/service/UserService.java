@@ -6,15 +6,28 @@ import org.ozea.user.dto.UserSignupDTO;
 import org.ozea.user.dto.PasswordResetDTO;
 import org.ozea.user.dto.VerificationDTO;
 
+import java.util.UUID;
+
 public interface UserService {
-    boolean checkEmail(String email);       // 이메일 중복 확인
-    UserDTO signup(UserSignupDTO dto);      // 회원가입
-    UserDTO getUserByEmail(String email);   // 이메일을 기준으로 사용자 정보를 조회
-    UserDTO login(String email, String password); // 로그인
+    boolean checkEmail(String email);
+    UserDTO signup(UserSignupDTO dto);
+    UserDTO signupKakao(UserSignupDTO dto);
+    UserDTO getUserByEmail(String email);
+    UserDTO login(String email, String password);
     
-    // 비밀번호 찾기 관련 메서드들
-    boolean verifyUserInfo(String phoneNum, String email);  // 전화번호와 이메일로 사용자 확인
-    boolean sendVerificationCode(String email);             // 인증번호 발송
-    boolean verifyCode(String email, String code);          // 인증번호 확인
-    boolean changePassword(String email, String newPassword); // 비밀번호 변경
+    boolean verifyUserInfo(String phoneNum, String email);
+    boolean sendVerificationCode(String email);
+    boolean verifyCode(String email, String code);
+    boolean changePassword(String email, String newPassword);
+    boolean sendSignupVerificationCode(String email);
+    boolean verifySignupCode(String email, String code);
+    
+    UserDTO updateUserProfile(User user);
+    
+    UserDTO getMyInfo(UUID userId);
+    UserDTO updateAssetInfo(UUID userId, Long salary, Long payAmount);
+    UserDTO updateMbti(UUID userId, String mbti);
+    boolean updatePassword(UUID userId, String newPassword);
+    boolean updatePasswordWithCurrentCheck(UUID userId, String currentPassword, String newPassword);
+    boolean withdrawUser(UUID userId);
 }

@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="org.ozea.quiz.mapper.QuizMapper">
+
+    <!-- ResultMap 정의 -->
+    <resultMap id="QuizDTOResultMap" type="org.ozea.quiz.dto.QuizDTO">
+        <id property="quiz_id" column="quiz_id" />
+        <result property="question" column="question" />
+        <result property="answer" column="answer" />
+        <result property="quiz_type" column="quiz_type" />
+    </resultMap>
+
+    <!-- 랜덤으로 퀴즈 하나 조회 -->
+    <select id="findRandomQuiz" resultMap="QuizDTOResultMap">
+        SELECT quiz_id, question, quiz_type
+        FROM Quiz
+        ORDER BY RAND()
+        LIMIT 1
+    </select>
+
+    <!-- 퀴즈 ID로 조회 -->
+    <select id="findById" parameterType="int" resultMap="QuizDTOResultMap">
+        SELECT quiz_id, answer, quiz_type
+        FROM Quiz
+        WHERE quiz_id = #{quizId}
+    </select>
+
+    <!-- 사용자 퀴즈 답안 결과 저장 -->
+    <insert id="saveUserQuizResult">
+        INSERT INTO UserQuiz (
+            user_quiz_id,
+            user_id,
+            quiz_id,
+            is_correct,
+            answered_at
+        ) VALUES (
+                     UNHEX(REPLACE(UUID(), '-', '')),
+                     UNHEX(REPLACE(#{userId}, '-', '')),
+                     #{quizId},
+                     #{isCorrect},
+                     NOW()
+                 )
+    </insert>
+
+    <!-- 사용자가 오늘 이미 퀴즈를 풀었는지 확인 -->
+    <select id="existsTodayQuizByUserId" resultType="boolean">
+        SELECT COUNT(*) > 0
+        FROM UserQuiz
+        WHERE user_id = UNHEX(REPLACE(#{userId}, '-', ''))
+          AND DATE(answered_at) = CURDATE()
+    </select>
+
+</mapper>

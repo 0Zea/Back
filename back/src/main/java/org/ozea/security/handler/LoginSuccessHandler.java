@@ -49,7 +49,7 @@ public class LoginSuccessHandler implements AuthenticationSuccessHandler {
         UserInfoDTO userInfo = UserInfoDTO.of(customUser.getUser());
 
         // 토큰 + 사용자 정보 DTO 반환
-        AuthResultDTO result = new AuthResultDTO(token, userInfo);
+        AuthResultDTO result = new AuthResultDTO(token, userInfo, false);
 
         // JSON 응답 전송
         JsonResponse.send(response, result);

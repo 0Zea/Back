@@ -18,7 +18,7 @@ import java.util.Map;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/goal")
+@RequestMapping("/api/goal")
 @Api (tags = "Goal")
 public class GoalController {
 
@@ -31,7 +31,6 @@ public class GoalController {
         List<ProductRecommendResponseDto> recommendations = goalService.recommendProducts(goalId);
         return ResponseEntity.ok(recommendations);
     }
-
 
     @GetMapping("/accounts/{userId}")
     @ApiOperation(value = "사용자 계좌 목록 조회", notes = "사용자의 보유 계좌를 조회합니다.")
@@ -61,8 +60,23 @@ public class GoalController {
     @ApiOperation(value = "목표 생성", notes = "사용자의 목표를 생성합니다.")
     public ResponseEntity<?> createGoal(@RequestBody GoalCreateRequestDto request,
                                         @RequestParam UUID userId) {
-        goalService.createGoal(userId, request);
-        return ResponseEntity.ok(Map.of("message", "목표가 성공적으로 등록되었습니다."));
+        try {
+            UUID goalId = UUID.randomUUID();
+            goalService.createGoal(userId, request, goalId);
+
+            return ResponseEntity.ok(Map.of(
+                    "message", "목표가 성공적으로 등록되었습니다.",
+                    "goal_id", goalId.toString()
+            ));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(Map.of(
+                    "error", e.getMessage()
+            ));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of(
+                    "error", "목표 생성 중 오류가 발생했습니다: " + e.getMessage()
+            ));
+        }
     }
 
     @GetMapping
@@ -80,20 +94,17 @@ public class GoalController {
     }
 
     @DeleteMapping("/{goalId}")
-    @ApiOperation(value = "목표 삭제", notes = "goalId와 userId를 기반으로 목표를 삭제합니다.")
-    public ResponseEntity<?> deleteGoal(@PathVariable UUID goalId,
-                                        @RequestParam UUID userId) {
-        goalService.deleteGoal(goalId, userId);
+    @ApiOperation(value = "목표 삭제", notes = "goalId를 기반으로 목표를 삭제합니다.")
+    public ResponseEntity<?> deleteGoal(@PathVariable UUID goalId) {
+        goalService.deleteGoal(goalId);
         return ResponseEntity.ok(Map.of("message", "목표가 삭제되었습니다."));
     }
 
     @PutMapping("/{goalId}")
     @ApiOperation(value = "목표 수정", notes = "goalId에 해당하는 목표를 수정합니다.")
     public ResponseEntity<?> updateGoal(@PathVariable UUID goalId,
-                                        @RequestParam UUID userId,
                                         @RequestBody GoalUpdateRequestDto dto) {
-        goalService.updateGoal(goalId, userId, dto);
+        goalService.updateGoal(goalId , dto);
         return ResponseEntity.ok(Map.of("message", "목표가 수정되었습니다."));
     }
-
 }

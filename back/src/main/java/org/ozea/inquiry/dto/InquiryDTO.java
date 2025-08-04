@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.ozea.inquiry.domain.InquiryVO;
 import java.time.LocalDateTime;
+import java.util.Date;
 import java.util.UUID;
 
 @Data
@@ -13,14 +14,15 @@ import java.util.UUID;
 @NoArgsConstructor
 @Builder
 public class InquiryDTO {
-    private String infoId;               // UUID → String
-    private String userId;               // UUID → String
-    private String userName;             // 조인된 user.name
-    private String content;              // 문의 내용
-    private String title;                // 문의 제목
-    private Boolean isAnswered;          // 답변 여부 (O/X)
-    private LocalDateTime createdAt;     // 등록 일자
-    private String answeredContent;      // 답변 내용 (nullable)
+    private String infoId;
+    private String userId;
+    private String userName;
+    private String content;
+    private String title;
+    private Boolean isAnswered;
+    private Date createdAt;
+    private String answeredContent;
+    private Integer viewCount;
 
     public static InquiryDTO of(InquiryVO vo) {
         return vo == null ? null : InquiryDTO.builder()
@@ -32,6 +34,7 @@ public class InquiryDTO {
                 .isAnswered(vo.getIsAnswered())
                 .createdAt(vo.getCreatedAt())
                 .answeredContent(vo.getAnsweredContent())
+                .viewCount(vo.getViewCount())
                 .build();
     }
 
@@ -45,6 +48,7 @@ public class InquiryDTO {
                 .isAnswered(isAnswered)
                 .createdAt(createdAt)
                 .answeredContent(answeredContent)
+                .viewCount(viewCount)
                 .build();
     }
 }

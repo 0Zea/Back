@@ -65,4 +65,6 @@ public class CustomUser implements UserDetails {
     public boolean isEnabled() {
         return true;
     }
+
+    public boolean isNewUser() { return isNewUser; }
 }

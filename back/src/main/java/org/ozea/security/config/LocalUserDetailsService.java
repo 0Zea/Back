@@ -22,16 +22,11 @@ public class LocalUserDetailsService implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
-        log.info("🔍 로컬 로그인 요청된 사용자 이메일: {}", email);
-
         User user = userMapper.getUserByEmail(email);
 
         if (user == null) {
-            log.error("❌ 사용자 정보 없음: {}", email);
             throw new UsernameNotFoundException("해당 이메일의 사용자를 찾을 수 없습니다.");
         }
-
-        log.info("✅ 사용자 정보 조회 성공: {}", user.getEmail());
 
         return new CustomUser(user);
     }
