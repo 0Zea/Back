@@ -105,7 +105,7 @@ public class RootConfig {
             java.lang.reflect.Method method = Class.forName("com.mysql.cj.jdbc.AbandonedConnectionCleanupThread")
                     .getMethod("checkedShutdown");
             method.invoke(null);
-    
+
         } catch (Exception e) {
         }
     }
