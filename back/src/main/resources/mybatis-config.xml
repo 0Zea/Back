@@ -36,6 +36,7 @@
         <mapper resource="org/ozea/product/mapper/ProductMapper.xml"/>
         <mapper resource="org/ozea/term/mapper/TermMapper.xml"/>
         <mapper resource="org/ozea/quiz/mapper/QuizMapper.xml"/>
+        <mapper resource="org/ozea/api/allaccount/mapper/AllAccountMapper.xml"/>
     </mappers>
 
 
