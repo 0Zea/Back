@@ -14,12 +14,11 @@ import java.math.BigInteger;
 @Builder
 public class AssetDTO {
 
-    private String name;              // 사용자 이름
-    private BigInteger totalAssets;         // 총자산
-    private BigInteger monthlyNetIncome;    // 월 순수익
+    private String name;
+    private BigInteger totalAssets;
+    private BigInteger monthlyNetIncome;
     private Double averageGoalRate;   // 목표 평균 달성률
 
-    // DTO -> VO
     public AssetVO toVO() {
         return AssetVO.builder()
                 .name(name)
@@ -29,7 +28,6 @@ public class AssetDTO {
                 .build();
     }
 
-    // VO -> DTO
     public static AssetDTO of(AssetVO assetVO) {
         return AssetDTO.builder()
                 .name(assetVO.getName())

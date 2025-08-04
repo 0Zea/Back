@@ -4,10 +4,6 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-/**
- * 퀴즈 정답 제출 API 요청 DTO
- * - 클라이언트에서 정답 제출시 사용
- */
 @Getter
 @NoArgsConstructor
 public class QuizSubmitRequestDTO {

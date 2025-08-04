@@ -13,8 +13,8 @@ import java.math.BigInteger;
 @Builder
 public class AssetVO {
 
-    private String name;             // USER.name
-    private BigInteger totalAssets;        // 총자산 (계산된 값)
-    private BigInteger monthlyNetIncome;   // 월 순수익 (salary - pay_amount)
-    private Double averageGoalRate;  // 목표 평균 달성률
+    private String name;
+    private BigInteger totalAssets;
+    private BigInteger monthlyNetIncome;
+    private Double averageGoalRate;
 }

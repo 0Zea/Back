@@ -16,8 +16,8 @@ public class Point {
     private UUID pointId;
     private UUID userId;
     private Integer pointAmount;
-    private String typeDetail; // 상세 내역
+    private String typeDetail;
     private LocalDateTime createdAt;
     private Integer totalAmount;
-    private Integer type; // 1: 적립, 2: 출금
+    private Integer type;
 } 

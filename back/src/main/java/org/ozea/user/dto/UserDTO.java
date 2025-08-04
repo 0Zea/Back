@@ -26,7 +26,6 @@ public class UserDTO {
     private Long payAmount;
     private String role;
 
-    // VO -> DTO
     public static UserDTO of(User user){
         return UserDTO.builder()
                 .userId(user.getUserId().toString())
@@ -42,7 +41,6 @@ public class UserDTO {
                 .build();
     }
 
-    // DTO -> VO
     public User toVO(){
         return User.builder()
                 .userId(UUID.fromString(userId))

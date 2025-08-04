@@ -15,7 +15,6 @@ import java.util.List;
 @RequiredArgsConstructor
 public class TermService {
     final private TermMapper mapper;
-//Override 오류 뜸
     public List<TermDTO> getList() {
         return mapper.getList().stream().map(TermDTO::of).toList();
     }

@@ -17,7 +17,6 @@ public class QuizDTO {
     private String answer;
     private String quiz_type;
 
-    // QuizVO를 QuizDTO로 변환s
     public static QuizDTO of(QuizVO quizVO) {
         return QuizDTO.builder()
                 .quiz_id(quizVO.getQuiz_id())
@@ -27,8 +26,6 @@ public class QuizDTO {
                 .build();
     }
 
-
-    // QuizDTO를 QuizVO로 변환
     public QuizVO toVO() {
         return QuizVO.builder()
                 .quiz_id(this.quiz_id)

@@ -334,30 +334,25 @@ public class UserServiceImpl implements UserService {
             } catch (Exception e) {
                 log.warn("카카오 연동 해제 실패: {}", e.getMessage());
             }
-            
-            // 외래키 제약조건을 고려한 삭제 순서
-            // 1. 포인트 내역 삭제
+
             try {
                 mapper.deleteUserPoints(userId);
             } catch (Exception e) {
                 log.warn("포인트 내역 삭제 실패: {}", e.getMessage());
             }
-            
-            // 2. 문의 내역 삭제
+
             try {
                 mapper.deleteUserInquiries(userId);
             } catch (Exception e) {
                 log.warn("문의 내역 삭제 실패: {}", e.getMessage());
             }
-            
-            // 3. 목표 정보 삭제
+
             try {
                 mapper.deleteUserGoals(userId);
             } catch (Exception e) {
                 log.warn("목표 정보 삭제 실패: {}", e.getMessage());
             }
-            
-            // 4. 마지막으로 사용자 정보 삭제
+
             mapper.deleteUserData(userId);
             
             return true;
@@ -368,15 +363,12 @@ public class UserServiceImpl implements UserService {
     }
     
 
-    
-    // 카카오 연동 해제 (내부 메서드)
+
     private void unlinkKakaoAccount(User user) {
         try {
             String accessToken = user.getKakaoAccessToken();
-            
-            // 카카오 액세스 토큰이 있는 경우에만 연동 해제 시도
+
             if (accessToken != null && !accessToken.isEmpty()) {
-                // 카카오 연동 해제 API 호출
                 boolean success = kakaoApiClient.unlink(accessToken);
                 
                 if (!success) {

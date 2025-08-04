@@ -25,14 +25,9 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import java.util.Arrays;
 import org.springframework.http.HttpMethod;
 
-/**
- * Spring Security 설정을 담당하는 클래스.
- * 웹 보안, 인증, 인가 등을 설정합니다.
- * JWT 기반 인증을 위해 기존 formLogin 설정을 제거하고, 직접 정의한 필터를 등록함
- */
 @Log4j2
 @Configuration
-@EnableWebSecurity // Spring Security를 활성화합니다.
+@EnableWebSecurity
 @RequiredArgsConstructor
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
@@ -97,21 +92,12 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     }
 
-    /**
-     * PasswordEncoder를 빈으로 등록합니다.
-     * 여기서는 시연을 위해 암호화하지 않는 NoOpPasswordEncoder를 사용합니다.
-     * 실제 애플리케이션에서는 BCryptPasswordEncoder와 같은 강력한 인코더를 사용해야 합니다.
-     * @return PasswordEncoder 객체
-     */
     @Bean
     public PasswordEncoder passwordEncoder() {
         
         return new BCryptPasswordEncoder();
     }
 
-    /**
-     * CORS 설정을 위한 Bean
-     */
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
@@ -126,7 +112,6 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         source.registerCorsConfiguration("/**", configuration);
         return source;
     }
-
     
     @Bean
     public JwtUsernamePasswordAuthenticationFilter jwtUsernamePasswordAuthenticationFilter() throws Exception {

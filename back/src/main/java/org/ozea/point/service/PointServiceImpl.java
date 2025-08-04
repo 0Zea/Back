@@ -50,7 +50,7 @@ public class PointServiceImpl implements PointService {
                 .typeDetail(reason)
                 .createdAt(LocalDateTime.now())
                 .totalAmount(newTotal)
-                .type(1) // 적립
+                .type(1)
                 .build();
 
         pointMapper.insertPoint(point);
@@ -61,13 +61,11 @@ public class PointServiceImpl implements PointService {
     @Transactional
     public void withdrawPoints(UUID userId, Integer amount, String reason) {
         Integer currentTotal = getTotalPoints(userId);
-        
-        // 최소 출금 금액 검증 (10000원 이상)
+
         if (amount < 10000) {
             throw new IllegalArgumentException("출금은 10,000원 이상부터 가능합니다.");
         }
-        
-        // 보유 포인트 검증
+
         if (currentTotal < amount) {
             throw new IllegalArgumentException("보유 포인트가 부족합니다. 현재 보유: " + currentTotal + "P");
         }
@@ -81,7 +79,7 @@ public class PointServiceImpl implements PointService {
                 .typeDetail(reason)
                 .createdAt(LocalDateTime.now())
                 .totalAmount(newTotal)
-                .type(2) // 출금
+                .type(2)
                 .build();
 
         pointMapper.insertPoint(point);

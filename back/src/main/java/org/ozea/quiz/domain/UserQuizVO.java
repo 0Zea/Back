@@ -12,8 +12,8 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @Builder
 public class UserQuizVO {
-    private String user_quiz_id;  // UUID
-    private String user_id;       // UUID
+    private String user_quiz_id;
+    private String user_id;
     private int quiz_id;
     private boolean is_correct;
     private LocalDateTime answered_at;

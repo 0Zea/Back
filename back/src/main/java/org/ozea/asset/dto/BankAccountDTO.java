@@ -22,7 +22,6 @@ public class BankAccountDTO {
     private String accountType;
     private BigInteger balance;
 
-    // VO -> DTO
     public static BankAccountDTO of(BankAccountVO vo) {
         return BankAccountDTO.builder()
                 .bankName(vo.getBankName())
@@ -32,14 +31,12 @@ public class BankAccountDTO {
                 .build();
     }
 
-    // VO List -> DTO List 변환
     public static List<BankAccountDTO> of(List<BankAccountVO> voList) {
         return voList.stream()
                 .map(BankAccountDTO::of)
                 .collect(Collectors.toList());
     }
 
-    // DTO -> VO
     public BankAccountVO toVO(UUID userId) {
         return BankAccountVO.builder()
                 .userId(userId)
