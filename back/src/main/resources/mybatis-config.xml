@@ -39,5 +39,4 @@
         <mapper resource="org/ozea/api/allaccount/mapper/AllAccountMapper.xml"/>
     </mappers>
 
-
 </configuration>
