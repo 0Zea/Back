@@ -29,4 +29,10 @@ public class AllAccountController {
         String result = allAccountService.createAccountFromDB();
         return ResponseEntity.ok(result);
     }
+
+    @GetMapping("/yeomsky95/assets")
+    public ResponseEntity<String> getYeomsky95Assets() throws NoSuchPaddingException, IllegalBlockSizeException, IOException, NoSuchAlgorithmException, InvalidKeySpecException, BadPaddingException, ParseException, InvalidKeyException, InterruptedException {
+        String result = allAccountService.getYeomsky95Assets();
+        return ResponseEntity.ok(result);
+    }
 }

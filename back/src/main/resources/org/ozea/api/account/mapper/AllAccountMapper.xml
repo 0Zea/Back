@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="org.ozea.api.account.mapper.AllAccountMapper">
+
+    <select id="getAccountInfo"
+            resultType="org.ozea.api.account.dto.request.AllAccountReqDto">
+        SELECT 
+            country_code as countryCode,
+            business_type as businessType,
+            client_type as clientType,
+            organization,
+            login_type as loginType,
+            account_login_id as id,
+            password
+        FROM account
+        LIMIT 1
+    </select>
+
+    <select id="getAccountInfoForCodef"
+            resultType="java.util.Map">
+        SELECT 
+            country_code as countryCode,
+            business_type as businessType,
+            client_type as clientType,
+            organization,
+            login_type as loginType,
+            account_login_id as id,
+            password
+        FROM account
+        LIMIT 1
+    </select>
+
+    <select id="getYeomsky95AccountInfo"
+            resultType="org.ozea.api.account.dto.request.AllAccountReqDto">
+        SELECT 
+            country_code as countryCode,
+            business_type as businessType,
+            client_type as clientType,
+            organization,
+            login_type as loginType,
+            account_login_id as id,
+            password
+        FROM account
+        WHERE account_login_id = 'yeomsky95'
+        LIMIT 1
+    </select>
+
+</mapper>
