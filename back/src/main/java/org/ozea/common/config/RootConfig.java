@@ -21,6 +21,7 @@ import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 import javax.annotation.PreDestroy;
 import javax.sql.DataSource;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
@@ -32,7 +33,7 @@ import java.time.format.DateTimeFormatter;
 @MapperScan(basePackages = {"org.ozea.user.mapper", "org.ozea.goal.mapper",
         "org.ozea.inquiry.mapper", "org.ozea.asset.mapper","org.ozea.notice.mapper",
         "org.ozea.point.mapper", "org.ozea.bank.mapper", "org.ozea.product.mapper",
-        "org.ozea.term.mapper", "org.ozea.quiz.mapper", "org.ozea.api.allaccount.mapper"})
+        "org.ozea.term.mapper", "org.ozea.quiz.mapper", "org.ozea.api.account.mapper"})
 @EnableAspectJAutoProxy
 public class RootConfig {
     @Value("${jdbc.driver}") String driver;
@@ -88,7 +89,7 @@ public class RootConfig {
         javaTimeModule.addSerializer(LocalDateTime.class, new LocalDateTimeSerializer(formatter));
 
         javaTimeModule.addDeserializer(LocalDateTime.class,
-                new com.fasterxml.jackson.datatype.jsr310.deser.LocalDateTimeDeserializer(formatter));
+            new com.fasterxml.jackson.datatype.jsr310.deser.LocalDateTimeDeserializer(formatter));
 
         objectMapper.registerModule(javaTimeModule);
 
