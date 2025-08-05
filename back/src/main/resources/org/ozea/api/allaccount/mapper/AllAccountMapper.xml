@@ -1,5 +1,5 @@
 <!-- src/main/resources/mappers/AllAccountMapper.xml -->
-<mapper namespace="org.ozea.api.mapper.AllAccountMapper">
+<mapper namespace="org.ozea.api.allaccount.mapper.AllAccountMapper">
 
     <select id="getAccountInfo"
             parameterType="java.lang.String"

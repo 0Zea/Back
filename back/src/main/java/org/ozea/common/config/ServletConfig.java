@@ -21,7 +21,9 @@ import org.springframework.web.servlet.view.JstlView;
         "org.ozea.asset.controller",
         "org.ozea.product.controller",
         "org.ozea.term.controller",
-        "org.ozea.quiz.controller"
+        "org.ozea.quiz.controller",
+        "org.ozea.api.allaccount.controller",
+        "org.ozea.api.taxkakaoouth.controller"
 })
 public class ServletConfig  implements WebMvcConfigurer {
 

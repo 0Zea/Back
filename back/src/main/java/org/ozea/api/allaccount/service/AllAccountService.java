@@ -1,12 +1,11 @@
-package org.ozea.api.account.service;
+package org.ozea.api.allaccount.service;
 
 import lombok.RequiredArgsConstructor;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
-import org.ozea.api.account.dto.response.AllAccountResDto;
-import org.ozea.api.account.mapper.AllAccountMapper;
-import org.ozea.api.account.dto.request.AllAccountReqDto;
+import org.ozea.api.allaccount.mapper.AllAccountMapper;
+import org.ozea.api.allaccount.dto.request.AllAccountReqDto;
 import org.ozea.api.util.CommonConstant;
 import org.ozea.api.util.RSAUtil;
 import org.ozea.api.util.RequestToken;
@@ -23,7 +22,6 @@ import java.nio.charset.StandardCharsets;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
-import java.util.List;
 
 @Service
 @RequiredArgsConstructor
