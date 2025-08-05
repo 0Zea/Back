@@ -33,7 +33,7 @@ import java.time.format.DateTimeFormatter;
 @MapperScan(basePackages = {"org.ozea.user.mapper", "org.ozea.goal.mapper",
         "org.ozea.inquiry.mapper", "org.ozea.asset.mapper","org.ozea.notice.mapper",
         "org.ozea.point.mapper", "org.ozea.bank.mapper", "org.ozea.product.mapper",
-        "org.ozea.term.mapper", "org.ozea.quiz.mapper"})
+        "org.ozea.term.mapper", "org.ozea.quiz.mapper", "org.ozea.api.account.mapper"})
 @EnableAspectJAutoProxy
 public class RootConfig {
     @Value("${jdbc.driver}") String driver;
