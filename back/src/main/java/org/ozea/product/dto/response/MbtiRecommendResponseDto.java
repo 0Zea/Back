@@ -8,6 +8,7 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 public class MbtiRecommendResponseDto {
+    private String finPrdtCd;
     private String bankName;
     private String productName;
     private Double intrRate;
