@@ -18,5 +18,6 @@ public interface GoalService {
     void unlinkAccount(int accountId);
     List<ProductRecommendResponseDto> recommendProducts(UUID goalId);
     List<PastGoalResponseDto> getPastGoals(UUID userId);
+    RecommendNextGoalDto recommendNextGoal(UUID userId);
 
 }
