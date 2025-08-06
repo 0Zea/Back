@@ -45,8 +45,15 @@ public class ProductController {
 
 
     @GetMapping("/recommend")
-    public List<MbtiRecommendResponseDto> getRecommended(@RequestParam UUID userId) {
-        return productService.getRecommendedProductsByMbti(userId);
+    public ResponseEntity<?> getRecommended(@RequestParam UUID userId) {
+        try {
+            List<MbtiRecommendResponseDto> recommendations = productService.getRecommendedProductsByMbti(userId);
+            return ResponseEntity.ok(recommendations);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body(Map.of("error", "추천 상품 조회 중 오류가 발생했습니다."));
+        }
     }
 
     @PostMapping("/filter")

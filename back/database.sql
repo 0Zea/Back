@@ -69,3 +69,46 @@ INSERT INTO UserQuiz (
           (SELECT user_id FROM USER WHERE email = 'testuser@example.com'),
           5, 1, '2025-07-31 10:30:59'
       );
+
+-- 금융상품 테이블 생성
+DROP TABLE IF EXISTS product;
+CREATE TABLE product (
+    fin_prdt_cd VARCHAR(50) NOT NULL PRIMARY KEY,  -- 금융상품 코드
+    dcls_month VARCHAR(6),                         -- 공시 제출월
+    fin_co_no VARCHAR(10),                         -- 금융회사 코드
+    kor_co_nm VARCHAR(100),                        -- 금융회사 명
+    fin_prdt_nm VARCHAR(200),                      -- 금융상품명
+    join_way VARCHAR(500),                         -- 가입 방법
+    mtrt_int TEXT,                                 -- 만기 후 이자율
+    spcl_cnd TEXT,                                 -- 우대조건
+    join_deny VARCHAR(10),                         -- 가입제한
+    join_member VARCHAR(100),                      -- 가입대상
+    etc_note TEXT,                                 -- 기타 유의사항
+    max_limit BIGINT,                              -- 최고한도
+    dcls_strt_day VARCHAR(8),                      -- 공시 시작일
+    dcls_end_day VARCHAR(8),                       -- 공시 종료일
+    fin_co_subm_day VARCHAR(14)                    -- 금융회사 제출일
+);
+
+-- 금융상품 옵션 테이블 생성
+DROP TABLE IF EXISTS productoption;
+CREATE TABLE productoption (
+    option_id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,  -- 옵션 ID
+    fin_prdt_cd VARCHAR(50) NOT NULL,                  -- 금융상품 코드 (FK)
+    intr_rate_type VARCHAR(10),                        -- 저축 금리 유형
+    intr_rate_type_nm VARCHAR(50),                     -- 저축 금리 유형명
+    rsrv_type VARCHAR(10),                             -- 적립 유형
+    rsrv_type_nm VARCHAR(50),                          -- 적립 유형명
+    save_trm INT,                                      -- 저축 기간 (개월)
+    intr_rate DECIMAL(5,2),                            -- 저축 금리
+    intr_rate2 DECIMAL(5,2),                           -- 최고 우대금리
+    
+    FOREIGN KEY (fin_prdt_cd) REFERENCES product(fin_prdt_cd) ON DELETE CASCADE
+);
+
+-- 인덱스 생성
+CREATE INDEX idx_product_fin_co_no ON product(fin_co_no);
+CREATE INDEX idx_product_kor_co_nm ON product(kor_co_nm);
+CREATE INDEX idx_productoption_fin_prdt_cd ON productoption(fin_prdt_cd);
+CREATE INDEX idx_productoption_save_trm ON productoption(save_trm);
+CREATE INDEX idx_productoption_intr_rate ON productoption(intr_rate);

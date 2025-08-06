@@ -48,8 +48,18 @@ public class ProductServiceImpl implements ProductService {
     @Override
     public List<MbtiRecommendResponseDto> getRecommendedProductsByMbti(UUID userId) {
         User user = userMapper.findById(userId);
-        if (user == null || user.getMbti() == null) {
-            throw new IllegalArgumentException("사용자의 MBTI 정보가 없습니다.");
+        if (user == null) {
+            throw new IllegalArgumentException("사용자를 찾을 수 없습니다.");
+        }
+        
+        if (user.getMbti() == null || user.getMbti().trim().isEmpty() || "미입력".equals(user.getMbti())) {
+            // MBTI가 없거나 미입력인 경우 기본 추천 상품 반환
+            List<ProductResponseDto> products = productMapper.findAllProductsWithOptions();
+            return products.stream()
+                    .sorted(rate2Desc())
+                    .limit(6)
+                    .map(p -> toDto(p, "MBTI 정보 없음 - 기본 추천 상품"))
+                    .toList();
         }
 
         String mbti = user.getMbti();
@@ -84,7 +94,14 @@ public class ProductServiceImpl implements ProductService {
                     .map(p -> toDto(p, "장기 분석 기반 추천"))
                     .toList();
 
-            default -> throw new IllegalArgumentException("알 수 없는 MBTI: " + mbti);
+            default -> {
+                // 알 수 없는 MBTI인 경우 기본 추천 상품 반환
+                yield products.stream()
+                        .sorted(rate2Desc())
+                        .limit(6)
+                        .map(p -> toDto(p, "기본 추천 상품"))
+                        .toList();
+            }
         };
 
     }

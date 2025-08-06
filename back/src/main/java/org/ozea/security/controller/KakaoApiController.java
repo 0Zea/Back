@@ -79,7 +79,7 @@ public class KakaoApiController {
             if (existingUser == null) {
                 CustomUser customUser = (CustomUser) kakaoUserDetailsService.loadUserByUsername(email, nickname, accessToken, "");
                 
-                String token = jwtProcessor.generateToken(email);
+                String token = jwtProcessor.generateAccessToken(email);
                 
                 UserInfoDTO userInfoDTO = UserInfoDTO.of(customUser.getUser());
                 AuthResultDTO result = new AuthResultDTO(token, userInfoDTO, true);
@@ -89,7 +89,7 @@ public class KakaoApiController {
 
             CustomUser customUser = (CustomUser) kakaoUserDetailsService.loadUserByUsername(email, nickname, accessToken, "");
 
-            String token = jwtProcessor.generateToken(email);
+            String token = jwtProcessor.generateAccessToken(email);
 
             UserInfoDTO userInfoDTO = UserInfoDTO.of(customUser.getUser());
 

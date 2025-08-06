@@ -51,7 +51,7 @@ public class UserController {
         try {
             UserDTO user = service.login(email, password);
 
-            String token = jwtProcessor.generateToken(user.getEmail());
+            String token = jwtProcessor.generateAccessToken(user.getEmail());
 
             resetRateLimit(email);
 
@@ -251,7 +251,7 @@ public class UserController {
             String email = jwtProcessor.getUsername(token);
             
             // 새로운 토큰 생성
-            String newToken = jwtProcessor.generateToken(email);
+            String newToken = jwtProcessor.generateAccessToken(email);
             
             Map<String, Object> response = new HashMap<>();
             response.put("success", true);

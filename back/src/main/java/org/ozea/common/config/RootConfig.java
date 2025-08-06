@@ -18,7 +18,9 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.EnableAspectJAutoProxy;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
+import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
+import org.springframework.web.client.RestTemplate;
 import javax.annotation.PreDestroy;
 import javax.sql.DataSource;
 import java.time.LocalDate;
@@ -35,6 +37,7 @@ import java.time.format.DateTimeFormatter;
         "org.ozea.point.mapper", "org.ozea.bank.mapper", "org.ozea.product.mapper",
         "org.ozea.term.mapper", "org.ozea.quiz.mapper", "org.ozea.api.account.mapper"})
 @EnableAspectJAutoProxy
+@EnableScheduling
 public class RootConfig {
     @Value("${jdbc.driver}") String driver;
     @Value("${jdbc.url}") String url;
@@ -96,6 +99,11 @@ public class RootConfig {
         objectMapper.disable(com.fasterxml.jackson.databind.SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
 
         return objectMapper;
+    }
+
+    @Bean
+    public RestTemplate restTemplate() {
+        return new RestTemplate();
     }
 
     @PreDestroy
