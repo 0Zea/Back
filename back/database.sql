@@ -1,3 +1,105 @@
+-- USER 테이블 생성
+DROP TABLE IF EXISTS USER;
+CREATE TABLE USER (
+    user_id BINARY(16) NOT NULL PRIMARY KEY,  -- 사용자 ID (UUID)
+    name VARCHAR(100) NOT NULL,               -- 사용자 이름
+    email VARCHAR(255) NOT NULL UNIQUE,       -- 이메일 (고유)
+    password VARCHAR(255),                    -- 비밀번호 (카카오 로그인 시 NULL)
+    mbti VARCHAR(10) DEFAULT '미입력',        -- MBTI
+    phone_num VARCHAR(20) DEFAULT '000-0000-0000',  -- 전화번호
+    birth_date DATE,                          -- 생년월일
+    sex VARCHAR(10) DEFAULT 'female',         -- 성별
+    salary BIGINT DEFAULT 0,                  -- 연봉
+    pay_amount BIGINT DEFAULT 0,              -- 월급
+    role VARCHAR(20) DEFAULT 'USER',          -- 역할
+    kakao_access_token TEXT,                  -- 카카오 액세스 토큰
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,  -- 생성일
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP  -- 수정일
+);
+
+-- USER 테이블 인덱스 생성
+CREATE INDEX idx_user_email ON USER(email);
+CREATE INDEX idx_user_name ON USER(name);
+
+-- Goal 테이블 생성
+DROP TABLE IF EXISTS Goal;
+CREATE TABLE Goal (
+    goal_id BINARY(16) NOT NULL PRIMARY KEY,  -- 목표 ID (UUID)
+    user_id BINARY(16) NOT NULL,              -- 사용자 ID (FK)
+    goal_name VARCHAR(100) NOT NULL,          -- 목표 이름
+    target_amount BIGINT NOT NULL,            -- 목표 금액
+    save_amount BIGINT DEFAULT 0,             -- 현재 저축 금액
+    start_date DATE NOT NULL,                 -- 시작일
+    end_date DATE NOT NULL,                   -- 종료일
+    status VARCHAR(20) DEFAULT 'ACTIVE',      -- 상태
+    deposit_date INT DEFAULT 1,               -- 입금일 (1-28)
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,  -- 생성일
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,  -- 수정일
+    
+    FOREIGN KEY (user_id) REFERENCES USER(user_id) ON DELETE CASCADE
+);
+
+-- Goal 테이블 인덱스 생성
+CREATE INDEX idx_goal_user_id ON Goal(user_id);
+CREATE INDEX idx_goal_status ON Goal(status);
+
+-- BankAccount 테이블 생성
+DROP TABLE IF EXISTS BankAccount;
+CREATE TABLE BankAccount (
+    account_id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,  -- 계좌 ID
+    user_id BINARY(16) NOT NULL,                        -- 사용자 ID (FK)
+    goal_id BINARY(16),                                 -- 목표 ID (FK, NULL 가능)
+    bank_name VARCHAR(100) NOT NULL,                    -- 은행명
+    account_num VARCHAR(50) NOT NULL,                   -- 계좌번호
+    account_type VARCHAR(50) NOT NULL,                  -- 계좌 유형
+    balance BIGINT DEFAULT 0,                           -- 잔액
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,     -- 생성일
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,  -- 수정일
+    
+    FOREIGN KEY (user_id) REFERENCES USER(user_id) ON DELETE CASCADE,
+    FOREIGN KEY (goal_id) REFERENCES Goal(goal_id) ON DELETE SET NULL
+);
+
+-- BankAccount 테이블 인덱스 생성
+CREATE INDEX idx_bankaccount_user_id ON BankAccount(user_id);
+CREATE INDEX idx_bankaccount_goal_id ON BankAccount(goal_id);
+CREATE INDEX idx_bankaccount_bank_name ON BankAccount(bank_name);
+
+-- Point 테이블 생성
+DROP TABLE IF EXISTS Point;
+CREATE TABLE Point (
+    point_id BINARY(16) NOT NULL PRIMARY KEY,  -- 포인트 ID (UUID)
+    user_id BINARY(16) NOT NULL,               -- 사용자 ID (FK)
+    point_amount INT NOT NULL,                  -- 포인트 금액
+    type_detail VARCHAR(255),                   -- 상세 내용
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,  -- 생성일
+    total_amount INT DEFAULT 0,                 -- 누적 총액
+    type INT DEFAULT 1,                         -- 타입 (1: 적립, 2: 출금)
+    
+    FOREIGN KEY (user_id) REFERENCES USER(user_id) ON DELETE CASCADE
+);
+
+-- Point 테이블 인덱스 생성
+CREATE INDEX idx_point_user_id ON Point(user_id);
+CREATE INDEX idx_point_type ON Point(type);
+CREATE INDEX idx_point_created_at ON Point(created_at);
+
+-- Term 테이블 생성
+DROP TABLE IF EXISTS Term;
+CREATE TABLE Term (
+    term_id BINARY(16) NOT NULL PRIMARY KEY,  -- 약관 ID (UUID)
+    title VARCHAR(200) NOT NULL,              -- 약관 제목
+    content TEXT NOT NULL,                    -- 약관 내용
+    version VARCHAR(20) NOT NULL,             -- 버전
+    is_active BOOLEAN DEFAULT TRUE,           -- 활성화 여부
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,  -- 생성일
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP  -- 수정일
+);
+
+-- Term 테이블 인덱스 생성
+CREATE INDEX idx_term_version ON Term(version);
+CREATE INDEX idx_term_is_active ON Term(is_active);
+
 -- 테이블 생성
 DROP TABLE IF EXISTS Quiz;
 CREATE TABLE Quiz (
@@ -38,37 +140,6 @@ CREATE TABLE UserQuiz (
                           FOREIGN KEY (user_id) REFERENCES USER(user_id),
                           FOREIGN KEY (quiz_id) REFERENCES Quiz(quiz_id)
 );
-
-
--- 예시
-INSERT INTO UserQuiz (
-    user_quiz_id, user_id, quiz_id, is_correct, answered_at
-) VALUES
-      (
-          UNHEX(REPLACE(UUID(), '-', '')),
-          (SELECT user_id FROM USER WHERE email = 'soyeon@example.com'),
-          1, 1, '2025-07-30 08:15:23'
-      ),
-      (
-          UNHEX(REPLACE(UUID(), '-', '')),
-          (SELECT user_id FROM USER WHERE email = 'soyeon@example.com'),
-          2, 0, '2025-07-31 08:17:01'
-      ),
-      (
-          UNHEX(REPLACE(UUID(), '-', '')),
-          (SELECT user_id FROM USER WHERE email = 'testuser@example.com'),
-          1, 1, '2025-06-29 09:00:40'
-      ),
-      (
-          UNHEX(REPLACE(UUID(), '-', '')),
-          (SELECT user_id FROM USER WHERE email = 'testuser@example.com'),
-          3, 1, '2025-07-30 09:02:00'
-      ),
-      (
-          UNHEX(REPLACE(UUID(), '-', '')),
-          (SELECT user_id FROM USER WHERE email = 'testuser@example.com'),
-          5, 1, '2025-07-31 10:30:59'
-      );
 
 -- 금융상품 테이블 생성
 DROP TABLE IF EXISTS product;

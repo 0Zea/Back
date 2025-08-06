@@ -1,12 +1,10 @@
 package org.ozea.security.account.dto;
 
-import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
 @NoArgsConstructor
-@AllArgsConstructor
 public class AuthResultDTO {
     private String accessToken;
     private String refreshToken;
@@ -17,6 +15,14 @@ public class AuthResultDTO {
     public AuthResultDTO(String token, UserInfoDTO user, boolean isNewUser) {
         this.accessToken = token;
         this.refreshToken = null;
+        this.user = user;
+        this.isNewUser = isNewUser;
+    }
+    
+    // Refresh Token을 포함한 생성자
+    public AuthResultDTO(String accessToken, String refreshToken, UserInfoDTO user, boolean isNewUser) {
+        this.accessToken = accessToken;
+        this.refreshToken = refreshToken;
         this.user = user;
         this.isNewUser = isNewUser;
     }

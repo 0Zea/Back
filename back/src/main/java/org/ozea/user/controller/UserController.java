@@ -8,6 +8,8 @@ import org.ozea.user.dto.UserDTO;
 import org.ozea.user.dto.UserSignupDTO;
 import org.ozea.user.service.UserService;
 import org.ozea.point.service.PointService;
+import org.ozea.common.dto.ApiResponse;
+import org.ozea.common.exception.ErrorCode;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -35,43 +37,31 @@ public class UserController {
     private static final long ATTEMPT_WINDOW = 5 * 60 * 1000;
 
     @PostMapping("/login")
-    public ResponseEntity<Map<String, Object>> login(@RequestBody Map<String, String> request) {
+    public ResponseEntity<ApiResponse<Map<String, Object>>> login(@RequestBody Map<String, String> request) {
         String email = request.get("email");
         String password = request.get("password");
         
         if (isRateLimited(email)) {
-            Map<String, Object> response = new HashMap<>();
-            response.put("success", false);
-            response.put("message", "너무 많은 로그인 시도가 있었습니다. 5분 후에 다시 시도해주세요.");
-            response.put("error", "RATE_LIMITED");
-
-            return ResponseEntity.status(429).body(response);
+            return ResponseEntity.status(429)
+                .body(ApiResponse.error(ErrorCode.ACCESS_DENIED, "너무 많은 로그인 시도가 있었습니다. 5분 후에 다시 시도해주세요."));
         }
 
         try {
             UserDTO user = service.login(email, password);
-
             String token = jwtProcessor.generateAccessToken(user.getEmail());
-
             resetRateLimit(email);
 
-            Map<String, Object> response = new HashMap<>();
-            response.put("success", true);
-            response.put("user", user);
-            response.put("message", "로그인 성공");
-            response.put("token", token);
-            response.put("tokenType", "Bearer");
-            response.put("expiresIn", 300);
+            Map<String, Object> data = new HashMap<>();
+            data.put("user", user);
+            data.put("token", token);
+            data.put("tokenType", "Bearer");
+            data.put("expiresIn", 300);
 
-            return ResponseEntity.ok(response);
+            return ResponseEntity.ok(ApiResponse.success(data, "로그인 성공"));
         } catch (Exception e) {
             incrementRateLimit(email);
-
-            Map<String, Object> response = new HashMap<>();
-            response.put("success", false);
-            response.put("message", "로그인 실패: " + e.getMessage());
-
-            return ResponseEntity.badRequest().body(response);
+            return ResponseEntity.badRequest()
+                .body(ApiResponse.error(ErrorCode.INVALID_PASSWORD, "로그인 실패: " + e.getMessage()));
         }
     }
 
@@ -127,54 +117,53 @@ public class UserController {
     }
 
     @GetMapping("/signup/check/{email}")
-    public ResponseEntity<Boolean> checkEmail(@PathVariable String email) {
-        return ResponseEntity.ok(service.checkEmail(email));
+    public ResponseEntity<ApiResponse<Boolean>> checkEmail(@PathVariable String email) {
+        boolean exists = service.checkEmail(email);
+        return ResponseEntity.ok(ApiResponse.success(exists, "이메일 중복 체크 완료"));
     }
 
     @PostMapping("/signup")
-    public ResponseEntity<?> signup(@RequestBody UserSignupDTO user) {
+    public ResponseEntity<ApiResponse<UserDTO>> signup(@RequestBody UserSignupDTO user) {
         try {
             UserDTO result = service.signup(user);
-            if (result == null) {
-                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("회원가입 실패");
-            }
-            return ResponseEntity.ok(result); // 최소한 UserDTO 반환
+            return ResponseEntity.ok(ApiResponse.success(result, "회원가입 성공"));
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("회원가입 중 예외 발생: " + e.getMessage());
+            return ResponseEntity.badRequest()
+                .body(ApiResponse.error(ErrorCode.USER_ALREADY_EXISTS, "회원가입 실패: " + e.getMessage()));
         }
     }
 
     @PostMapping("/signup/kakao")
-    public ResponseEntity<?> signupKakao(@RequestBody UserSignupDTO user) {
+    public ResponseEntity<ApiResponse<UserDTO>> signupKakao(@RequestBody UserSignupDTO user) {
         try {
     
             UserDTO result = service.signupKakao(user);
-            if (result == null) {
-                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("카카오 회원가입 실패");
-            }
-            return ResponseEntity.ok(result);
+            return ResponseEntity.ok(ApiResponse.success(result, "카카오 회원가입 성공"));
         } catch (Exception e) {
             log.error("카카오 회원가입 중 예외 발생: {}", e.getMessage(), e);
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("카카오 회원가입 중 예외 발생: " + e.getMessage());
+            return ResponseEntity.badRequest()
+                .body(ApiResponse.error(ErrorCode.USER_ALREADY_EXISTS, "카카오 회원가입 실패: " + e.getMessage()));
         }
     }
 
     @GetMapping("/user/{email}")
-    public ResponseEntity<UserDTO> getUserByEmail(@PathVariable String email) {
-        return ResponseEntity.ok(service.getUserByEmail(email));
+    public ResponseEntity<ApiResponse<UserDTO>> getUserByEmail(@PathVariable String email) {
+        try {
+            UserDTO user = service.getUserByEmail(email);
+            return ResponseEntity.ok(ApiResponse.success(user, "사용자 정보 조회 성공"));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest()
+                .body(ApiResponse.error(ErrorCode.USER_NOT_FOUND, "사용자 정보 조회 실패: " + e.getMessage()));
+        }
     }
 
     @PostMapping("/verify-user")
-    public ResponseEntity<Map<String, Object>> verifyUser(@RequestBody Map<String, String> request) {
+    public ResponseEntity<ApiResponse<Boolean>> verifyUser(@RequestBody Map<String, String> request) {
         String phoneNum = request.get("phoneNum");
         String email = request.get("email");
         
         boolean success = service.verifyUserInfo(phoneNum, email);
-        
-        Map<String, Object> response = new HashMap<>();
-        response.put("success", success);
-        
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(ApiResponse.success(success, "사용자 정보 검증 완료"));
     }
 
     @PostMapping("/send-verification-code")

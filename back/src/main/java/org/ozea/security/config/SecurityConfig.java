@@ -1,184 +1,165 @@
 package org.ozea.security.config;
 
-import lombok.RequiredArgsConstructor;
-import lombok.extern.log4j.Log4j2;
-import org.ozea.security.filter.JwtAuthenticationFilter;
-import org.ozea.security.filter.JwtUsernamePasswordAuthenticationFilter;
-import org.ozea.security.handler.LoginFailureHandler;
-import org.ozea.security.handler.LoginSuccessHandler;
-import org.ozea.security.service.LoginAttemptService;
-import org.ozea.security.util.JwtProcessor;
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
-import java.util.Arrays;
-import java.util.List;
-import org.springframework.http.HttpMethod;
+import org.ozea.security.filter.JwtAuthenticationFilter;
 
-@Log4j2
+import java.util.Arrays;
+
 @Configuration
 @EnableWebSecurity
-@RequiredArgsConstructor
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
-    private final KakaoUserDetailsService kakaoUserDetailsService;
-    private final LocalUserDetailsService localUserDetailsService;
-    private final LoginAttemptService loginAttemptService;
+    private JwtAuthenticationFilter jwtAuthenticationFilter;
 
-    @Value("${security.cors.allowed-origins}")
-    private String allowedOrigins;
-
-    @Value("${security.cors.allowed-methods}")
-    private String allowedMethods;
-
-    @Value("${security.cors.allowed-headers}")
-    private String allowedHeaders;
-
-    @Value("${security.cors.max-age}")
-    private long maxAge;
-
-    public void init() {
-
-    }
-
-    @Bean
-    public UserDetailsService userDetailsService() {
-        return localUserDetailsService;
-    }
-
-    @Override
-    protected void configure(AuthenticationManagerBuilder auth) throws Exception {
-        auth.userDetailsService(userDetailsService()).passwordEncoder(passwordEncoder());
-    }
-
-    @Bean
-    @Override
-    public AuthenticationManager authenticationManagerBean() throws Exception {
-        return super.authenticationManagerBean();
-    }
-
-    @Override
-    public void configure(WebSecurity web) throws Exception {
-        web.ignoring().antMatchers("/resources/**");
+    @Autowired
+    public void setJwtAuthenticationFilter(JwtAuthenticationFilter jwtAuthenticationFilter) {
+        this.jwtAuthenticationFilter = jwtAuthenticationFilter;
     }
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         http
-            .cors().configurationSource(corsConfigurationSource()).and()
-            .csrf().disable()
-            .formLogin().disable()
-            .httpBasic().disable()
-            .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+            // CORS 설정
+            .cors().configurationSource(corsConfigurationSource())
             .and()
+            
+            // CSRF 비활성화 (JWT 사용)
+            .csrf().disable()
+            
+            // 세션 관리 (JWT 사용으로 STATELESS)
+            .sessionManagement()
+                .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+            .and()
+            
+            // HTTP 기본 인증 비활성화
+            .httpBasic().disable()
+            
+            // 폼 로그인 비활성화
+            .formLogin().disable()
+            
+            // 로그아웃 설정
+            .logout()
+                .logoutUrl("/api/auth/logout")
+                .logoutSuccessHandler((request, response, authentication) -> {
+                    response.setStatus(200);
+                    response.getWriter().write("{\"success\":true,\"message\":\"로그아웃 성공\"}");
+                })
+                .invalidateHttpSession(true)
+                .clearAuthentication(true)
+                .deleteCookies("JSESSIONID")
+            .and()
+            
+            // 인증 예외 처리
+            .exceptionHandling()
+                .authenticationEntryPoint((request, response, authException) -> {
+                    response.setStatus(401);
+                    response.setContentType("application/json;charset=UTF-8");
+                    response.getWriter().write("{\"success\":false,\"message\":\"인증이 필요합니다.\"}");
+                })
+                .accessDeniedHandler((request, response, accessDeniedException) -> {
+                    response.setStatus(403);
+                    response.setContentType("application/json;charset=UTF-8");
+                    response.getWriter().write("{\"success\":false,\"message\":\"접근 권한이 없습니다.\"}");
+                })
+            .and()
+            
+            // 요청 권한 설정
             .authorizeRequests()
-                .antMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                .antMatchers("/",
-                        "/signup",
-                        "/login",
-                        "/local-login",
-                        "/main",
-                        "/additional-info",
-                        "/callback",
-                        "/goal/**",
-                        "/products/**",
-                        "/mbti-survey",
-                        "/swagger-ui.html",
-                        "/swagger-resources/**",
-                        "/v2/api-docs",
-                        "/webjars/**",
-                        "api/inquiry/**",
-                        "api/notice/**",
-                        "/api/auth/**",
-                        "/api/auth/kakao/callback").permitAll()
+                // 공개 경로
+                .antMatchers(
+                    "/api/auth/login",
+                    "/api/auth/signup",
+                    "/api/auth/kakao/callback",
+                    "/api/auth/kakao/callback/test",
+                    "/api/monitoring/health",
+                    "/api/monitoring/metrics",
+                    "/api/monitoring/info",
+                    "/error",
+                    "/favicon.ico",
+                    "/swagger-ui/**",
+                    "/v3/api-docs/**"
+                ).permitAll()
+                
+                // 관리자 전용 경로
+                .antMatchers(
+                    "/api/admin/**",
+                    "/api/monitoring/admin/**"
+                ).hasRole("ADMIN")
+                
+                // 인증된 사용자만 접근 가능한 경로
+                .antMatchers(
+                    "/api/user/**",
+                    "/api/goal/**",
+                    "/api/asset/**",
+                    "/api/product/**",
+                    "/api/quiz/**",
+                    "/api/point/**",
+                    "/api/inquiry/**",
+                    "/api/notice/**"
+                ).authenticated()
+                
+                // 나머지 모든 요청은 인증 필요
                 .anyRequest().authenticated()
-                .and()
-            .addFilterBefore(jwtUsernamePasswordAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class)
-            .addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
-
-    }
-
-    @Bean
-    public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
+            .and()
+            
+            // JWT 필터 추가
+            .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
     }
 
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
         
-        // 허용된 오리진 설정
-        List<String> origins = Arrays.asList(allowedOrigins.split(","));
-        configuration.setAllowedOriginPatterns(origins);
+        // 허용할 오리진 설정
+        configuration.setAllowedOriginPatterns(Arrays.asList("*"));
         
-        // 허용된 메서드 설정
-        List<String> methods = Arrays.asList(allowedMethods.split(","));
-        configuration.setAllowedMethods(methods);
+        // 허용할 HTTP 메서드 설정
+        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         
-        // 허용된 헤더 설정
-        if ("*".equals(allowedHeaders)) {
-            configuration.setAllowedHeaders(Arrays.asList("*"));
-        } else {
-            List<String> headers = Arrays.asList(allowedHeaders.split(","));
-            configuration.setAllowedHeaders(headers);
-        }
+        // 허용할 헤더 설정
+        configuration.setAllowedHeaders(Arrays.asList(
+            "Authorization",
+            "Content-Type",
+            "X-Requested-With",
+            "Accept",
+            "Origin",
+            "Access-Control-Request-Method",
+            "Access-Control-Request-Headers"
+        ));
         
-        // 노출된 헤더 설정
-        configuration.setExposedHeaders(Arrays.asList("X-Auth-Token", "X-Refresh-Token"));
-        configuration.setAllowCredentials(false);
-        configuration.setMaxAge(maxAge);
-
+        // 인증 정보 포함 허용
+        configuration.setAllowCredentials(true);
+        
+        // 노출할 헤더 설정
+        configuration.setExposedHeaders(Arrays.asList(
+            "Authorization",
+            "Content-Type",
+            "X-Requested-With"
+        ));
+        
+        // 프리플라이트 요청 캐시 시간 설정
+        configuration.setMaxAge(3600L);
+        
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
+        
         return source;
     }
-    
-    @Bean
-    public JwtUsernamePasswordAuthenticationFilter jwtUsernamePasswordAuthenticationFilter() throws Exception {
-        JwtUsernamePasswordAuthenticationFilter filter = new JwtUsernamePasswordAuthenticationFilter(
-            authenticationManagerBean(), 
-            loginSuccessHandler(), 
-            loginFailureHandler()
-        );
-
-        filter.setFilterProcessesUrl("/api/auth/login");
-        filter.setAuthenticationSuccessHandler(loginSuccessHandler());
-        filter.setAuthenticationFailureHandler(loginFailureHandler());
-
-        return filter;
-    }
 
     @Bean
-    public LoginSuccessHandler loginSuccessHandler() {
-        return new LoginSuccessHandler(jwtProcessor(), loginAttemptService);
-    }
-
-    @Bean
-    public LoginFailureHandler loginFailureHandler() {
-        return new LoginFailureHandler(loginAttemptService);
-    }
-
-    @Bean
-    public JwtAuthenticationFilter jwtAuthenticationFilter() {
-        return new JwtAuthenticationFilter(jwtProcessor(), userDetailsService());
-    }
-
-    @Bean
-    public JwtProcessor jwtProcessor() {
-        return new JwtProcessor();
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder(12); // 보안 강화를 위해 12라운드 사용
     }
 }
