@@ -5,10 +5,7 @@ import io.swagger.annotations.ApiOperation;
 import org.ozea.goal.dto.request.GoalCreateRequestDto;
 import org.ozea.goal.dto.request.GoalUpdateRequestDto;
 import org.ozea.goal.dto.request.LinkAccountRequestDto;
-import org.ozea.goal.dto.response.GoalDetailResponseDto;
-import org.ozea.goal.dto.response.GoalListResponseDto;
-import org.ozea.goal.dto.response.LinkedAccountDto;
-import org.ozea.goal.dto.response.ProductRecommendResponseDto;
+import org.ozea.goal.dto.response.*;
 import org.ozea.goal.service.GoalService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -24,6 +21,12 @@ public class GoalController {
 
     @Autowired
     private GoalService goalService;
+
+    @GetMapping("/past")
+    public ResponseEntity<List<PastGoalResponseDto>> getPastGoals(@RequestParam UUID userId) {
+        List<PastGoalResponseDto> result = goalService.getPastGoals(userId);
+        return ResponseEntity.ok(result);
+    }
 
     @GetMapping("/{goalId}/recommend-products")
     @ApiOperation(value = "금융상품 추천", notes = "목표 ID를 기반으로 금융상품을 추천합니다.")
@@ -107,4 +110,12 @@ public class GoalController {
         goalService.updateGoal(goalId , dto);
         return ResponseEntity.ok(Map.of("message", "목표가 수정되었습니다."));
     }
+
+    @GetMapping("/recommend-next")
+    @ApiOperation(value = "다음 목표 추천", notes = "이전 목표를 기반으로 추천 목표 정보를 제공합니다.")
+    public ResponseEntity<RecommendNextGoalDto> recommendNextGoal(@RequestParam UUID userId) {
+        RecommendNextGoalDto dto = goalService.recommendNextGoal(userId);
+        return ResponseEntity.ok(dto);
+    }
+
 }

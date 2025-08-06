@@ -2,10 +2,7 @@ package org.ozea.goal.service;
 
 import org.ozea.goal.dto.request.GoalCreateRequestDto;
 import org.ozea.goal.dto.request.GoalUpdateRequestDto;
-import org.ozea.goal.dto.response.GoalDetailResponseDto;
-import org.ozea.goal.dto.response.GoalListResponseDto;
-import org.ozea.goal.dto.response.LinkedAccountDto;
-import org.ozea.goal.dto.response.ProductRecommendResponseDto;
+import org.ozea.goal.dto.response.*;
 
 import java.util.List;
 import java.util.UUID;
@@ -20,4 +17,7 @@ public interface GoalService {
     void linkAccountToGoal(UUID goalId, int accountId);
     void unlinkAccount(int accountId);
     List<ProductRecommendResponseDto> recommendProducts(UUID goalId);
+    List<PastGoalResponseDto> getPastGoals(UUID userId);
+    RecommendNextGoalDto recommendNextGoal(UUID userId);
+
 }
