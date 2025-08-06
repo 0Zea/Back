@@ -1,13 +1,10 @@
 package org.ozea.goal.service;
 
-import org.ozea.goal.dto.response.LinkedAccountDto;
-import org.ozea.goal.dto.response.ProductRecommendResponseDto;
+import org.ozea.goal.dto.response.*;
 import org.ozea.user.domain.User;
 import org.ozea.goal.domain.Goal;
 import org.ozea.goal.dto.request.GoalCreateRequestDto;
 import org.ozea.goal.dto.request.GoalUpdateRequestDto;
-import org.ozea.goal.dto.response.GoalDetailResponseDto;
-import org.ozea.goal.dto.response.GoalListResponseDto;
 import org.ozea.goal.mapper.GoalMapper;
 import org.ozea.user.mapper.UserMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,7 +27,12 @@ public class GoalServiceImpl implements GoalService {
     private GoalMapper goalMapper;
     @Autowired
     private UserMapper userMapper;
-    
+
+    @Override
+    public List<PastGoalResponseDto> getPastGoals(UUID userId) {
+        return goalMapper.findPastGoalsByUserId(userId);
+    }
+
     @Override
     public void createGoal(UUID userId, GoalCreateRequestDto requestDto, UUID goalId) {
         LocalDate startDate = requestDto.getStart_date();
