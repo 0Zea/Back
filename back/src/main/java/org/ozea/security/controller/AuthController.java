@@ -71,22 +71,7 @@ public class AuthController {
         }
     }
     
-    // 로그아웃 API
-    @PostMapping("/logout")
-    public ResponseEntity<?> logout(HttpServletRequest request) {
-        try {
-            // 세션 무효화
-            request.getSession().invalidate();
-            
-            log.info("로그아웃 성공");
-            return ResponseEntity.ok(Map.of("message", "로그아웃되었습니다."));
-            
-        } catch (Exception e) {
-            log.error("로그아웃 실패: {}", e.getMessage());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(Map.of("error", "로그아웃 중 오류가 발생했습니다."));
-        }
-    }
+
     
     // 토큰 검증 API
     @GetMapping("/validate")

@@ -23,8 +23,8 @@ public class FssApiResult {
     private Integer nowPageNo;
     
     @JsonProperty("baseList")
-    private List<FssProductDto> products;
+    private List<FssProductDto> baseList;
     
     @JsonProperty("optionList")
-    private List<FssProductOptionDto> options;
+    private List<FssProductOptionDto> optionList;
 } 

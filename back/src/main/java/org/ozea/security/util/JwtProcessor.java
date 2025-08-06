@@ -35,6 +35,10 @@ public class JwtProcessor {
     private String audience;
     
     private SecretKey getSigningKey() {
+        log.debug("JWT Secret Key length: {}", secretKey != null ? secretKey.length() : "null");
+        if (secretKey == null || secretKey.trim().isEmpty()) {
+            throw new IllegalStateException("JWT secret key is not configured");
+        }
         return Keys.hmacShaKeyFor(secretKey.getBytes(StandardCharsets.UTF_8));
     }
 

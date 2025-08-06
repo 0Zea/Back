@@ -41,11 +41,17 @@ public class FssApiClient {
                 String url = String.format("%s/depositProductsSearch.json?auth=%s&topFinGrpNo=020000&pageNo=%d", 
                     baseUrl, apiKey, pageNo);
                 
+                log.info("API 호출 URL: {}", url);
+                log.info("API Key: {}", apiKey);
+                
                 ResponseEntity<FssApiResponse> response = restTemplate.getForEntity(url, FssApiResponse.class);
                 
+                log.info("API 응답 상태: {}", response.getStatusCode());
+                log.info("API 응답 바디: {}", response.getBody());
+                
                 if (response.getBody() != null && response.getBody().getResult() != null && 
-                    response.getBody().getResult().getProducts() != null) {
-                    List<FssProductDto> products = response.getBody().getResult().getProducts();
+                    response.getBody().getResult().getBaseList() != null) {
+                    List<FssProductDto> products = response.getBody().getResult().getBaseList();
                     allProducts.addAll(products);
                     
                     // max_page_no를 사용해서 다음 페이지가 있는지 확인
@@ -90,8 +96,8 @@ public class FssApiClient {
                 ResponseEntity<FssApiResponse> response = restTemplate.getForEntity(url, FssApiResponse.class);
                 
                 if (response.getBody() != null && response.getBody().getResult() != null && 
-                    response.getBody().getResult().getProducts() != null) {
-                    List<FssProductDto> products = response.getBody().getResult().getProducts();
+                    response.getBody().getResult().getBaseList() != null) {
+                    List<FssProductDto> products = response.getBody().getResult().getBaseList();
                     allProducts.addAll(products);
                     
                     // max_page_no를 사용해서 다음 페이지가 있는지 확인
@@ -136,8 +142,8 @@ public class FssApiClient {
                 ResponseEntity<FssApiResponse> response = restTemplate.getForEntity(url, FssApiResponse.class);
                 
                 if (response.getBody() != null && response.getBody().getResult() != null && 
-                    response.getBody().getResult().getOptions() != null) {
-                    List<FssProductOptionDto> options = response.getBody().getResult().getOptions();
+                    response.getBody().getResult().getOptionList() != null) {
+                    List<FssProductOptionDto> options = response.getBody().getResult().getOptionList();
                     allOptions.addAll(options);
                     
                     // max_page_no를 사용해서 다음 페이지가 있는지 확인
@@ -182,8 +188,8 @@ public class FssApiClient {
                 ResponseEntity<FssApiResponse> response = restTemplate.getForEntity(url, FssApiResponse.class);
                 
                 if (response.getBody() != null && response.getBody().getResult() != null && 
-                    response.getBody().getResult().getOptions() != null) {
-                    List<FssProductOptionDto> options = response.getBody().getResult().getOptions();
+                    response.getBody().getResult().getOptionList() != null) {
+                    List<FssProductOptionDto> options = response.getBody().getResult().getOptionList();
                     allOptions.addAll(options);
                     
                     // max_page_no를 사용해서 다음 페이지가 있는지 확인
