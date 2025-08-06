@@ -29,41 +29,6 @@ public class GoalServiceImpl implements GoalService {
     private UserMapper userMapper;
 
     @Override
-    public RecommendNextGoalDto recommendNextGoal(UUID userId) {
-        List<PastGoalResponseDto> pastGoals = getPastGoals(userId);
-        if (pastGoals.isEmpty()) {
-            throw new IllegalStateException("지난 목표가 없습니다.");
-        }
-
-        PastGoalResponseDto recent = pastGoals.get(0); // 가장 최근 목표
-        boolean isSuccess = recent.isSuccess();
-        long originalAmount = recent.getTargetAmount();
-        LocalDate now = LocalDate.now();
-
-        LocalDate oldStart = recent.getStartDate();
-        LocalDate oldEnd = recent.getEndDate();
-
-        long originalDays = ChronoUnit.DAYS.between(oldStart, oldEnd);
-
-        long newAmount = isSuccess
-                ? Math.round(originalAmount * 1.2)
-                : Math.round(originalAmount * 0.9);
-        long newDays = isSuccess
-                ? Math.round(originalDays * 0.9)
-                : Math.round(originalDays * 1.2);
-
-        LocalDate recommendedStart = now;
-        LocalDate recommendedEnd = now.plusDays(newDays);
-
-        String reason = isSuccess
-                ? "이전 목표를 성공적으로 달성했어요! 금액을 조금 늘리고 기간을 줄여드렸어요."
-                : "이전 목표를 달성하지 못했어요. 기간을 더 넉넉하게 잡고 금액을 줄여드렸어요.";
-
-        return new RecommendNextGoalDto(newAmount, recommendedStart, recommendedEnd, reason);
-    }
-
-
-    @Override
     public List<PastGoalResponseDto> getPastGoals(UUID userId) {
         return goalMapper.findPastGoalsByUserId(userId);
     }

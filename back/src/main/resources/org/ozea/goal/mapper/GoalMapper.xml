@@ -91,7 +91,6 @@
         SELECT *
         FROM goal
         WHERE user_id = #{userId, jdbcType=BINARY, javaType=java.util.UUID}
-          AND end_date >= NOW()
     </select>
 
     <select id="findByGoalId" resultType="org.ozea.goal.domain.Goal">

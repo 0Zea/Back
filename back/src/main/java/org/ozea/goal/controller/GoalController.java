@@ -110,12 +110,4 @@ public class GoalController {
         goalService.updateGoal(goalId , dto);
         return ResponseEntity.ok(Map.of("message", "목표가 수정되었습니다."));
     }
-
-    @GetMapping("/recommend-next")
-    @ApiOperation(value = "다음 목표 추천", notes = "이전 목표를 기반으로 추천 목표 정보를 제공합니다.")
-    public ResponseEntity<RecommendNextGoalDto> recommendNextGoal(@RequestParam UUID userId) {
-        RecommendNextGoalDto dto = goalService.recommendNextGoal(userId);
-        return ResponseEntity.ok(dto);
-    }
-
 }
