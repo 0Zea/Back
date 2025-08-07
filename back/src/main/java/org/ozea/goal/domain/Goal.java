@@ -1,10 +1,7 @@
 package org.ozea.goal.domain;
-
 import lombok.*;
-
 import java.time.LocalDate;
 import java.util.UUID;
-
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

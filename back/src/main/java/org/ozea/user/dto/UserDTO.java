@@ -1,15 +1,12 @@
 package org.ozea.user.dto;
-
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.ozea.user.domain.User;
-
 import java.time.LocalDate;
 import java.util.Date;
 import java.util.UUID;
-
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -25,8 +22,6 @@ public class UserDTO {
     private Long salary;
     private Long payAmount;
     private String role;
-
-    // VO -> DTO
     public static UserDTO of(User user){
         return UserDTO.builder()
                 .userId(user.getUserId().toString())
@@ -41,8 +36,6 @@ public class UserDTO {
                 .role(user.getRole())
                 .build();
     }
-
-    // DTO -> VO
     public User toVO(){
         return User.builder()
                 .userId(UUID.fromString(userId))

@@ -1,5 +1,4 @@
 package org.ozea.goal.mapper;
-
 import org.apache.ibatis.annotations.Param;
 import org.ozea.goal.domain.Goal;
 import org.ozea.goal.dto.request.GoalUpdateRequestDto;
@@ -7,11 +6,9 @@ import org.ozea.goal.dto.response.GoalDetailResponseDto;
 import org.ozea.goal.dto.response.LinkedAccountDto;
 import org.ozea.goal.dto.response.PastGoalResponseDto;
 import org.ozea.goal.dto.response.ProductRecommendResponseDto;
-
 import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
-
 public interface GoalMapper {
     List<Goal> findAllByUserId(UUID userId);
     Goal findByGoalId(UUID goalId);
@@ -25,7 +22,6 @@ public interface GoalMapper {
                                          @Param("startDate") LocalDate startDate,
                                          @Param("endDate") LocalDate endDate);
     int isAccountAlreadyLinked(int accountId);
-
     void linkAccountToGoal(@Param("goalId") UUID goalId, @Param("accountId") int accountId);
     List<LinkedAccountDto> findLinkedAccountsByGoalId(@Param("goalId") UUID goalId);
     void unlinkAccount(int accountId);
@@ -33,4 +29,4 @@ public interface GoalMapper {
     void unlinkAllAccountsFromGoal(UUID goalId);
     List<ProductRecommendResponseDto> findProductsWithOptions();
     List<PastGoalResponseDto> findPastGoalsByUserId(UUID userId);
-} 
+}

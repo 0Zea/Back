@@ -181,5 +181,35 @@
                              ) AS grouped
     </select>
 
+    <!-- 배치 작업용 SQL -->
+    <insert id="insertProduct" parameterType="org.ozea.product.domain.Product">
+        INSERT INTO product (
+            fin_prdt_cd, dcls_month, fin_co_no, kor_co_nm, fin_prdt_nm,
+            join_way, mtrt_int, spcl_cnd, join_deny, join_member,
+            etc_note, max_limit, dcls_strt_day, dcls_end_day, fin_co_subm_day
+        ) VALUES (
+            #{finPrdtCd}, #{dclsMonth}, #{finCoNo}, #{korCoNm}, #{finPrdtNm},
+            #{joinWay}, #{mtrtInt}, #{spclCnd}, #{joinDeny}, #{joinMember},
+            #{etcNote}, #{maxLimit}, #{dclsStrtDay}, #{dclsEndDay}, #{finCoSubmDay}
+        )
+    </insert>
+
+    <insert id="insertProductOption">
+        INSERT INTO productoption (
+            fin_prdt_cd, option_id, intr_rate_type, intr_rate_type_nm,
+            rsrv_type, rsrv_type_nm, save_trm, intr_rate, intr_rate2
+        ) VALUES (
+            #{finPrdtCd}, #{optionId}, #{intrRateType}, #{intrRateTypeNm},
+            #{rsrvType}, #{rsrvTypeNm}, #{saveTrm}, #{intrRate}, #{intrRate2}
+        )
+    </insert>
+
+    <delete id="deleteAllProducts">
+        DELETE FROM product
+    </delete>
+
+    <delete id="deleteAllProductOptions">
+        DELETE FROM productoption
+    </delete>
 
 </mapper>

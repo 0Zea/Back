@@ -1,14 +1,11 @@
 package org.ozea.user.dto;
-
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.ozea.user.domain.User;
-
 import java.time.LocalDate;
 import java.util.UUID;
-
 @Data
 @Builder
 @NoArgsConstructor
@@ -19,13 +16,11 @@ public class UserSignupDTO {
     private String password;
     private String phoneNum;
     private LocalDate birthDate;
-    private String sex;           // "female" or "male"
-    private Long salary;          // 월급
-    private Long payAmount;       // 월 지출비
-    private String mbti;          // 금융 MBTI
+    private String sex;
+    private Long salary;
+    private Long payAmount;
+    private String mbti;
     private boolean kakao;
-
-    // DTO → VO
     public User toVO() {
         return User.builder()
                 .userId(UUID.randomUUID())
@@ -38,7 +33,7 @@ public class UserSignupDTO {
                 .sex(sex)
                 .salary(salary)
                 .payAmount(payAmount)
-                .role("user") // 가입 시 기본 역할은 'user'
+                .role("user")
                 .build();
     }
 }

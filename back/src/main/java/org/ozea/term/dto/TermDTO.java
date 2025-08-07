@@ -1,11 +1,9 @@
 package org.ozea.term.dto;
-
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.ozea.term.domain.TermVO;
-
 @Data
 @AllArgsConstructor
 @NoArgsConstructor

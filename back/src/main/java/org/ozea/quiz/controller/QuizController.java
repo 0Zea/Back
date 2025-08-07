@@ -1,5 +1,4 @@
 package org.ozea.quiz.controller;
-
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.ozea.quiz.dto.QuizResponseDTO;
@@ -8,15 +7,12 @@ import org.ozea.quiz.dto.QuizSubmitResponseDTO;
 import org.ozea.quiz.service.QuizService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
 @RestController
 @RequestMapping("/api/quiz")
 @RequiredArgsConstructor
 @Log4j2
 public class QuizController {
-
     private final QuizService quizService;
-
     @GetMapping("/today")
     public ResponseEntity<QuizResponseDTO> getTodayQuiz(@RequestParam String userId) {
         try {
@@ -31,7 +27,6 @@ public class QuizController {
             return ResponseEntity.status(500).body(null);
         }
     }
-
     @PostMapping("/submit")
     public ResponseEntity<QuizSubmitResponseDTO> submitAnswer(
             @RequestParam String userId,
@@ -53,12 +48,10 @@ public class QuizController {
             return ResponseEntity.status(500).body(null);
         }
     }
-
     private void validateUserId(String userId) {
         if (userId == null || userId.trim().isEmpty()) {
             throw new IllegalArgumentException("userId는 필수입니다.");
         }
-
         if (userId.length() < 10) {
             throw new IllegalArgumentException("유효하지 않은 userId 형식입니다.");
         }

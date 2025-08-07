@@ -1,7 +1,5 @@
 package org.ozea.term.domain;
-
 import lombok.*;
-
 @Getter
 @Setter
 @NoArgsConstructor

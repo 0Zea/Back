@@ -1,13 +1,10 @@
 package org.ozea.asset.domain;
-
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
 import java.math.BigInteger;
 import java.util.UUID;
-
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
