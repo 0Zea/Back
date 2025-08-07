@@ -1,5 +1,4 @@
 package org.ozea.product.mapper;
-
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import org.ozea.product.domain.Product;
@@ -8,9 +7,7 @@ import org.ozea.product.dto.response.ProductDetailResponseDto;
 import org.ozea.product.dto.response.ProductListResponseDto;
 import org.ozea.product.dto.response.ProductOptionDto;
 import org.ozea.product.dto.response.ProductResponseDto;
-
 import java.util.List;
-
 @Mapper
 public interface ProductMapper {
     List<ProductResponseDto> findAllProductsWithOptions();
@@ -19,10 +16,8 @@ public interface ProductMapper {
     ProductDetailResponseDto getProductDetail(@Param("finPrdtCd") String finPrdtCd);
     List<ProductOptionDto> getProductOptions(@Param("finPrdtCd") String finPrdtCd);
     List<ProductListResponseDto> filterProducts(@Param("filter") ProductFilterRequestDto filterDto);
-    
-    // 배치 작업용 메서드들
     void insertProduct(Product product);
-    void insertProductOption(@Param("finPrdtCd") String finPrdtCd, 
+    void insertProductOption(@Param("finPrdtCd") String finPrdtCd,
                            @Param("optionId") Integer optionId,
                            @Param("intrRateType") String intrRateType,
                            @Param("intrRateTypeNm") String intrRateTypeNm,

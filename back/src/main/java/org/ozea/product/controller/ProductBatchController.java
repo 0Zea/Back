@@ -1,5 +1,4 @@
 package org.ozea.product.controller;
-
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.ozea.product.scheduler.ProductScheduler;
@@ -7,15 +6,12 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-
 @Slf4j
 @RestController
 @RequestMapping("/api/product/batch")
 @RequiredArgsConstructor
 public class ProductBatchController {
-
     private final ProductScheduler productScheduler;
-
     /**
      * 금융감독원 API에서 상품 정보를 가져와서 DB에 저장 (수동 실행)
      */
@@ -31,7 +27,6 @@ public class ProductBatchController {
             return ResponseEntity.internalServerError().body("상품 정보 업데이트 중 오류가 발생했습니다: " + e.getMessage());
         }
     }
-
     /**
      * 더미 상품 데이터 생성 (테스트용)
      */
@@ -47,4 +42,4 @@ public class ProductBatchController {
             return ResponseEntity.internalServerError().body("더미 상품 데이터 생성 중 오류가 발생했습니다: " + e.getMessage());
         }
     }
-} 
+}

@@ -1,7 +1,5 @@
 package org.ozea.product.dto.response;
-
 import lombok.*;
-
 @Getter
 @Setter
 @NoArgsConstructor

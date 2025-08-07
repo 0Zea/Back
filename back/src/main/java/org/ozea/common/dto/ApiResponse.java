@@ -1,14 +1,11 @@
 package org.ozea.common.dto;
-
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.ozea.common.exception.ErrorCode;
-
 import java.time.LocalDateTime;
-
 @Data
 @Builder
 @NoArgsConstructor
@@ -20,8 +17,6 @@ public class ApiResponse<T> {
     private T data;
     private String errorCode;
     private LocalDateTime timestamp;
-
-    // 성공 응답 생성
     public static <T> ApiResponse<T> success(T data) {
         return ApiResponse.<T>builder()
                 .success(true)
@@ -29,7 +24,6 @@ public class ApiResponse<T> {
                 .timestamp(LocalDateTime.now())
                 .build();
     }
-
     public static <T> ApiResponse<T> success(T data, String message) {
         return ApiResponse.<T>builder()
                 .success(true)
@@ -38,8 +32,6 @@ public class ApiResponse<T> {
                 .timestamp(LocalDateTime.now())
                 .build();
     }
-
-    // 실패 응답 생성
     public static <T> ApiResponse<T> error(String message) {
         return ApiResponse.<T>builder()
                 .success(false)
@@ -47,7 +39,6 @@ public class ApiResponse<T> {
                 .timestamp(LocalDateTime.now())
                 .build();
     }
-
     public static <T> ApiResponse<T> error(ErrorCode errorCode) {
         return ApiResponse.<T>builder()
                 .success(false)
@@ -56,7 +47,6 @@ public class ApiResponse<T> {
                 .timestamp(LocalDateTime.now())
                 .build();
     }
-
     public static <T> ApiResponse<T> error(ErrorCode errorCode, String message) {
         return ApiResponse.<T>builder()
                 .success(false)
@@ -65,4 +55,4 @@ public class ApiResponse<T> {
                 .timestamp(LocalDateTime.now())
                 .build();
     }
-} 
+}

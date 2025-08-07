@@ -1,16 +1,13 @@
 package org.ozea.point.dto;
-
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.ozea.point.domain.Point;
-
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
-
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -34,13 +31,11 @@ public class PointDTO {
                 .type(point.getType())
                 .build();
     }
-
     public static List<PointDTO> of(List<Point> pointList) {
         return pointList.stream()
                 .map(PointDTO::of)
                 .collect(Collectors.toList());
     }
-
     public Point toEntity() {
         return Point.builder()
                 .pointId(pointId)
@@ -52,4 +47,4 @@ public class PointDTO {
                 .type(type)
                 .build();
     }
-} 
+}

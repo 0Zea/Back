@@ -1,5 +1,4 @@
 package org.ozea.common.config;
-
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
@@ -8,7 +7,6 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.view.InternalResourceViewResolver;
 import org.springframework.web.servlet.view.JstlView;
-
 @EnableWebMvc
 @ComponentScan(basePackages = {
         "org.ozea.common.controller",
@@ -17,14 +15,12 @@ import org.springframework.web.servlet.view.JstlView;
         "org.ozea.goal.controller",
         "org.ozea.inquiry.controller",
         "org.ozea.notice.controller",
-        "org.ozea.inquiry.controller",
         "org.ozea.asset.controller",
         "org.ozea.product.controller",
         "org.ozea.term.controller",
         "org.ozea.quiz.controller"
 })
-public class ServletConfig  implements WebMvcConfigurer {
-
+public class ServletConfig implements WebMvcConfigurer {
     @Override
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/**")
@@ -35,13 +31,11 @@ public class ServletConfig  implements WebMvcConfigurer {
                 .allowCredentials(false)
                 .maxAge(3600);
     }
-
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
         registry
                 .addResourceHandler("/resources/**")
                 .addResourceLocations("/resources/");
-
         registry.addResourceHandler("/swagger-ui.html")
                 .addResourceLocations("classpath:/META-INF/resources/");
         registry.addResourceHandler("/webjars/**")
@@ -51,15 +45,12 @@ public class ServletConfig  implements WebMvcConfigurer {
         registry.addResourceHandler("/v2/api-docs")
                 .addResourceLocations("classpath:/META-INF/resources/");
     }
-
     @Override
     public void configureViewResolvers(ViewResolverRegistry registry) {
         InternalResourceViewResolver bean = new InternalResourceViewResolver();
-
         bean.setViewClass(JstlView.class);
         bean.setPrefix("/WEB-INF/views/");
         bean.setSuffix(".jsp");
-
         registry.viewResolver(bean);
     }
-} 
+}

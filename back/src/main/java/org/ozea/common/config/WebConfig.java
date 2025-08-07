@@ -1,5 +1,4 @@
 package org.ozea.common.config;
-
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.filter.CharacterEncodingFilter;
@@ -8,24 +7,19 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.filter.CorsFilter;
-
 import javax.servlet.Filter;
 import java.util.Arrays;
-
 @Slf4j
 @Configuration
 public class WebConfig extends AbstractAnnotationConfigDispatcherServletInitializer {
-
     @Override
     protected Class<?>[] getRootConfigClasses() {
         return new Class[] { RootConfig.class };
     }
-
     @Override
     protected Class<?>[] getServletConfigClasses() {
         return new Class[] { ServletConfig.class, SwaggerConfig.class };
     }
-
     @Override
     protected String[] getServletMappings() {
         return new String[]{
@@ -36,17 +30,13 @@ public class WebConfig extends AbstractAnnotationConfigDispatcherServletInitiali
                 "/webjars/**"
         };
     }
-
     protected Filter[] getServletFilters() {
         CharacterEncodingFilter characterEncodingFilter = new CharacterEncodingFilter();
         characterEncodingFilter.setEncoding("UTF-8");
         characterEncodingFilter.setForceEncoding(true);
-
         CorsFilter corsFilter = new CorsFilter(corsConfigurationSource());
-
         return new Filter[] {characterEncodingFilter, corsFilter};
     }
-
     private CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOriginPatterns(Arrays.asList("*"));
@@ -55,9 +45,8 @@ public class WebConfig extends AbstractAnnotationConfigDispatcherServletInitiali
         configuration.setExposedHeaders(Arrays.asList("*"));
         configuration.setAllowCredentials(false);
         configuration.setMaxAge(3600L);
-        
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
         return source;
     }
-} 
+}

@@ -1,9 +1,6 @@
 package org.ozea.product.dto.response;
-
 import lombok.*;
-
 import java.util.List;
-
 @Getter
 @Setter
 @NoArgsConstructor
@@ -25,6 +22,5 @@ public class ProductResponseDto {
     private String dclsStrtDay;
     private String dclsEndDay;
     private String finCoSubmDay;
-
     private List<ProductOptionDto> options;
 }

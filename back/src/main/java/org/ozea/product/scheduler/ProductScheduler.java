@@ -1,5 +1,4 @@
 package org.ozea.product.scheduler;
-
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.ozea.product.client.FssApiClient;
@@ -9,18 +8,14 @@ import org.ozea.product.domain.Product;
 import org.ozea.product.mapper.ProductMapper;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
-
 import java.util.ArrayList;
 import java.util.List;
-
 @Slf4j
 @Component
 @RequiredArgsConstructor
 public class ProductScheduler {
-
     private final FssApiClient fssApiClient;
     private final ProductMapper productMapper;
-
     /**
      * 매일 새벽 2시에 금융감독원 API에서 상품 정보를 가져와서 DB에 저장
      */
@@ -28,29 +23,24 @@ public class ProductScheduler {
     public void updateProductsFromFss() {
         updateProductsFromFssInternal();
     }
-
     /**
      * 수동으로 상품 정보 업데이트 (테스트용)
      */
     public void updateProductsFromFssManual() {
         updateProductsFromFssInternal();
     }
-
     /**
      * 테스트용 더미 상품 데이터 생성
      */
     public void createDummyProducts() {
         log.info("더미 상품 데이터 생성 시작");
-        
         try {
             // 기존 상품 옵션 데이터 삭제
             productMapper.deleteAllProductOptions();
             log.info("기존 상품 옵션 데이터 삭제 완료");
-            
             // 기존 상품 데이터 삭제
             productMapper.deleteAllProducts();
             log.info("기존 상품 데이터 삭제 완료");
-            
             // 더미 예금 상품 생성
             Product dummyDeposit1 = Product.builder()
                     .finPrdtCd("DEP001")
@@ -69,7 +59,6 @@ public class ProductScheduler {
                     .dclsEndDay("20241231")
                     .finCoSubmDay(null)
                     .build();
-
             Product dummyDeposit2 = Product.builder()
                     .finPrdtCd("DEP002")
                     .dclsMonth("202408")
@@ -87,7 +76,6 @@ public class ProductScheduler {
                     .dclsEndDay("20241231")
                     .finCoSubmDay(null)
                     .build();
-
             // 더미 적금 상품 생성
             Product dummySaving1 = Product.builder()
                     .finPrdtCd("SAV001")
@@ -106,7 +94,6 @@ public class ProductScheduler {
                     .dclsEndDay("20241231")
                     .finCoSubmDay(null)
                     .build();
-
             Product dummySaving2 = Product.builder()
                     .finPrdtCd("SAV002")
                     .dclsMonth("202408")
@@ -124,13 +111,11 @@ public class ProductScheduler {
                     .dclsEndDay("20241231")
                     .finCoSubmDay(null)
                     .build();
-
             // 상품 데이터 저장
             productMapper.insertProduct(dummyDeposit1);
             productMapper.insertProduct(dummyDeposit2);
             productMapper.insertProduct(dummySaving1);
             productMapper.insertProduct(dummySaving2);
-
             // 상품 옵션 데이터 저장
             productMapper.insertProductOption("DEP001", 1, "S", "단리", "자유적립식", "자유적립식", 12, 3.5, 4.0);
             productMapper.insertProductOption("DEP001", 2, "S", "단리", "정기적립식", "정기적립식", 24, 3.8, 4.2);
@@ -140,70 +125,55 @@ public class ProductScheduler {
             productMapper.insertProductOption("SAV001", 6, "S", "단리", "정기적립식", "정기적립식", 24, 4.2, 4.7);
             productMapper.insertProductOption("SAV002", 7, "S", "단리", "자유적립식", "자유적립식", 12, 4.5, 5.0);
             productMapper.insertProductOption("SAV002", 8, "S", "단리", "정기적립식", "정기적립식", 36, 4.5, 5.0);
-
             log.info("더미 상품 데이터 생성 완료: {}개 상품, {}개 옵션", 4, 8);
-                    
         } catch (Exception e) {
             log.error("더미 상품 데이터 생성 중 오류 발생", e);
             throw e;
         }
     }
-
     /**
      * 실제 상품 정보 업데이트 로직
      */
     private void updateProductsFromFssInternal() {
         log.info("금융감독원 API에서 상품 정보 업데이트 시작");
-        
         try {
             // 기존 상품 옵션 데이터 삭제 (외래키 제약조건 때문에 먼저 삭제)
             productMapper.deleteAllProductOptions();
             log.info("기존 상품 옵션 데이터 삭제 완료");
-            
             // 기존 상품 데이터 삭제
             productMapper.deleteAllProducts();
             log.info("기존 상품 데이터 삭제 완료");
-            
             // 예금 상품 가져오기
             List<FssProductDto> depositProducts = fssApiClient.getDepositProducts();
             log.info("예금 상품 {}개 가져옴", depositProducts.size());
-            
             // 적금 상품 가져오기
             List<FssProductDto> savingProducts = fssApiClient.getSavingProducts();
             log.info("적금 상품 {}개 가져옴", savingProducts.size());
-            
             // 예금 상품 옵션 가져오기
             List<FssProductOptionDto> depositOptions = fssApiClient.getDepositProductOptions();
             log.info("예금 상품 옵션 {}개 가져옴", depositOptions.size());
-            
             // 적금 상품 옵션 가져오기
             List<FssProductOptionDto> savingOptions = fssApiClient.getSavingProductOptions();
             log.info("적금 상품 옵션 {}개 가져옴", savingOptions.size());
-            
             // 모든 상품 합치기
             List<FssProductDto> allProducts = new ArrayList<>();
             allProducts.addAll(depositProducts);
             allProducts.addAll(savingProducts);
-            
             // 모든 옵션 합치기
             List<FssProductOptionDto> allOptions = new ArrayList<>();
             allOptions.addAll(depositOptions);
             allOptions.addAll(savingOptions);
-            
             log.info("총 {}개 상품, {}개 옵션 처리 시작", allProducts.size(), allOptions.size());
-            
             // 상품 데이터 저장
             for (FssProductDto fssProduct : allProducts) {
                 try {
                     Product product = convertToProduct(fssProduct);
                     productMapper.insertProduct(product);
                     log.debug("상품 저장 완료: {}", fssProduct.getFinPrdtCd());
-                    
                 } catch (Exception e) {
                     log.error("상품 저장 중 오류 발생: {} - {}", fssProduct.getFinPrdtCd(), e.getMessage());
                 }
             }
-            
             // 옵션 데이터 저장
             int optionIdCounter = 1;
             for (FssProductOptionDto fssOption : allOptions) {
@@ -220,20 +190,16 @@ public class ProductScheduler {
                         fssOption.getIntrRate2()
                     );
                     log.debug("옵션 저장 완료: {} - {}", fssOption.getFinPrdtCd(), optionIdCounter - 1);
-                    
                 } catch (Exception e) {
                     log.error("옵션 저장 중 오류 발생: {} - {} - {}", fssOption.getFinPrdtCd(), optionIdCounter - 1, e.getMessage());
                 }
             }
-            
             log.info("상품 정보 업데이트 완료: {}개 상품, {}개 옵션 저장됨", allProducts.size(), allOptions.size());
-            
         } catch (Exception e) {
             log.error("상품 정보 업데이트 중 오류 발생", e);
             throw e;
         }
     }
-
     /**
      * FssProductDto를 Product 엔티티로 변환
      */
@@ -256,4 +222,4 @@ public class ProductScheduler {
                 .finCoSubmDay(fssProduct.getFinCoSubmDay())
                 .build();
     }
-} 
+}
