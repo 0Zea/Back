@@ -62,9 +62,15 @@ public class GoalServiceImpl implements GoalService {
         return new RecommendNextGoalDto(newAmount, recommendedStart, recommendedEnd, reason);
     }
 
+    @Override
+    public void updateGoalStatuses() {
+        goalMapper.updateSuccessGoals();
+        goalMapper.updateFailedGoals();
+    }
 
     @Override
     public List<PastGoalResponseDto> getPastGoals(UUID userId) {
+        updateGoalStatuses();
         return goalMapper.findPastGoalsByUserId(userId);
     }
 

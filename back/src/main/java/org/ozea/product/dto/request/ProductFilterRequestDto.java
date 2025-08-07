@@ -16,7 +16,7 @@ public class ProductFilterRequestDto {
     private List<String> joinMembers;
 
     // 상품유형 필터 (예: "적금", "예금" 등)
-    private String productType;
+    private List<String> productType;
 
     // 기간 필터
     private Integer minSaveTrm;   // ex: 6개월 이상
@@ -27,5 +27,5 @@ public class ProductFilterRequestDto {
     private Long maxAmount;       // ex: 최대 5천만원
 
     // 우대조건 필터
-    private Boolean hasSpclCnd;   // true면 "우대조건 있는 상품만"
+    private List<String> spclCndKeywords;
 }

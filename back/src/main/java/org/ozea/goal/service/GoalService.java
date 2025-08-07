@@ -19,5 +19,6 @@ public interface GoalService {
     List<ProductRecommendResponseDto> recommendProducts(UUID goalId);
     List<PastGoalResponseDto> getPastGoals(UUID userId);
     RecommendNextGoalDto recommendNextGoal(UUID userId);
+    void updateGoalStatuses(); // 목표 상태 자동 업데이트
 
 }
