@@ -18,6 +18,27 @@
                  JOIN productoption o ON p.fin_prdt_cd = o.fin_prdt_cd
     </select>
 
+    <update id="updateSuccessGoals">
+  <![CDATA[
+        UPDATE goal
+        SET status = 'SUCCESS'
+        WHERE end_date < NOW()
+          AND save_amount >= target_amount
+          AND status != 'SUCCESS'
+        ]]>
+</update>
+
+    <update id="updateFailedGoals">
+  <![CDATA[
+        UPDATE goal
+        SET status = 'FAIL'
+        WHERE end_date < NOW()
+          AND save_amount < target_amount
+          AND status != 'FAIL'
+        ]]>
+</update>
+
+
     <select id="findPastGoalsByUserId" resultType="org.ozea.goal.dto.response.PastGoalResponseDto">
         SELECT
             g.goal_name AS title,
