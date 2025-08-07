@@ -41,6 +41,7 @@
 
     <select id="findPastGoalsByUserId" resultType="org.ozea.goal.dto.response.PastGoalResponseDto">
         SELECT
+            g.goal_id,
             g.goal_name AS title,
             g.start_date,
             g.end_date,
