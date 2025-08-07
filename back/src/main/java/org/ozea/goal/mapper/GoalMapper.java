@@ -12,6 +12,8 @@ import java.util.UUID;
 public interface GoalMapper {
     List<Goal> findAllByUserId(UUID userId);
     Goal findByGoalId(UUID goalId);
+    void updateSuccessGoals();
+    void updateFailedGoals();
     int deleteByGoalIdAndUserId(@Param("goalId") UUID goalId);
     int updateGoalByIdAndUserId(@Param("goalId") UUID goalId,
                                 @Param("dto") GoalUpdateRequestDto dto);

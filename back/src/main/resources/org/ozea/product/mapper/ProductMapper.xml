@@ -92,10 +92,14 @@
                 </foreach>
             </if>
 
-            <!-- 상품유형 필터 -->
-            <if test="filter.productType != null and filter.productType != ''">
-                AND p.fin_prdt_nm LIKE CONCAT('%', #{filter.productType}, '%')
+            <if test="filter.productType != null and filter.productType.size() > 0">
+                AND (
+                <foreach item="type" collection="filter.productType" separator=" OR ">
+                    p.fin_prdt_nm LIKE CONCAT('%', #{type}, '%')
+                </foreach>
+                )
             </if>
+
 
             <!-- 기간 필터 -->
             <if test="filter.minSaveTrm != null">
@@ -113,14 +117,16 @@
                 AND p.max_limit &lt;= #{filter.maxAmount}
             </if>
 
-            <!-- 우대조건 필터 -->
-            <if test="filter.hasSpclCnd != null and filter.hasSpclCnd == true">
-                AND p.spcl_cnd IS NOT NULL AND p.spcl_cnd != ''
+            <if test="filter.spclCndKeywords != null and filter.spclCndKeywords.size > 0">
+                <foreach item="keyword" collection="filter.spclCndKeywords" separator=" " open="AND (" close=")">
+                    p.spcl_cnd LIKE CONCAT('%', #{keyword}, '%')
+                </foreach>
             </if>
         </where>
         GROUP BY p.fin_prdt_cd, p.fin_prdt_nm, p.kor_co_nm
         ORDER BY intrRate2 DESC
     </select>
+
 
 
     <select id="getProductDetail" resultType="org.ozea.product.dto.response.ProductDetailResponseDto">
