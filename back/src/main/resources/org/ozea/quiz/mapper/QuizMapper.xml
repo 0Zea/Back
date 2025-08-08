@@ -52,4 +52,18 @@
           AND DATE(answered_at) = CURDATE()
     </select>
 
+    <!-- 사용자가 오늘 푼 퀴즈 정보를 JOIN으로 한 번에 조회 -->
+
+    <select id="getTodaySolvedQuizInfo" resultType="org.ozea.quiz.dto.SolvedQuizResponseDTO">
+        SELECT q.question,
+               q.explanation,
+               uq.is_correct as isCorrect
+        FROM UserQuiz uq
+                 INNER JOIN Quiz q ON uq.quiz_id = q.quiz_id
+        WHERE uq.user_id = UNHEX(REPLACE(#{userId}, '-', ''))
+          AND DATE(uq.answered_at) = CURDATE()
+        ORDER BY uq.answered_at DESC
+        LIMIT 1
+    </select>
+
 </mapper>

@@ -2,6 +2,8 @@ package org.ozea.quiz.mapper;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import org.ozea.quiz.dto.QuizDTO;
+import org.ozea.quiz.dto.SolvedQuizResponseDTO;
+
 import java.util.Optional;
 @Mapper
 public interface QuizMapper {
@@ -13,4 +15,6 @@ public interface QuizMapper {
             @Param("isCorrect") boolean isCorrect
     );
     boolean existsTodayQuizByUserId(@Param("userId") String userId);
+
+    SolvedQuizResponseDTO getTodaySolvedQuizInfo(@Param("userId") String userId);
 }
