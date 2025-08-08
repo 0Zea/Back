@@ -2,10 +2,8 @@ package org.ozea.quiz.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.ozea.point.service.PointService;
-import org.ozea.quiz.dto.QuizDTO;
-import org.ozea.quiz.dto.QuizResponseDTO;
-import org.ozea.quiz.dto.QuizSubmitRequestDTO;
-import org.ozea.quiz.dto.QuizSubmitResponseDTO;
+import org.ozea.quiz.dto.*;
+import org.ozea.quiz.exception.AlreadySolvedException;
 import org.ozea.quiz.mapper.QuizMapper;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,7 +17,12 @@ public class QuizServiceImpl implements QuizService {
     @Override
     public QuizResponseDTO getTodayQuiz(String userId) {
         if (quizMapper.existsTodayQuizByUserId(userId)) {
-            throw new IllegalStateException("오늘은 이미 퀴즈를 풀었습니다. 내일 다시 도전해보세요!");
+
+            SolvedQuizResponseDTO solvedQuiz = quizMapper.getTodaySolvedQuizInfo(userId);
+            if (solvedQuiz == null) {
+                throw new IllegalStateException("오늘 푼 퀴즈 정보를 찾을 수 없습니다.");
+            }
+            throw new AlreadySolvedException(solvedQuiz);
         }
         QuizDTO quiz = quizMapper.findRandomQuiz();
         if (quiz == null) {

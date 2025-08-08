@@ -11,6 +11,7 @@ public class QuizVO {
     private int quiz_id;
     private String question;
     private String answer;
+    private String explanation;
     private String quiz_type;
     public boolean isCorrectAnswer(String userAnswer) {
         if (userAnswer == null || userAnswer.trim().isEmpty()) {

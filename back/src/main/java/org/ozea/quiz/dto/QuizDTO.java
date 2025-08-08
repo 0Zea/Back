@@ -12,12 +12,14 @@ public class QuizDTO {
     private int quiz_id;
     private String question;
     private String answer;
+    private String explanation;
     private String quiz_type;
     public static QuizDTO of(QuizVO quizVO) {
         return QuizDTO.builder()
                 .quiz_id(quizVO.getQuiz_id())
                 .question(quizVO.getQuestion())
                 .answer(quizVO.getAnswer())
+                .explanation(quizVO.getExplanation())
                 .quiz_type(quizVO.getQuiz_type())
                 .build();
     }
@@ -26,6 +28,7 @@ public class QuizDTO {
                 .quiz_id(this.quiz_id)
                 .question(this.question)
                 .answer(this.answer)
+                .explanation(this.explanation)
                 .quiz_type(this.quiz_type)
                 .build();
     }

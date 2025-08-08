@@ -4,6 +4,7 @@ import lombok.extern.log4j.Log4j2;
 import org.ozea.quiz.dto.QuizResponseDTO;
 import org.ozea.quiz.dto.QuizSubmitRequestDTO;
 import org.ozea.quiz.dto.QuizSubmitResponseDTO;
+import org.ozea.quiz.exception.AlreadySolvedException;
 import org.ozea.quiz.service.QuizService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -14,11 +15,15 @@ import org.springframework.web.bind.annotation.*;
 public class QuizController {
     private final QuizService quizService;
     @GetMapping("/today")
-    public ResponseEntity<QuizResponseDTO> getTodayQuiz(@RequestParam String userId) {
+    public ResponseEntity<Object> getTodayQuiz(@RequestParam String userId) {
         try {
             validateUserId(userId);
-            QuizResponseDTO response = quizService.getTodayQuiz(userId);
+            Object response = quizService.getTodayQuiz(userId);
             return ResponseEntity.ok(response);
+        } catch (AlreadySolvedException e) {  // 추가
+            // 이미 푼 퀴즈 정보를 409와 함께 반환
+            log.info("User {} already solved today's quiz", userId);
+            return ResponseEntity.status(409).body(e.getSolvedQuizData());
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(400).body(null);
         } catch (IllegalStateException e) {
