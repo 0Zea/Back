@@ -1,5 +1,4 @@
 package org.ozea.term.controller;
-
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.ozea.term.dto.TermDTO;
@@ -9,7 +8,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
-
 @RestController
 @RequestMapping("/api/term")
 @RequiredArgsConstructor

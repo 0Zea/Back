@@ -10,9 +10,38 @@
         </layout>
     </appender>
 
+    <appender name="file" class="org.apache.log4j.RollingFileAppender">
+        <param name="File" value="logs/application.log" />
+        <param name="MaxFileSize" value="10MB" />
+        <param name="MaxBackupIndex" value="10" />
+        <param name="Append" value="true" />
+        <layout class="org.apache.log4j.PatternLayout">
+            <param name="ConversionPattern" value="%d{yyyy-MM-dd HH:mm:ss} %-5p: %c - %m%n" />
+        </layout>
+    </appender>
+
     <!-- Application Loggers -->
     <logger name="org.ozea">
         <level value="info" />
+        <appender-ref ref="file" />
+    </logger>
+
+    <!-- Security Loggers -->
+    <logger name="org.ozea.security">
+        <level value="info" />
+        <appender-ref ref="file" />
+    </logger>
+
+    <!-- Controller Loggers -->
+    <logger name="org.ozea..controller">
+        <level value="info" />
+        <appender-ref ref="file" />
+    </logger>
+
+    <!-- Service Loggers -->
+    <logger name="org.ozea..service">
+        <level value="info" />
+        <appender-ref ref="file" />
     </logger>
 
     <!-- 3rdparty Loggers -->
@@ -31,7 +60,6 @@
         <level value="info" />
     </logger>
 
-
     <logger name="jdbc.audit">
         <level value="warn" />
     </logger>
@@ -48,11 +76,11 @@
         <level value="info" />
     </logger>
 
-
     <!-- Root Logger -->
     <root>
         <priority value="info" />
         <appender-ref ref="console" />
+        <appender-ref ref="file" />
     </root>
 
 </log4j:configuration>

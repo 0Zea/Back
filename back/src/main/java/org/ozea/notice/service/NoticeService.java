@@ -1,10 +1,8 @@
 package org.ozea.notice.service;
-
 import org.ozea.common.pagenation.Page;
 import org.ozea.common.pagenation.PageRequest;
 import org.ozea.notice.dto.NoticeDTO;
 import java.util.UUID;
-
 public interface NoticeService {
     NoticeDTO get(UUID noticeId);
     NoticeDTO create(NoticeDTO notice);

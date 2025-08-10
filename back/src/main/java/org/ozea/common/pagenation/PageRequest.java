@@ -1,9 +1,7 @@
 package org.ozea.common.pagenation;
-
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Data;
-
 @Data
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class PageRequest {

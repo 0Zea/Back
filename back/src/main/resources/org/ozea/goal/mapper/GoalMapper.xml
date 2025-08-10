@@ -18,6 +18,41 @@
                  JOIN productoption o ON p.fin_prdt_cd = o.fin_prdt_cd
     </select>
 
+    <update id="updateSuccessGoals">
+  <![CDATA[
+        UPDATE goal
+        SET status = 'SUCCESS'
+        WHERE end_date < NOW()
+          AND save_amount >= target_amount
+          AND status != 'SUCCESS'
+        ]]>
+</update>
+
+    <update id="updateFailedGoals">
+  <![CDATA[
+        UPDATE goal
+        SET status = 'FAIL'
+        WHERE end_date < NOW()
+          AND save_amount < target_amount
+          AND status != 'FAIL'
+        ]]>
+</update>
+
+    <select id="findPastGoalsByUserId" resultType="org.ozea.goal.dto.response.PastGoalResponseDto">
+        SELECT
+            g.goal_id,
+            g.goal_name AS title,
+            g.start_date,
+            g.end_date,
+            g.target_amount,
+            g.status = 'SUCCESS' AS success
+        FROM goal g
+        WHERE g.user_id = #{userId, jdbcType=BINARY, javaType=java.util.UUID}
+     <![CDATA[
+          AND g.end_date < CURDATE()
+        ]]>
+        ORDER BY g.end_date DESC, g.start_date DESC, g.goal_id DESC
+    </select>
 
     <select id="findAccountsByUserId" resultType="org.ozea.goal.dto.response.LinkedAccountDto">
         SELECT
@@ -75,12 +110,29 @@
         WHERE goal_id = #{goalId, jdbcType=BINARY, javaType=java.util.UUID}
     </delete>
 
-    <select id="findAllByUserId" resultType="org.ozea.goal.domain.Goal">
-        SELECT *
-        FROM goal
-        WHERE user_id = #{userId, jdbcType=BINARY, javaType=java.util.UUID}
-    </select>
 
+    <!-- 기존 쿼리 교체 -->
+    <select id="findAllByUserId" resultType="org.ozea.goal.domain.Goal">
+        SELECT
+        g.goal_id,
+        g.user_id,
+        g.goal_name,
+        g.target_amount,
+        COALESCE(SUM(b.balance), 0) AS save_amount,
+        g.start_date,
+        g.end_date,
+        g.status,
+        g.deposit_date
+        FROM goal g
+        LEFT JOIN BankAccount b
+        ON b.goal_id = g.goal_id
+        WHERE g.user_id = #{userId, jdbcType=BINARY, javaType=java.util.UUID}
+        AND g.end_date >= CURDATE()
+        GROUP BY
+        g.goal_id, g.user_id, g.goal_name, g.target_amount,
+        g.start_date, g.end_date, g.status, g.deposit_date
+        ORDER BY g.start_date DESC
+    </select>
     <select id="findByGoalId" resultType="org.ozea.goal.domain.Goal">
         SELECT *
         FROM goal

@@ -1,30 +1,22 @@
 package org.ozea.user.service;
-
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-
 import javax.mail.*;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
 import java.util.Properties;
-
 @Service
 @Log4j2
 public class EmailService {
-
     @Value("${spring.mail.username}")
     private String username;
-
     @Value("${spring.mail.password}")
     private String password;
-
     @Value("${spring.mail.host}")
     private String host;
-
     @Value("${spring.mail.port}")
     private int port;
-
     public boolean sendVerificationEmail(String toEmail, String verificationCode) {
         try {
             Properties props = new Properties();
@@ -32,29 +24,23 @@ public class EmailService {
             props.put("mail.smtp.starttls.enable", "true");
             props.put("mail.smtp.host", host);
             props.put("mail.smtp.port", port);
-
             Session session = Session.getInstance(props, new Authenticator() {
                 @Override
                 protected PasswordAuthentication getPasswordAuthentication() {
                     return new PasswordAuthentication(username, password);
                 }
             });
-
             Message message = new MimeMessage(session);
             message.setFrom(new InternetAddress(username));
             message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(toEmail));
             message.setSubject("[콕재] 비밀번호 찾기 인증번호");
             message.setContent(createVerificationEmailContent(verificationCode), "text/html; charset=UTF-8");
-
             Transport.send(message);
-    
             return true;
-
         } catch (MessagingException e) {
             return true;
         }
     }
-    
     public boolean sendSignupVerificationEmail(String toEmail, String verificationCode) {
         try {
             Properties props = new Properties();
@@ -62,29 +48,23 @@ public class EmailService {
             props.put("mail.smtp.starttls.enable", "true");
             props.put("mail.smtp.host", host);
             props.put("mail.smtp.port", port);
-
             Session session = Session.getInstance(props, new Authenticator() {
                 @Override
                 protected PasswordAuthentication getPasswordAuthentication() {
                     return new PasswordAuthentication(username, password);
                 }
             });
-
             Message message = new MimeMessage(session);
             message.setFrom(new InternetAddress(username));
             message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(toEmail));
             message.setSubject("[콕재] 회원가입 인증번호");
             message.setContent(createSignupVerificationEmailContent(verificationCode), "text/html; charset=UTF-8");
-
             Transport.send(message);
-    
             return true;
-
         } catch (MessagingException e) {
             return true;
         }
     }
-
     private String createVerificationEmailContent(String verificationCode) {
         return """
             <!DOCTYPE html>
@@ -119,11 +99,9 @@ public class EmailService {
                     <div class="content">
                         <p>안녕하세요, 콕재입니다.</p>
                         <p>비밀번호 찾기를 요청하셨습니다. 아래 인증번호를 입력해주세요.</p>
-                        
                         <div class="verification-code">
                             %s
                         </div>
-                        
                         <p><strong>주의사항:</strong></p>
                         <ul>
                             <li>인증번호는 5분 후 만료됩니다.</li>
@@ -140,7 +118,6 @@ public class EmailService {
             </html>
             """.formatted(verificationCode);
     }
-
     private String createSignupVerificationEmailContent(String verificationCode) {
         return """
             <!DOCTYPE html>
@@ -175,11 +152,9 @@ public class EmailService {
                     <div class="content">
                         <p>안녕하세요, 콕재입니다.</p>
                         <p>회원가입을 요청하셨습니다. 아래 인증번호를 입력해주세요.</p>
-                        
                         <div class="verification-code">
                             %s
                         </div>
-                        
                         <p><strong>주의사항:</strong></p>
                         <ul>
                             <li>인증번호는 5분 후 만료됩니다.</li>
@@ -196,7 +171,6 @@ public class EmailService {
             </html>
             """.formatted(verificationCode);
     }
-
     public boolean sendInquiryAnsweredEmail(String toEmail, String title, String answer) {
         try {
             Properties props = new Properties();
@@ -204,29 +178,23 @@ public class EmailService {
             props.put("mail.smtp.starttls.enable", "true");
             props.put("mail.smtp.host", host);
             props.put("mail.smtp.port", port);
-
             Session session = Session.getInstance(props, new Authenticator() {
                 @Override
                 protected PasswordAuthentication getPasswordAuthentication() {
                     return new PasswordAuthentication(username, password);
                 }
             });
-
             Message message = new MimeMessage(session);
             message.setFrom(new InternetAddress(username));
             message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(toEmail));
             message.setSubject("[콕재] 문의사항에 대한 답변이 도착했습니다.");
             message.setContent(createInquiryAnsweredEmailContent(title, answer), "text/html; charset=UTF-8");
-
             Transport.send(message);
-    
             return true;
-
         } catch (MessagingException e) {
             return true;
         }
     }
-
     private String createInquiryAnsweredEmailContent(String title, String answer) {
         return """
             <!DOCTYPE html>
@@ -258,15 +226,12 @@ public class EmailService {
                     <div class="content">
                         <p>안녕하세요, 콕재입니다.</p>
                         <p>문의하신 내용에 대한 답변이 도착했습니다.</p>
-                        
                         <h3>문의 제목: %s</h3>
-                        
                         <div class="answer">
                             <p><strong>답변 내용:</strong></p>
                             <p>%s</p>
                             <br>
                         </div>
-                        
                         <p>추가적인 문의사항이 있으시면 언제든지 다시 문의해주세요.</p>
                     </div>
                     <div class="footer">
@@ -278,4 +243,4 @@ public class EmailService {
             </html>
             """.formatted(title, answer);
     }
-} 
+}

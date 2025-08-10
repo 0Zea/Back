@@ -86,6 +86,13 @@ dependencies {
 
   testImplementation("org.junit.jupiter:junit-jupiter-api:${junitVersion}")
   testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:${junitVersion}")
+  
+  // Mockito for mocking
+  testImplementation 'org.mockito:mockito-core:5.3.1'
+  testImplementation 'org.mockito:mockito-junit-jupiter:5.3.1'
+  
+  // AssertJ for fluent assertions
+  testImplementation 'org.assertj:assertj-core:3.24.2'
 
   //보안
   implementation "org.springframework.security:spring-security-web:${springSecurityVersion}"
@@ -103,6 +110,17 @@ dependencies {
 
   // LocalDate를 JSON으로 변환할 수 있도록 jackson-datatype-jsr310 라이브러리를 등록
   implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
+
+  // Redis Cache
+  implementation 'org.springframework.data:spring-data-redis:2.7.18'
+  implementation 'redis.clients:jedis:4.3.1'
+
+  // AOP (AspectJ)
+  implementation 'org.aspectj:aspectjrt:1.9.20'
+  implementation 'org.aspectj:aspectjweaver:1.9.20'
+
+  // Spring Legacy용 모니터링 (Micrometer 대신)
+  implementation 'org.springframework:spring-aop:5.3.37'
 
   // JavaMail
   implementation 'org.springframework:spring-context-support:5.3.37'

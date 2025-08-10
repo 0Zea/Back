@@ -1,7 +1,5 @@
 package org.ozea.product.domain;
-
 import lombok.*;
-
 @Getter
 @Setter
 @Builder

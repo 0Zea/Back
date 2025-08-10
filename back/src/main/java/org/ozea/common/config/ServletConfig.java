@@ -26,8 +26,7 @@ import org.springframework.web.servlet.view.JstlView;
         "org.ozea.api.taxkakaoouth.controller",
         "org.ozea.taxinfo.controller"
 })
-public class ServletConfig  implements WebMvcConfigurer {
-
+public class ServletConfig implements WebMvcConfigurer {
     @Override
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/**")

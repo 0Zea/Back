@@ -1,5 +1,4 @@
 package org.ozea.inquiry.mapper;
-
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import org.ozea.common.pagenation.PageRequest;

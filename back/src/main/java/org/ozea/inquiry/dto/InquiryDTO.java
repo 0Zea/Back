@@ -1,5 +1,4 @@
 package org.ozea.inquiry.dto;
-
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -8,7 +7,6 @@ import org.ozea.inquiry.domain.InquiryVO;
 import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.UUID;
-
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
@@ -23,7 +21,6 @@ public class InquiryDTO {
     private Date createdAt;
     private String answeredContent;
     private Integer viewCount;
-
     public static InquiryDTO of(InquiryVO vo) {
         return vo == null ? null : InquiryDTO.builder()
                 .infoId(vo.getInfoId().toString())
@@ -37,7 +34,6 @@ public class InquiryDTO {
                 .viewCount(vo.getViewCount())
                 .build();
     }
-
     public InquiryVO toVo() {
         return InquiryVO.builder()
                 .infoId(UUID.fromString(infoId))

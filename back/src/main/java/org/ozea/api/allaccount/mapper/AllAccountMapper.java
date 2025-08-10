@@ -6,4 +6,5 @@ import org.ozea.api.allaccount.dto.request.AllAccountReqDto;
 @Mapper
 public interface AllAccountMapper {
     AllAccountReqDto getAccountInfo();
+    AllAccountReqDto getYeomsky95AccountInfo();
 }
