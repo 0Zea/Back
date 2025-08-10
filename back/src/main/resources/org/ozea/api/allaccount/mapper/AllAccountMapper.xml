@@ -3,13 +3,13 @@
         PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <!-- src/main/resources/mappers/AllAccountMapper.xml -->
-<mapper namespace="org.ozea.api.account.mapper.AllAccountMapper">
+<mapper namespace="org.ozea.api.allaccount.mapper.AllAccountMapper">
 
     <select id="getAccountInfo"
             parameterType="java.lang.String"
-            resultType="org.ozea.api.account.dto.response.AllAccountResDto">
+            resultType="org.ozea.api.allaccount.dto.response.AllAccountResDto">
         SELECT *
-        FROM account
+        FROM useraccount
         WHERE account_id = #{accountId}
     </select>
 
