@@ -1,43 +1,68 @@
 package org.ozea.product.service;
+
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.ozea.product.dto.request.ProductFilterRequestDto;
 import org.ozea.product.dto.response.*;
 import org.ozea.product.mapper.ProductMapper;
 import org.ozea.user.domain.User;
 import org.ozea.user.mapper.UserMapper;
 import org.springframework.stereotype.Service;
+
 import java.util.Comparator;
 import java.util.List;
 import java.util.UUID;
-import java.util.stream.Collectors;
+
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class ProductServiceImpl implements ProductService {
     private final ProductMapper productMapper;
     private final UserMapper userMapper;
+    private final org.ozea.ai.service.OpenAISummarizeService summarizeService;
+
     @Override
     public List<ProductListResponseDto> getProductList(int page, int size) {
         int offset = (page - 1) * size;
         return productMapper.getProducts(offset, size);
     }
+
     @Override
     public ProductDetailResponseDto getProductDetail(String finPrdtCd) {
         ProductDetailResponseDto detail = productMapper.getProductDetail(finPrdtCd);
+        log.info("DEBUG summary for {} -> {}", finPrdtCd, detail != null ? detail.getSummary() : null);
         if (detail == null) {
             throw new IllegalArgumentException("해당 상품이 존재하지 않습니다: " + finPrdtCd);
         }
+
         List<ProductOptionDto> options = productMapper.getProductOptions(finPrdtCd);
         detail.setOptions(options);
+
+        if (detail.getSummary() == null || detail.getSummary().trim().isEmpty()) {
+            String material = buildSummarizableText(detail);
+            try {
+                String aiSummary = summarizeService.summarizeTo3Lines(material);
+                productMapper.updateProductSummary(finPrdtCd, aiSummary);
+                detail.setSummary(aiSummary);
+                log.info("✅ AI summary generated and saved for {}", finPrdtCd);
+            } catch (Exception ex) {
+                log.warn("⚠️ Failed to generate AI summary for {}: {}", finPrdtCd, ex.getMessage());
+            }
+        }
+
         return detail;
     }
+
     @Override
     public int getTotalProductCount() {
         return productMapper.countAllProducts();
     }
+
     @Override
     public List<ProductListResponseDto> filterProducts(ProductFilterRequestDto filterDto) {
         return productMapper.filterProducts(filterDto);
     }
+
     @Override
     public List<MbtiRecommendResponseDto> getRecommendedProductsByMbti(UUID userId) {
         User user = userMapper.findById(userId);
@@ -90,33 +115,42 @@ public class ProductServiceImpl implements ProductService {
             }
         };
     }
+
     private boolean isFreeSaving(ProductResponseDto p) {
         return p.getOptions().stream().anyMatch(o -> "자유적립식".equals(o.getRsrvTypeNm()));
     }
+
     private Comparator<ProductResponseDto> rate2Desc() {
         return Comparator.comparingDouble((ProductResponseDto p) ->
                 p.getOptions().stream().mapToDouble(ProductOptionDto::getIntrRate2).max().orElse(0.0)).reversed();
     }
+
     private Comparator<ProductResponseDto> avgIntrRateDesc() {
         return Comparator.comparingDouble((ProductResponseDto p) ->
                 p.getOptions().stream().mapToDouble(ProductOptionDto::getIntrRate).average().orElse(0.0)).reversed();
     }
+
     private boolean hasShortTerm(ProductResponseDto p, int term) {
         return p.getOptions().stream().anyMatch(o -> o.getSaveTrm() <= term);
     }
+
     private boolean hasLongTerm(ProductResponseDto p, int term) {
         return p.getOptions().stream().anyMatch(o -> o.getSaveTrm() >= term);
     }
+
     private boolean isHighRate(ProductResponseDto p) {
         return p.getOptions().stream().anyMatch(o -> o.getIntrRate2() >= 2.5);
     }
+
     private boolean isBigBank(String name) {
         return List.of("국민은행", "신한은행", "하나은행", "우리은행", "농협은행").contains(name);
     }
+
     private Comparator<ProductResponseDto> rateDesc() {
         return Comparator.comparingDouble((ProductResponseDto p) ->
                 p.getOptions().stream().mapToDouble(ProductOptionDto::getIntrRate2).max().orElse(0.0)).reversed();
     }
+
     private MbtiRecommendResponseDto toDto(ProductResponseDto p, String reason) {
         ProductOptionDto bestOption = p.getOptions().stream()
                 .max(Comparator.comparingDouble(ProductOptionDto::getIntrRate2))
@@ -129,5 +163,46 @@ public class ProductServiceImpl implements ProductService {
                 .reason(reason)
                 .finPrdtCd(p.getFinPrdtCd())
                 .build();
+    }
+
+    @Override
+    public String refreshAndSaveSummary(String finPrdtCd) {
+        ProductDetailResponseDto detail = productMapper.getProductDetail(finPrdtCd);
+        if (detail == null) throw new IllegalArgumentException("해당 상품이 존재하지 않습니다: " + finPrdtCd);
+        List<ProductOptionDto> options = productMapper.getProductOptions(finPrdtCd);
+        detail.setOptions(options);
+        String material = buildSummarizableText(detail);
+        String aiSummary = summarizeService.summarizeTo3Lines(material);
+        productMapper.updateProductSummary(finPrdtCd, aiSummary);
+        return aiSummary;
+    }
+
+    private String buildSummarizableText(ProductDetailResponseDto d) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("상품명: ").append(d.getProductName()).append("\n");
+        sb.append("은행: ").append(d.getBankName()).append("\n");
+        if (d.getJoinWay() != null) sb.append("가입방법: ").append(d.getJoinWay()).append("\n");
+        if (d.getJoinMember() != null) sb.append("가입대상: ").append(d.getJoinMember()).append("\n");
+        if (d.getSpclCnd() != null) sb.append("우대조건: ").append(d.getSpclCnd()).append("\n");
+        if (d.getMtrtInt() != null) sb.append("만기후이자: ").append(d.getMtrtInt()).append("\n");
+        if (d.getEtcNote() != null) sb.append("비고: ").append(d.getEtcNote()).append("\n");
+        if (d.getOptions() != null && !d.getOptions().isEmpty()) {
+            double maxRate = d.getOptions().stream()
+                    .mapToDouble(o -> o.getIntrRate2() != null ? o.getIntrRate2() : 0.0)
+                    .max().orElse(0.0);
+            Integer minTrm = d.getOptions().stream()
+                    .map(ProductOptionDto::getSaveTrm).filter(java.util.Objects::nonNull)
+                    .min(Integer::compareTo).orElse(null);
+            Integer maxTrm = d.getOptions().stream()
+                    .map(ProductOptionDto::getSaveTrm).filter(java.util.Objects::nonNull)
+                    .max(Integer::compareTo).orElse(null);
+            sb.append("최대우대금리: ").append(String.format(java.util.Locale.KOREA, "%.2f%%", maxRate)).append("\n");
+            if (minTrm != null && maxTrm != null) {
+                sb.append("적용기간(개월): ").append(minTrm).append("~").append(maxTrm).append("\n");
+            }
+            boolean hasFree = d.getOptions().stream().anyMatch(o -> "자유적립식".equals(o.getRsrvTypeNm()));
+            if (hasFree) sb.append("자유적립식 가능").append("\n");
+        }
+        return sb.toString();
     }
 }

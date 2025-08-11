@@ -18,6 +18,7 @@ src/main/webapp/resources/assets/
 
 ### Spring Properties ###
 application.properties
+redis.properties
 
 ### Eclipse ###
 .apt_generated

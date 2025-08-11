@@ -8,6 +8,10 @@ import javax.servlet.http.HttpSession;
 import javax.servlet.http.HttpServletRequest;
 import org.ozea.user.mapper.UserMapper;
 import org.ozea.user.domain.User;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import java.util.Map;
+
 @Controller
 @Slf4j
 public class HomeController {
@@ -51,5 +55,11 @@ public class HomeController {
     @GetMapping("/main")
     public String mainPage() {
         return "main";
+    }
+
+    @GetMapping("/__ping/date")
+    @ResponseBody
+    public Map<String, Object> ping() {
+        return Map.of("today", java.time.LocalDate.of(2025, 8, 9));
     }
 }

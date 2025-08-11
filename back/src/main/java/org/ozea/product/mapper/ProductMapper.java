@@ -28,4 +28,5 @@ public interface ProductMapper {
                            @Param("intrRate2") Double intrRate2);
     void deleteAllProducts();
     void deleteAllProductOptions();
+    void updateProductSummary(@Param("finPrdtCd") String finPrdtCd,@Param("summary") String summary);
 }

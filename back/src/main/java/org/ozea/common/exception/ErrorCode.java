@@ -28,7 +28,9 @@ public enum ErrorCode {
     // 시스템 에러
     INTERNAL_SERVER_ERROR("S001", "내부 서버 오류가 발생했습니다."),
     EXTERNAL_API_ERROR("S002", "외부 API 호출 중 오류가 발생했습니다."),
+    INVALID_INPUT("C001", "입력값이 유효하지 않습니다."),
     DATABASE_ERROR("S003", "데이터베이스 오류가 발생했습니다.");
     private final String code;
     private final String message;
+
 }
