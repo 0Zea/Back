@@ -6,11 +6,11 @@
 
     <select id="getUserAssetSummary" parameterType="java.util.UUID"
             resultType="org.ozea.asset.domain.AssetVO"
-            >
+    >
         SELECT u.name,
                COALESCE(user_assets.totalAssets, 0)             as totalAssets,
                (u.salary - u.pay_amount)                        as monthlyNetIncome,
-               COALESCE(goal_rates.averageGoalRate, 0.0) as averageGoalRate
+               ROUND(COALESCE(goal_rates.averageGoalRate, 0.0), 2) as averageGoalRate
         FROM USER u
                  LEFT JOIN (SELECT user_id,
                                    SUM(balance) as totalAssets
@@ -20,7 +20,9 @@
                  LEFT JOIN (SELECT g.user_id,
                                    AVG(
                                            IF(g.target_amount = 0, 0.0,
-                                              (COALESCE(goal_balances.goal_balance, 0) / g.target_amount) * 100)
+                                              LEAST(100.0,
+                                                    (COALESCE(goal_balances.goal_balance, 0) / g.target_amount) * 100)
+                                           )
                                    ) as averageGoalRate
                             FROM Goal g
                                      LEFT JOIN (SELECT goal_id,
@@ -28,6 +30,7 @@
                                                 FROM BankAccount
                                                 GROUP BY goal_id) goal_balances ON g.goal_id = goal_balances.goal_id
                             WHERE g.user_id = #{userId}
+                              AND g.status = '진행'
                             GROUP BY g.user_id) goal_rates ON u.user_id = goal_rates.user_id
         WHERE u.user_id = #{userId}
     </select>

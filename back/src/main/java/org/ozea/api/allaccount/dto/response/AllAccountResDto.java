@@ -1,6 +1,8 @@
-package org.ozea.api.account.dto.response;
+package org.ozea.api.allaccount.dto.response;
+
 import lombok.Getter;
 import lombok.Setter;
+
 @Getter
 @Setter
 public class AllAccountResDto {
