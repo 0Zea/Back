@@ -29902,3 +29902,33 @@ u.user_id = '<byte[]>'
 2025-08-12 07:08:24.133 [http-nio-8080-exec-351] INFO  jdbc.audit - 2. PreparedStatement.isClosed() returned false
 2025-08-12 07:08:24.133 [http-nio-8080-exec-351] INFO  jdbc.audit - 2. PreparedStatement.close() returned 
 2025-08-12 07:08:24.133 [http-nio-8080-exec-351] INFO  jdbc.audit - 2. Connection.clearWarnings() returned 
+2025-08-12 07:24:54.639 [HikariPool-50 connection closer] INFO  jdbc.connection - 1. Connection closed
+2025-08-12 07:24:54.641 [HikariPool-50 connection closer] INFO  jdbc.audit - 1. Connection.close() returned 
+2025-08-12 07:24:54.665 [HikariPool-50 connection adder] INFO  jdbc.connection - 6. Connection opened
+2025-08-12 07:24:54.666 [HikariPool-50 connection adder] INFO  jdbc.audit - 6. Connection.new Connection returned 
+2025-08-12 07:24:54.666 [HikariPool-50 connection adder] INFO  jdbc.audit - 6. Connection.setReadOnly(false) returned 
+2025-08-12 07:24:54.666 [HikariPool-50 connection adder] INFO  jdbc.audit - 6. Connection.setAutoCommit(true) returned 
+2025-08-12 07:24:56.662 [HikariPool-50 connection closer] INFO  jdbc.connection - 3. Connection closed
+2025-08-12 07:24:56.662 [HikariPool-50 connection closer] INFO  jdbc.audit - 3. Connection.close() returned 
+2025-08-12 07:24:56.676 [HikariPool-50 connection adder] INFO  jdbc.connection - 7. Connection opened
+2025-08-12 07:24:56.676 [HikariPool-50 connection adder] INFO  jdbc.audit - 7. Connection.new Connection returned 
+2025-08-12 07:24:56.676 [HikariPool-50 connection adder] INFO  jdbc.audit - 7. Connection.setReadOnly(false) returned 
+2025-08-12 07:24:56.677 [HikariPool-50 connection adder] INFO  jdbc.audit - 7. Connection.setAutoCommit(true) returned 
+2025-08-12 07:25:11.736 [HikariPool-50 connection closer] INFO  jdbc.connection - 4. Connection closed
+2025-08-12 07:25:11.737 [HikariPool-50 connection closer] INFO  jdbc.audit - 4. Connection.close() returned 
+2025-08-12 07:25:11.751 [HikariPool-50 connection adder] INFO  jdbc.connection - 8. Connection opened
+2025-08-12 07:25:11.751 [HikariPool-50 connection adder] INFO  jdbc.audit - 8. Connection.new Connection returned 
+2025-08-12 07:25:11.751 [HikariPool-50 connection adder] INFO  jdbc.audit - 8. Connection.setReadOnly(false) returned 
+2025-08-12 07:25:11.751 [HikariPool-50 connection adder] INFO  jdbc.audit - 8. Connection.setAutoCommit(true) returned 
+2025-08-12 07:25:18.922 [HikariPool-50 connection closer] INFO  jdbc.connection - 2. Connection closed
+2025-08-12 07:25:18.922 [HikariPool-50 connection closer] INFO  jdbc.audit - 2. Connection.close() returned 
+2025-08-12 07:25:18.936 [HikariPool-50 connection adder] INFO  jdbc.connection - 9. Connection opened
+2025-08-12 07:25:18.936 [HikariPool-50 connection adder] INFO  jdbc.audit - 9. Connection.new Connection returned 
+2025-08-12 07:25:18.936 [HikariPool-50 connection adder] INFO  jdbc.audit - 9. Connection.setReadOnly(false) returned 
+2025-08-12 07:25:18.936 [HikariPool-50 connection adder] INFO  jdbc.audit - 9. Connection.setAutoCommit(true) returned 
+2025-08-12 07:25:23.437 [HikariPool-50 connection closer] INFO  jdbc.connection - 5. Connection closed
+2025-08-12 07:25:23.439 [HikariPool-50 connection closer] INFO  jdbc.audit - 5. Connection.close() returned 
+2025-08-12 07:25:23.451 [HikariPool-50 connection adder] INFO  jdbc.connection - 10. Connection opened
+2025-08-12 07:25:23.451 [HikariPool-50 connection adder] INFO  jdbc.audit - 10. Connection.new Connection returned 
+2025-08-12 07:25:23.451 [HikariPool-50 connection adder] INFO  jdbc.audit - 10. Connection.setReadOnly(false) returned 
+2025-08-12 07:25:23.452 [HikariPool-50 connection adder] INFO  jdbc.audit - 10. Connection.setAutoCommit(true) returned 
