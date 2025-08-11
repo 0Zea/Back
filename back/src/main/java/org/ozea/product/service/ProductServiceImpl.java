@@ -7,6 +7,10 @@ import org.ozea.product.dto.response.*;
 import org.ozea.product.mapper.ProductMapper;
 import org.ozea.user.domain.User;
 import org.ozea.user.mapper.UserMapper;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
 import java.util.Comparator;
@@ -20,36 +24,29 @@ public class ProductServiceImpl implements ProductService {
     private final ProductMapper productMapper;
     private final UserMapper userMapper;
     private final org.ozea.ai.service.OpenAISummarizeService summarizeService;
+    private final java.util.concurrent.Executor executor =
+            java.util.concurrent.Executors.newFixedThreadPool(2);
+    @Autowired
+    private StringRedisTemplate srt;
 
+    @Cacheable(value = "product:list", key = "'p='+#page+', s ='+#size")
     @Override
     public List<ProductListResponseDto> getProductList(int page, int size) {
         int offset = (page - 1) * size;
         return productMapper.getProducts(offset, size);
     }
 
+    @Cacheable(value = "product:detail", key = "#finPrdtCd")
     @Override
     public ProductDetailResponseDto getProductDetail(String finPrdtCd) {
         ProductDetailResponseDto detail = productMapper.getProductDetail(finPrdtCd);
-        log.info("DEBUG summary for {} -> {}", finPrdtCd, detail != null ? detail.getSummary() : null);
-        if (detail == null) {
-            throw new IllegalArgumentException("해당 상품이 존재하지 않습니다: " + finPrdtCd);
-        }
+        if (detail == null) throw new IllegalArgumentException("해당 상품이 존재하지 않습니다: " + finPrdtCd);
 
         List<ProductOptionDto> options = productMapper.getProductOptions(finPrdtCd);
         detail.setOptions(options);
-
         if (detail.getSummary() == null || detail.getSummary().trim().isEmpty()) {
-            String material = buildSummarizableText(detail);
-            try {
-                String aiSummary = summarizeService.summarizeTo3Lines(material);
-                productMapper.updateProductSummary(finPrdtCd, aiSummary);
-                detail.setSummary(aiSummary);
-                log.info("✅ AI summary generated and saved for {}", finPrdtCd);
-            } catch (Exception ex) {
-                log.warn("⚠️ Failed to generate AI summary for {}: {}", finPrdtCd, ex.getMessage());
-            }
+            tryGenerateSummaryOnce(finPrdtCd, detail);
         }
-
         return detail;
     }
 
@@ -58,6 +55,9 @@ public class ProductServiceImpl implements ProductService {
         return productMapper.countAllProducts();
     }
 
+    @Cacheable(
+            value = "product:filter",
+            key = "T(java.util.Objects).hash(#filterDto)")
     @Override
     public List<ProductListResponseDto> filterProducts(ProductFilterRequestDto filterDto) {
         return productMapper.filterProducts(filterDto);
@@ -165,6 +165,7 @@ public class ProductServiceImpl implements ProductService {
                 .build();
     }
 
+    @CacheEvict(value = {"product:detail", "product:list", "product:filter"}, key = "#finPrdtCd", allEntries = false)
     @Override
     public String refreshAndSaveSummary(String finPrdtCd) {
         ProductDetailResponseDto detail = productMapper.getProductDetail(finPrdtCd);
@@ -204,5 +205,22 @@ public class ProductServiceImpl implements ProductService {
             if (hasFree) sb.append("자유적립식 가능").append("\n");
         }
         return sb.toString();
+    }
+
+    private void tryGenerateSummaryOnce(String finPrdtCd, ProductDetailResponseDto detail) {
+        String lockKey = "lock:summary:" + finPrdtCd;
+        Boolean ok = srt.opsForValue().setIfAbsent(lockKey, "1", java.time.Duration.ofSeconds(30));
+        if (Boolean.TRUE.equals(ok)) {
+            new Thread(() -> {
+                try {
+                    String material = buildSummarizableText(detail);
+                    String aiSummary = summarizeService.summarizeTo3Lines(material);
+                    productMapper.updateProductSummary(finPrdtCd, aiSummary);
+                } catch (Exception ignored) {
+                } finally {
+                    srt.delete(lockKey);
+                }
+            }, "ai-summary-" + finPrdtCd).start();
+        }
     }
 }

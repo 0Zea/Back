@@ -68,4 +68,9 @@ public class ProductController {
             return ResponseEntity.status(502).body(java.util.Map.of("success", false, "message", "AI 요약 갱신 실패"));
         }
     }
+    @GetMapping("/{finPrdtCd}/summary")
+    public ResponseEntity<?> getSummaryOnly(@PathVariable String finPrdtCd) {
+        ProductDetailResponseDto d = productService.getProductDetail(finPrdtCd);
+        return ResponseEntity.ok(java.util.Map.of("summary", d.getSummary()));
+    }
 }

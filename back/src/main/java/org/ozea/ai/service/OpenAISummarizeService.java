@@ -30,60 +30,6 @@ public class OpenAISummarizeService {
         this.openAiRestTemplate = openAiRestTemplate;
         this.params = params;
     }
-
-    public String summarizeTo3Lines(String rawText) {
-        String base = params.getBaseUrl();
-        if (base.endsWith("/")) base = base.substring(0, base.length() - 1);
-        String url = (base.endsWith("/v1")) ? base + "/chat/completions" : base + "/v1/chat/completions";
-        log.debug("Calling OpenAI URL: {}", url);
-
-        ChatDTO.ChatRequest req = ChatDTO.ChatRequest.builder()
-                .model(params.getModel())
-                .temperature(0.2)
-                .messages(List.of(
-                        ChatDTO.ChatRequest.Message.builder()
-                                .role("system")
-                                .content("너는 금융상품 설명을 이해해서 핵심만 한국어로 3줄 bullet로 요약하는 보조자야. 각 줄은 1문장, 불필요한 수식어 금지.")
-                                .build(),
-                        ChatDTO.ChatRequest.Message.builder()
-                                .role("user")
-                                .content("아래 내용을 3줄로 요약해줘:\n\n" + rawText)
-                                .build()
-                ))
-                .build();
-
-
-        try {
-            HttpEntity<ChatDTO.ChatRequest> entity = new HttpEntity<>(req);
-            ResponseEntity<String> res =
-                    openAiRestTemplate.exchange(url, HttpMethod.POST, entity, String.class);
-
-            if (!res.getStatusCode().is2xxSuccessful()) {
-                log.error("OpenAI non-2xx: status={}, body={}", res.getStatusCodeValue(), res.getBody());
-                throw new IllegalStateException("OpenAI returned non-2xx");
-            }
-
-            ChatDTO.ChatResponse body =
-                    objectMapper.readValue(res.getBody(), ChatDTO.ChatResponse.class);
-
-            if (body.getChoices() == null || body.getChoices().isEmpty()) {
-                throw new IllegalStateException("OpenAI 응답에 choices가 없습니다.");
-            }
-            String content = body.getChoices().get(0).getMessage().getContent();
-            if (content == null) {
-                throw new IllegalStateException("OpenAI 응답 content가 없습니다.");
-            }
-            return formatToThreeBullets(content.trim());
-
-        } catch (HttpStatusCodeException httpEx) {
-            log.error("OpenAI HTTP error: status={}, body={}",
-                    httpEx.getStatusCode().value(), httpEx.getResponseBodyAsString(), httpEx);
-            throw new RuntimeException("외부 요약 호출 실패 (http)", httpEx);
-        } catch (Exception e) {
-            log.error("OpenAI 요약 실패: {}", e.getMessage(), e);
-            throw new RuntimeException("외부 요약 호출 실패", e);
-        }
-    }
     private String formatToThreeBullets (String content){
         if (content == null) return null;
         String[] rawLines = content.replace("\r", "").split("\n");
@@ -108,5 +54,71 @@ public class OpenAISummarizeService {
             }
         }
         return sb.toString().trim();
+    }
+    private ResponseEntity<String> postWithRetry(String url, HttpEntity<ChatDTO.ChatRequest> entity) {
+        int max = 3;
+        long backoffMs = 500; // 0.5s -> 1s -> 2s
+        for (int i = 1; i <= max; i++) {
+            try {
+                return openAiRestTemplate.exchange(url, HttpMethod.POST, entity, String.class);
+            } catch (HttpStatusCodeException e) {
+                int sc = e.getStatusCode().value();
+                boolean retryable = sc == 429 || (sc >= 500 && sc < 600);
+                log.warn("OpenAI HTTP {} on attempt {}/{} (retryable={}): {}", sc, i, max, retryable, e.getResponseBodyAsString());
+                if (!retryable || i == max) throw e;
+            } catch (Exception e) {
+                log.warn("OpenAI call failed attempt {}/{}: {}", i, max, e.toString());
+                if (i == max) throw e;
+            }
+            try { Thread.sleep(backoffMs); } catch (InterruptedException ignored) {}
+            backoffMs *= 2;
+        }
+        throw new IllegalStateException("unreachable");
+    }
+
+    public String summarizeTo3Lines(String rawText) {
+        String base = params.getBaseUrl();
+        if (base.endsWith("/")) base = base.substring(0, base.length() - 1);
+        String url = (base.endsWith("/v1")) ? base + "/chat/completions" : base + "/v1/chat/completions";
+
+        ChatDTO.ChatRequest req = ChatDTO.ChatRequest.builder()
+                .model(params.getModel())
+                .temperature(0.2)
+                .messages(List.of(
+                        ChatDTO.ChatRequest.Message.builder().role("system")
+                                .content("너는 금융상품 설명을 이해해서 핵심만 한국어로 3줄 bullet로 요약. 각 줄 1문장, 과장 금지, 약관과 다르면 안됨.").build(),
+                        ChatDTO.ChatRequest.Message.builder().role("user")
+                                .content("아래 내용을 3줄로 요약해줘:\n\n" + rawText).build()
+                ))
+                .build();
+
+        try {
+            HttpEntity<ChatDTO.ChatRequest> entity = new HttpEntity<>(req);
+            ResponseEntity<String> res = postWithRetry(url, entity);
+
+            if (!res.getStatusCode().is2xxSuccessful()) {
+                log.error("OpenAI non-2xx: status={}, body={}", res.getStatusCodeValue(), res.getBody());
+                throw new IllegalStateException("OpenAI returned non-2xx");
+            }
+            ChatDTO.ChatResponse body = objectMapper.readValue(res.getBody(), ChatDTO.ChatResponse.class);
+            if (body.getChoices() == null || body.getChoices().isEmpty())
+                throw new IllegalStateException("OpenAI 응답에 choices가 없습니다.");
+
+            String content = body.getChoices().get(0).getMessage().getContent();
+            if (content == null) throw new IllegalStateException("OpenAI 응답 content가 없습니다.");
+
+            return limitLength(formatToThreeBullets(content.trim()), 500); // DB/화면 안전 길이
+        } catch (HttpStatusCodeException httpEx) {
+            log.error("OpenAI HTTP error: status={}, body={}", httpEx.getStatusCode().value(), httpEx.getResponseBodyAsString(), httpEx);
+            throw new RuntimeException("외부 요약 호출 실패 (http)", httpEx);
+        } catch (Exception e) {
+            log.error("OpenAI 요약 실패: {}", e.getMessage(), e);
+            throw new RuntimeException("외부 요약 호출 실패", e);
+        }
+    }
+
+    private String limitLength(String s, int max) {
+        if (s == null) return null;
+        return s.length() <= max ? s : s.substring(0, max);
     }
 }

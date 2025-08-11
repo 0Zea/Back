@@ -26,6 +26,7 @@ import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
 import org.springframework.data.redis.connection.jedis.JedisClientConfiguration;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializer;
 import org.springframework.data.redis.serializer.RedisSerializationContext;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
@@ -108,6 +109,9 @@ public class RedisConfig extends CachingConfigurerSupport {
         Map<String, RedisCacheConfiguration> per = new HashMap<>();
         per.put("userByEmail", base.entryTtl(Duration.ofMinutes(10)));
         per.put("userById",    base.entryTtl(Duration.ofMinutes(10)));
+        per.put("product:detail", base.entryTtl(Duration.ofMinutes(30)));
+        per.put("product:list",   base.entryTtl(Duration.ofMinutes(5)));
+        per.put("product:filter", base.entryTtl(Duration.ofMinutes(3)));
 
         return RedisCacheManager.builder(cf)
                 .cacheDefaults(base)
@@ -155,5 +159,10 @@ public class RedisConfig extends CachingConfigurerSupport {
                 return key;
             }
         };
+    }
+
+    @Bean
+    public StringRedisTemplate stringRedisTemplate(RedisConnectionFactory factory) {
+        return new StringRedisTemplate(factory);
     }
 }
