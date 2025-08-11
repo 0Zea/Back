@@ -28,7 +28,7 @@
             login_type as loginType,
             account_login_id as id,
             password
-        FROM account
+        FROM useraccount
         LIMIT 1
     </select>
 

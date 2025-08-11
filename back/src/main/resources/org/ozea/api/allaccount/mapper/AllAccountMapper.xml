@@ -9,7 +9,7 @@
             parameterType="java.lang.String"
             resultType="org.ozea.api.account.dto.response.AllAccountResDto">
         SELECT *
-        FROM account
+        FROM useraccount
         WHERE account_id = #{accountId}
     </select>
 

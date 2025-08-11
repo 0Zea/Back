@@ -23,6 +23,7 @@ public class ProductController {
         int totalCount = productService.getTotalProductCount();
         int totalPages = (int) Math.ceil((double) totalCount / size);
         Map<String, Object> result = new HashMap<>();
+        result.put("totalCount", totalCount);
         result.put("products", products);
         result.put("totalPages", totalPages);
         result.put("currentPage", page);
