@@ -1,9 +1,9 @@
-package org.ozea.api.account.controller;
+package org.ozea.api.allaccount.controller;
+
 import lombok.RequiredArgsConstructor;
 import org.json.simple.parser.ParseException;
-import org.ozea.api.account.dto.request.AllAccountReqDto;
-import org.ozea.api.account.dto.response.AllAccountResDto;
-import org.ozea.api.account.service.AllAccountService;
+import org.ozea.api.allaccount.dto.request.AllAccountReqDto;
+import org.ozea.api.allaccount.service.AllAccountService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import javax.crypto.BadPaddingException;

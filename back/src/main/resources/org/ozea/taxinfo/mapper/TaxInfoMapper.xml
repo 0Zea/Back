@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="org.ozea.taxinfo.mapper.TaxInfoMapper">
+
+    <!-- 🔽 삭제 3단계: detail -> basic -> deductible_item -->
+    <delete id="deleteDetailsByUserYear" parameterType="map">
+        DELETE d
+        FROM detail d
+                 JOIN basic b ON d.basic_id2 = b.basic_id
+                 JOIN deductible_item di ON b.code2 = di.code
+        WHERE di.user_id = #{userId}
+          AND di.year    = #{year}
+    </delete>
+
+    <delete id="deleteBasicsByUserYear" parameterType="map">
+        DELETE b
+        FROM basic b
+                 JOIN deductible_item di ON b.code2 = di.code
+        WHERE di.user_id = #{userId}
+          AND di.year    = #{year}
+    </delete>
+
+    <delete id="deleteItemsByUserYear" parameterType="map">
+        DELETE FROM deductible_item
+        WHERE user_id = #{userId}
+          AND year    = #{year}
+    </delete>
+    <!-- 1) tax_item 테이블에 코드만 저장 -->
+    <insert id="insertTaxItem" parameterType="map">
+        INSERT INTO deductible_item
+            (code, user_id, year)
+        VALUES
+            (#{code}, #{userId}, #{year})
+    </insert>
+
+    <!-- 2) basic 테이블에 기본 정보 저장 -->
+    <insert id="insertBasic"
+            parameterType="org.ozea.taxinfo.dto.TaxBasicDto"
+            useGeneratedKeys="true"
+            keyProperty="basicId"
+            keyColumn="basic_id">
+        INSERT INTO basic
+        (user_name
+            ,user_id
+            ,type
+            ,company
+            ,insure_type
+            ,amount
+            ,amount1
+            ,payment
+            ,payment1
+            ,code2)                  <!-- ← 여기에 code2 추가 -->
+            VALUES
+                (#{resUserNm}
+                ,#{resUserIdentiyNo}
+                ,#{resType}
+                ,#{resCompanyNm}
+                ,#{resInsureType}
+                ,#{resAmount}
+                ,#{resAmount1}
+                ,#{resAmountPayment}
+                ,#{resAmountPayment1}
+                ,#{resDeductibleItem})
+    </insert>
+
+    <!-- 3) detail 테이블에 월별 내역 저장 -->
+    <insert id="insertDetail" parameterType="map">
+        INSERT INTO detail
+        (basic_id2
+        ,month
+        ,date_payment
+        ,amount
+        ,amount1
+        ,total_amount)
+        VALUES
+            (#{basicId}
+            ,#{d.resMonth}
+            ,#{d.resDatePayment}
+            ,#{d.resAmount}
+            ,#{d.resAmount1}
+            ,#{d.resTotalAmount})
+    </insert>
+    <select id="selectSummary" resultType="map">
+        SELECT
+            di.code        AS category,
+            SUM(
+                    COALESCE(b.amount,0)
+                        + COALESCE(b.amount1,0)
+                        + COALESCE(b.payment,0)
+                        + COALESCE(b.payment1,0)
+            ) AS total
+        FROM deductible_item di
+                 JOIN basic b
+                      ON di.code = b.code2
+        WHERE di.user_id = #{userId}
+          AND di.year    = #{year}
+        GROUP BY di.code
+    </select>
+</mapper>
