@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="org.ozea.api.taxkakaoouth.mapper.TaxKakaoOuthMapper">
+
+    <select id="findUserById" parameterType="java.util.UUID" resultType="org.ozea.user.domain.User">
+        SELECT
+            user_id AS userId,
+            name,
+            email,
+            phone_num AS phoneNum,
+            birth_date AS birthDate
+        FROM user
+        WHERE user_id = #{userId}
+    </select>
+
+</mapper>

@@ -37,6 +37,8 @@
         <mapper resource="org/ozea/term/mapper/TermMapper.xml"/>
         <mapper resource="org/ozea/quiz/mapper/QuizMapper.xml"/>
         <mapper resource="org/ozea/api/allaccount/mapper/AllAccountMapper.xml"/>
+        <mapper resource="org/ozea/api/taxkakaoouth/mapper/TaxKakaoOuthMapper.xml"/>
+        <mapper resource="org/ozea/taxinfo/mapper/TaxInfoMapper.xml"/>
     </mappers>
 
 </configuration>
