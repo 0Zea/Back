@@ -12,7 +12,8 @@ public interface QuizMapper {
     void saveUserQuizResult(
             @Param("userId") String userId,
             @Param("quizId") int quizId,
-            @Param("isCorrect") boolean isCorrect
+            @Param("isCorrect") boolean isCorrect,
+            @Param("explanation") String explanation
     );
     boolean existsTodayQuizByUserId(@Param("userId") String userId);
 

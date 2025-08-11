@@ -8,11 +8,12 @@ public class QuizResponseDTO {
     private int quiz_id;
     private String question;
     private String type; // "OX" 또는 "short"
+    private String explanation;
     public static QuizResponseDTO of(QuizVO quizVO) {
         return QuizResponseDTO.builder()
                 .quiz_id(quizVO.getQuiz_id())
                 .question(quizVO.getQuestion())
-                .type(quizVO.getApiQuizType())
+                .type(quizVO.getApiQuizType()).explanation(quizVO.getExplanation())
                 .build();
     }
     public static QuizResponseDTO of(QuizDTO quizDTO) {
