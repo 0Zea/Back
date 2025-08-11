@@ -102,6 +102,7 @@ public class RedisConfig extends CachingConfigurerSupport {
         var json = new GenericJackson2JsonRedisSerializer(om);
 
         var base = RedisCacheConfiguration.defaultCacheConfig()
+                .entryTtl(Duration.ofMinutes(30))
                 .serializeKeysWith(RedisSerializationContext.SerializationPair.fromSerializer(new StringRedisSerializer()))
                 .serializeValuesWith(RedisSerializationContext.SerializationPair.fromSerializer(json))
                 .disableCachingNullValues();

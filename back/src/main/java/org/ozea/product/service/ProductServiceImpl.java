@@ -1,7 +1,9 @@
 package org.ozea.product.service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.ozea.common.cache.CacheHelper;
 import org.ozea.product.dto.request.ProductFilterRequestDto;
 import org.ozea.product.dto.response.*;
 import org.ozea.product.mapper.ProductMapper;
@@ -10,12 +12,16 @@ import org.ozea.user.mapper.UserMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
 import java.util.Comparator;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.Executor;
+
+import static java.util.concurrent.Executors.newFixedThreadPool;
 
 @Slf4j
 @Service
@@ -24,8 +30,9 @@ public class ProductServiceImpl implements ProductService {
     private final ProductMapper productMapper;
     private final UserMapper userMapper;
     private final org.ozea.ai.service.OpenAISummarizeService summarizeService;
-    private final java.util.concurrent.Executor executor =
-            java.util.concurrent.Executors.newFixedThreadPool(2);
+    private final Executor executor = newFixedThreadPool(2);
+    private final RedisTemplate<String, Object> redis;
+    private final CacheHelper cacheHelper;
     @Autowired
     private StringRedisTemplate srt;
 
@@ -44,6 +51,7 @@ public class ProductServiceImpl implements ProductService {
 
         List<ProductOptionDto> options = productMapper.getProductOptions(finPrdtCd);
         detail.setOptions(options);
+        enqueueSummaryIfNeeded(finPrdtCd,detail);
         if (detail.getSummary() == null || detail.getSummary().trim().isEmpty()) {
             tryGenerateSummaryOnce(finPrdtCd, detail);
         }
@@ -221,6 +229,13 @@ public class ProductServiceImpl implements ProductService {
                     srt.delete(lockKey);
                 }
             }, "ai-summary-" + finPrdtCd).start();
+        }
+    }
+    private void enqueueSummaryIfNeeded(String finPrdtCd, ProductDetailResponseDto d) {
+        if (d.getSummary() != null && !d.getSummary().isBlank()) return;
+        String lockKey = "lock:ai-summary:" + finPrdtCd;
+        if (cacheHelper.tryLock(lockKey, java.time.Duration.ofMinutes(2))) {
+            redis.opsForList().leftPush("queue:ai-summary", finPrdtCd);
         }
     }
 }
