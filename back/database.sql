@@ -183,3 +183,20 @@ CREATE INDEX idx_product_kor_co_nm ON product(kor_co_nm);
 CREATE INDEX idx_productoption_fin_prdt_cd ON productoption(fin_prdt_cd);
 CREATE INDEX idx_productoption_save_trm ON productoption(save_trm);
 CREATE INDEX idx_productoption_intr_rate ON productoption(intr_rate);
+
+
+ALTER TABLE product ADD COLUMN summary TEXT NULL;
+
+DESC product;
+SELECT summary
+FROM product
+WHERE fin_prdt_cd = '4';
+
+UPDATE product
+SET summary = '만기 1년, 자유적립 가능, 최고 우대금리 제공(조건 충족 시).'
+WHERE fin_prdt_cd = '4';
+
+
+SELECT fin_prdt_cd, summary
+FROM product
+WHERE fin_prdt_cd = '01012000200000000004';

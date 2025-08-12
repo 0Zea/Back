@@ -1,9 +1,6 @@
 package org.ozea.security.controller;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
-import org.ozea.security.account.dto.AuthResultDTO;
-import org.ozea.security.account.dto.UserInfoDTO;
-import org.ozea.security.util.JsonResponse;
 import org.ozea.security.util.JwtProcessor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

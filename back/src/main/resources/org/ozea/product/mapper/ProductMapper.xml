@@ -33,6 +33,11 @@
             <result property="intrRate2" column="intr_rate2"/>
         </collection>
     </resultMap>
+    <update id="updateProductSummary">
+        UPDATE product
+        SET summary = #{summary}
+        WHERE fin_prdt_cd = #{finPrdtCd}
+    </update>
 
     <select id="findAllProductsWithOptions" resultMap="ProductWithOptionsMap">
         SELECT
@@ -92,8 +97,8 @@
                 </foreach>
             </if>
 
-            <if test="filter.productType != null and filter.productType.size() > 0">
-                AND (
+            <if test="filter.productType != null and filter.productType.size > 0">
+            AND (
                 <foreach item="type" collection="filter.productType" separator=" OR ">
                     p.fin_prdt_nm LIKE CONCAT('%', #{type}, '%')
                 </foreach>
@@ -138,7 +143,8 @@
             mtrt_int AS mtrtInt,
             spcl_cnd AS spclCnd,
             join_member AS joinMember,
-            etc_note AS etcNote
+            etc_note AS etcNote,
+            summary AS summary
         FROM product
         WHERE fin_prdt_cd = #{finPrdtCd}
     </select>
