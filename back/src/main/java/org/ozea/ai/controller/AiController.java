@@ -3,7 +3,7 @@ package org.ozea.ai.controller;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.ozea.ai.dto.SummaryReq;
-import org.ozea.ai.service.OpenAISummarizeService;
+import org.ozea.ai.service.OpenAISummarizeServiceImpl;
 import org.ozea.common.dto.ApiResponse;
 import org.ozea.common.exception.ErrorCode;
 import org.ozea.common.limiter.RateLimiter;
@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/ai")
 public class AiController {
 
-    private final OpenAISummarizeService summarizeService;
+    private final OpenAISummarizeServiceImpl summarizeService;
     private final RateLimiter rateLimiter;
 
     @PostMapping("/summarize")

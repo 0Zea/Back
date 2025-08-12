@@ -5,7 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.ozea.product.dto.response.ProductDetailResponseDto;
 import org.ozea.product.dto.response.ProductOptionDto;
 import org.ozea.product.mapper.ProductMapper;
-import org.ozea.ai.service.OpenAISummarizeService;
+import org.ozea.ai.service.OpenAISummarizeServiceImpl;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -18,7 +18,7 @@ import java.util.List;
 public class ProductScheduler {
     private final RedisTemplate<String,Object> redis;
     private final ProductMapper productMapper;
-    private final OpenAISummarizeService summarizeService;
+    private final OpenAISummarizeServiceImpl summarizeService;
 
     @Scheduled(fixedDelay = 1000)
     public void consumeSummaryJobs() {

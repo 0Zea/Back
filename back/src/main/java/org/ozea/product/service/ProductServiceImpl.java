@@ -1,8 +1,8 @@
 package org.ozea.product.service;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.ozea.ai.service.OpenAISummarizeServiceImpl;
 import org.ozea.common.cache.CacheHelper;
 import org.ozea.product.dto.request.ProductFilterRequestDto;
 import org.ozea.product.dto.response.*;
@@ -29,7 +29,7 @@ import static java.util.concurrent.Executors.newFixedThreadPool;
 public class ProductServiceImpl implements ProductService {
     private final ProductMapper productMapper;
     private final UserMapper userMapper;
-    private final org.ozea.ai.service.OpenAISummarizeService summarizeService;
+    private final OpenAISummarizeServiceImpl summarizeService;
     private final Executor executor = newFixedThreadPool(2);
     private final RedisTemplate<String, Object> redis;
     private final CacheHelper cacheHelper;
