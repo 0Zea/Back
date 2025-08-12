@@ -10,11 +10,12 @@
         <result property="question" column="question" />
         <result property="answer" column="answer" />
         <result property="quiz_type" column="quiz_type" />
+        <result property="explanation" column="explanation" />
     </resultMap>
 
     <!-- 랜덤으로 퀴즈 하나 조회 -->
     <select id="findRandomQuiz" resultMap="QuizDTOResultMap">
-        SELECT quiz_id, question, quiz_type
+        SELECT quiz_id, question, quiz_type,explanation
         FROM Quiz
         ORDER BY RAND()
         LIMIT 1
@@ -22,7 +23,7 @@
 
     <!-- 퀴즈 ID로 조회 -->
     <select id="findById" parameterType="int" resultMap="QuizDTOResultMap">
-        SELECT quiz_id, answer, quiz_type
+        SELECT quiz_id, answer, quiz_type,explanation
         FROM Quiz
         WHERE quiz_id = #{quizId}
     </select>
