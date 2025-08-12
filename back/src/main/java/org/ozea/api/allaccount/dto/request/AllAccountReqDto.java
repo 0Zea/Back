@@ -1,4 +1,6 @@
-package org.ozea.api.account.dto.request;
+package org.ozea.api.allaccount.dto.request;
+
+
 import lombok.Getter;
 import lombok.Setter;
 @Getter

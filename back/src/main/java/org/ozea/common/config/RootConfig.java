@@ -78,13 +78,11 @@ public class RootConfig {
 
         JavaTimeModule javaTime = new JavaTimeModule();
 
-        // LocalDateTime (이미 있으니 유지)
         DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss");
         javaTime.addSerializer(java.time.LocalDateTime.class, new LocalDateTimeSerializer(dtf));
         javaTime.addDeserializer(java.time.LocalDateTime.class,
                 new com.fasterxml.jackson.datatype.jsr310.deser.LocalDateTimeDeserializer(dtf));
 
-        // ✅ LocalDate 추가
         java.time.format.DateTimeFormatter df = DateTimeFormatter.ofPattern("yyyy-MM-dd");
         javaTime.addSerializer(java.time.LocalDate.class, new com.fasterxml.jackson.datatype.jsr310.ser.LocalDateSerializer(df));
         javaTime.addDeserializer(java.time.LocalDate.class, new com.fasterxml.jackson.datatype.jsr310.deser.LocalDateDeserializer(df));
