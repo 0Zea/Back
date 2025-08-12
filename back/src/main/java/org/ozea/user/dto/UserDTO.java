@@ -1,11 +1,11 @@
 package org.ozea.user.dto;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.ozea.user.domain.User;
 import java.time.LocalDate;
-import java.util.Date;
 import java.util.UUID;
 @Data
 @NoArgsConstructor
@@ -17,6 +17,7 @@ public class UserDTO {
     private String email;
     private String mbti;
     private String phoneNum;
+    @JsonFormat(pattern = "yyyy-MM-dd")
     private LocalDate birthDate;
     private String sex;
     private Long salary;
