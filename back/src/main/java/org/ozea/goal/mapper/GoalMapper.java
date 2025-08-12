@@ -29,4 +29,15 @@ public interface GoalMapper {
     void unlinkAllAccountsFromGoal(UUID goalId);
     List<ProductRecommendResponseDto> findProductsWithOptions();
     List<PastGoalResponseDto> findPastGoalsByUserId(UUID userId);
+
+    int claimGoalAchieveReward(@Param("userId") UUID userId,
+                               @Param("goalId") UUID goalId);
+
+    boolean existsGoalRewardPoint(@Param("userId") UUID userId,
+                                  @Param("goalId") UUID goalId);
+
+
+    Integer calcGoalRewardPoints(@Param("userId") UUID userId,
+                                 @Param("goalId") UUID goalId);
+
 }
