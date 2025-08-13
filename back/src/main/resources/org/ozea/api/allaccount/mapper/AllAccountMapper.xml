@@ -13,4 +13,14 @@
         WHERE account_id = #{accountId}
     </select>
 
+    <insert id="upsertBankAccount" parameterType="map">
+        INSERT INTO bankaccount
+            (user_id, bank_name, account_num, account_type, balance)
+        VALUES
+            (UNHEX(REPLACE(#{userId},'-','')), #{bankName}, #{accountNum}, #{accountType}, #{balance})
+        ON DUPLICATE KEY UPDATE
+                             bank_name    = VALUES(bank_name),
+                             account_type = VALUES(account_type),
+                             balance      = VALUES(balance)
+    </insert>
 </mapper>
