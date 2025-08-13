@@ -1,109 +1,169 @@
 package org.ozea.security.config;
-import org.springframework.beans.factory.annotation.Autowired;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.RequiredArgsConstructor;
+import org.ozea.security.filter.AuthenticationErrorFilter;
+import org.ozea.security.filter.JwtAuthenticationFilter;
+import org.ozea.security.handler.LoginFailureHandler;
+import org.ozea.security.handler.LoginSuccessHandler;
+import org.ozea.security.service.CustomUserDetailsService;
+import org.ozea.security.filter.JwtUsernamePasswordAuthenticationFilter;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
+import org.springframework.security.config.Customizer;
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
-import org.ozea.security.filter.JwtAuthenticationFilter;
+
 import java.util.Arrays;
+import java.util.List;
+
 @Configuration
 @EnableWebSecurity
-public class SecurityConfig extends WebSecurityConfigurerAdapter {
-    private JwtAuthenticationFilter jwtAuthenticationFilter;
-    @Autowired
-    public void setJwtAuthenticationFilter(JwtAuthenticationFilter jwtAuthenticationFilter) {
-        this.jwtAuthenticationFilter = jwtAuthenticationFilter;
+@RequiredArgsConstructor
+public class SecurityConfig {
+
+    private final JwtAuthenticationFilter jwtAuthenticationFilter;
+    private final AuthenticationErrorFilter authenticationErrorFilter;
+    private final CustomUserDetailsService customUserDetailsService;
+    private final LoginSuccessHandler loginSuccessHandler;
+    private final LoginFailureHandler loginFailureHandler;
+    private final ObjectMapper objectMapper;
+
+    @Value("${app.cors.allowed-origins:http://localhost:5173}")
+    private List<String> allowedOrigins;
+
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder(12);
     }
-    @Override
-    protected void configure(HttpSecurity http) throws Exception {
-        http
-            .cors().configurationSource(corsConfigurationSource())
-            .and()
-            .csrf().disable()
-            .sessionManagement()
-                .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-            .and()
-            .httpBasic().disable()
-            .formLogin().disable()
-            .logout()
-                .logoutUrl("/api/auth/logout")
-                .logoutSuccessHandler((request, response, authentication) -> {
-                    response.setStatus(200);
-                    response.getWriter().write("{\"success\":true,\"message\":\"로그아웃 성공\"}");
-                })
-                .invalidateHttpSession(true)
-                .clearAuthentication(true)
-                .deleteCookies("JSESSIONID")
-            .and()
-            .exceptionHandling()
-                .authenticationEntryPoint((request, response, authException) -> {
-                    response.setStatus(401);
-                    response.setContentType("application/json;charset=UTF-8");
-                    response.getWriter().write("{\"success\":false,\"message\":\"인증이 필요합니다.\"}");
-                })
-                .accessDeniedHandler((request, response, accessDeniedException) -> {
-                    response.setStatus(403);
-                    response.setContentType("application/json;charset=UTF-8");
-                    response.getWriter().write("{\"success\":false,\"message\":\"접근 권한이 없습니다.\"}");
-                })
-            .and()
-            .authorizeRequests()
-                .antMatchers(
-                    "/api/auth/login",
-                    "/api/auth/signup",
-                    "/api/auth/kakao/callback",
-                    "/api/auth/kakao/callback/test",
-                    "/api/auth/refresh-token",
-                    "/api/monitoring/health",
-                    "/api/monitoring/metrics",
-                    "/api/monitoring/info",
-                    "/error",
-                    "/favicon.ico",
-                    "/swagger-ui/**",
-                    "/v3/api-docs/**"
-                ).permitAll()
-                .antMatchers(
-                    "/api/admin/**",
-                    "/api/monitoring/admin/**"
-                ).hasRole("ADMIN")
-                .antMatchers(
-                    "/api/user/**",
-                    "/api/goal/**",
-                    "/api/asset/**",
-                    "/api/product/**",
-                    "/api/quiz/**",
-                    "/api/point/**",
-                    "/api/inquiry/**",
-                    "/api/notice/**"
-                ).authenticated()
-                .anyRequest().authenticated()
-            .and()
-            .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+
+    @Bean
+    public DaoAuthenticationProvider daoAuthenticationProvider() {
+        DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
+        provider.setUserDetailsService(customUserDetailsService);
+        provider.setPasswordEncoder(passwordEncoder());
+        return provider;
     }
+
+    @Bean
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration configuration) throws Exception {
+        return configuration.getAuthenticationManager();
+    }
+
+    @Bean
+    public JwtUsernamePasswordAuthenticationFilter jsonLoginFilter(AuthenticationManager authenticationManager) {
+        JwtUsernamePasswordAuthenticationFilter f =
+                new JwtUsernamePasswordAuthenticationFilter(authenticationManager, loginSuccessHandler, loginFailureHandler, objectMapper);
+        return f;
+    }
+
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration c = new CorsConfiguration();
-        c.setAllowedOrigins(Arrays.asList("http://localhost:5173"));
-        c.setAllowedMethods(Arrays.asList("GET","POST","PUT","DELETE","OPTIONS"));
-        c.setAllowedHeaders(Arrays.asList("Authorization","Content-Type","X-Requested-With","Accept","Origin"));
-        c.setExposedHeaders(Arrays.asList("Authorization"));
+
+        if (allowedOrigins == null || allowedOrigins.isEmpty()) {
+            c.setAllowedOriginPatterns(List.of("*"));
+        } else {
+            c.setAllowedOrigins(allowedOrigins);
+        }
+
+        c.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
+        c.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "X-Requested-With", "Accept", "Origin"));
         c.setExposedHeaders(Arrays.asList("Authorization", "X-New-Token"));
         c.setAllowCredentials(true);
         c.setMaxAge(3600L);
+
         UrlBasedCorsConfigurationSource s = new UrlBasedCorsConfigurationSource();
         s.registerCorsConfiguration("/**", c);
         return s;
     }
+
     @Bean
-    public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder(12);
+    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+
+        http
+                .csrf(csrf -> csrf.disable()) // Stateless + JWT
+                .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .httpBasic(b -> b.disable())
+                .formLogin(f -> f.disable())
+                .logout(l -> l
+                        .logoutUrl("/api/auth/logout")
+                        .logoutSuccessHandler((request, response, authentication) -> {
+                            response.setStatus(200);
+                            response.setContentType("application/json;charset=UTF-8");
+                            response.getWriter().write("{\"success\":true,\"message\":\"로그아웃 성공\"}");
+                        })
+                        .invalidateHttpSession(true)
+                        .clearAuthentication(true)
+                        .deleteCookies("JSESSIONID")
+                )
+                .exceptionHandling(e -> e
+                        .authenticationEntryPoint((request, response, authException) -> {
+                            response.setStatus(401);
+                            response.setContentType("application/json;charset=UTF-8");
+                            response.getWriter().write("{\"success\":false,\"message\":\"인증이 필요합니다.\"}");
+                        })
+                        .accessDeniedHandler((request, response, accessDeniedException) -> {
+                            response.setStatus(403);
+                            response.setContentType("application/json;charset=UTF-8");
+                            response.getWriter().write("{\"success\":false,\"message\":\"접근 권한이 없습니다.\"}");
+                        })
+                )
+                .cors(Customizer.withDefaults())
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers(
+                                "/api/auth/login",
+                                "/api/auth/signup",
+                                "/api/auth/kakao/callback",
+                                "/api/auth/kakao/callback/test",
+                                "/api/auth/refresh-token",
+                                "/api/monitoring/health",
+                                "/api/monitoring/metrics",
+                                "/api/monitoring/info",
+                                "/error",
+                                "/favicon.ico",
+                                "/swagger-ui/**",
+                                "/v3/api-docs/**"
+                        ).permitAll()
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                        .requestMatchers("/api/admin/**", "/api/monitoring/admin/**").hasRole("ADMIN")
+                        .requestMatchers(
+                                "/api/user/**",
+                                "/api/goal/**",
+                                "/api/asset/**",
+                                "/api/product/**",
+                                "/api/quiz/**",
+                                "/api/point/**",
+                                "/api/inquiry/**",
+                                "/api/notice/**",
+                                "/api/allaccount/**"
+                        ).authenticated()
+                        .anyRequest().authenticated()
+                );
+
+        http.addFilterBefore(authenticationErrorFilter, UsernamePasswordAuthenticationFilter.class);
+        http.addFilterAt(
+                jsonLoginFilter(authenticationManager(http.getSharedObject(AuthenticationConfiguration.class))),
+                UsernamePasswordAuthenticationFilter.class
+        );
+
+        http.addFilterAfter(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+
+        http.authenticationProvider(daoAuthenticationProvider());
+
+        return http.build();
     }
 }

@@ -133,7 +133,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                         String freshToken = jwtProcessor.generateAccessToken(username);
                         // 프론트가 읽을 수 있도록 헤더 셋 + 노출 허용
                         response.setHeader("X-New-Token", freshToken);
-                        response.setHeader("Access-Control-Expose-Headers", "X-New-Token");
 
                         log.debug("♻️ 토큰 재발급 헤더 첨부 - 사용자: {}, 남은(ms): {}", username, remainingTime);
                     } catch (Exception reissueEx) {

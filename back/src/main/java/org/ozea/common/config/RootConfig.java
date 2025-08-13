@@ -1,4 +1,5 @@
 package org.ozea.common.config;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer;
@@ -15,9 +16,19 @@ import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.web.client.RestTemplate;
+
+// ↓ RestTemplate용 Apache HTTP 클라이언트
+import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
+import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
+
 import javax.annotation.PreDestroy;
 import javax.sql.DataSource;
 import java.time.format.DateTimeFormatter;
+import java.time.Duration;
+import java.util.Properties;
+
 @Configuration
 @PropertySource({"classpath:/application.properties"})
 @EnableTransactionManagement
@@ -27,7 +38,7 @@ import java.time.format.DateTimeFormatter;
         "org.ozea.user.mapper","org.ozea.goal.mapper","org.ozea.inquiry.mapper",
         "org.ozea.asset.mapper","org.ozea.notice.mapper","org.ozea.point.mapper",
         "org.ozea.bank.mapper","org.ozea.product.mapper","org.ozea.term.mapper",
-        "org.ozea.quiz.mapper","org.ozea.api.account.mapper" , "org.ozea.api.taxkakaoouth.mapper",
+        "org.ozea.quiz.mapper","org.ozea.api.allaccount.mapper" , "org.ozea.api.taxkakaoouth.mapper",
         "org.ozea.taxinfo.mapper"
 })
 @ComponentScan(
@@ -36,10 +47,12 @@ import java.time.format.DateTimeFormatter;
 )
 @Import({RedisConfig.class})
 public class RootConfig {
+
     @Value("${jdbc.driver}") String driver;
     @Value("${jdbc.url}") String url;
     @Value("${jdbc.username}") String username;
     @Value("${jdbc.password}") String password;
+
     @Bean
     public DataSource dataSource() {
         HikariConfig config = new HikariConfig();
@@ -47,15 +60,29 @@ public class RootConfig {
         config.setJdbcUrl(url);
         config.setUsername(username);
         config.setPassword(password);
-        config.setLeakDetectionThreshold(60000);
-        config.setConnectionTimeout(30000);
-        config.setMaximumPoolSize(10);
+        config.setPoolName("HikariPool-ozea");
+        config.setMaximumPoolSize(15);
         config.setMinimumIdle(5);
-        config.setIdleTimeout(300000);
-        config.setMaxLifetime(1200000);
-        config.setValidationTimeout(5000);
+        config.setConnectionTimeout(10_000);
+        config.setIdleTimeout(300_000);
+        config.setMaxLifetime(1_800_000);
+        config.setValidationTimeout(3_000);
+        config.setLeakDetectionThreshold(10_000);
+
+        Properties props = new Properties();
+        props.setProperty("cachePrepStmts", "true");
+        props.setProperty("useServerPrepStmts", "true");
+        props.setProperty("prepStmtCacheSize", "250");
+        props.setProperty("prepStmtCacheSqlLimit", "2048");
+        props.setProperty("useUnicode", "true");
+        props.setProperty("characterEncoding", "utf8");
+        props.setProperty("tcpKeepAlive", "true");
+        props.setProperty("rewriteBatchedStatements", "true"); // 대량 insert 최적화
+        config.setDataSourceProperties(props);
+
         return new HikariDataSource(config);
     }
+
     @Autowired
     ApplicationContext applicationContext;
 
@@ -67,6 +94,7 @@ public class RootConfig {
         sqlSessionFactory.setDataSource(dataSource());
         return (SqlSessionFactory) sqlSessionFactory.getObject();
     }
+
     @Bean
     public DataSourceTransactionManager transactionManager(DataSource dataSource) {
         return new DataSourceTransactionManager(dataSource);
@@ -76,7 +104,6 @@ public class RootConfig {
     @Bean
     public ObjectMapper objectMapper() {
         ObjectMapper mapper = new ObjectMapper();
-
         JavaTimeModule javaTime = new JavaTimeModule();
 
         DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss");
@@ -84,7 +111,7 @@ public class RootConfig {
         javaTime.addDeserializer(java.time.LocalDateTime.class,
                 new com.fasterxml.jackson.datatype.jsr310.deser.LocalDateTimeDeserializer(dtf));
 
-        java.time.format.DateTimeFormatter df = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+        DateTimeFormatter df = DateTimeFormatter.ofPattern("yyyy-MM-dd");
         javaTime.addSerializer(java.time.LocalDate.class, new com.fasterxml.jackson.datatype.jsr310.ser.LocalDateSerializer(df));
         javaTime.addDeserializer(java.time.LocalDate.class, new com.fasterxml.jackson.datatype.jsr310.deser.LocalDateDeserializer(df));
 
@@ -92,10 +119,28 @@ public class RootConfig {
         mapper.disable(com.fasterxml.jackson.databind.SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
         return mapper;
     }
+
+    // --- RestTemplate: 타임아웃 + 커넥션풀 적용 ---
     @Bean
     public RestTemplate restTemplate() {
-        return new RestTemplate();
+        PoolingHttpClientConnectionManager cm = new PoolingHttpClientConnectionManager();
+        cm.setMaxTotal(100);
+        cm.setDefaultMaxPerRoute(20);
+
+        CloseableHttpClient httpClient = HttpClients.custom()
+                .setConnectionManager(cm)
+                .evictIdleConnections(30, java.util.concurrent.TimeUnit.SECONDS)
+                .disableCookieManagement()
+                .build();
+
+        HttpComponentsClientHttpRequestFactory factory = new HttpComponentsClientHttpRequestFactory(httpClient);
+        factory.setConnectTimeout(5_000);
+        factory.setReadTimeout(10_000);
+        factory.setConnectionRequestTimeout(3_000);
+
+        return new RestTemplate(factory);
     }
+
     @PreDestroy
     public void cleanup() {
         try {
@@ -104,6 +149,7 @@ public class RootConfig {
                     .getMethod("checkedShutdown");
             method.invoke(null);
         } catch (Exception e) {
+            // ignore
         }
     }
 }

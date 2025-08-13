@@ -116,9 +116,7 @@ public class JwtProcessor {
         try {
             Claims c = baseParser().parseClaimsJws(token).getBody();
             long now = System.currentTimeMillis();
-            log.info("[JWT OK] sub={}, type={}, aud={}, iat={}, nbf={}, exp={}, now={}",
-                    c.getSubject(), c.get("type", String.class), c.getAudience(),
-                    c.getIssuedAt(), c.getNotBefore(), c.getExpiration(), new Date(now));
+            log.debug("[JWT OK] sub={}, type={}, aud={}, exp={}", c.getSubject(), c.get("type", String.class), c.getAudience(), c.getExpiration());
             if ("access".equals(c.get("type", String.class))) {
                 if (!audience.equals(c.getAudience())) {
                     log.warn("[JWT FAIL] audience mismatch exp={} act={}", audience, c.getAudience());

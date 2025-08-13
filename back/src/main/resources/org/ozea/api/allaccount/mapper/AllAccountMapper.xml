@@ -2,15 +2,37 @@
 <!DOCTYPE mapper
         PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<!-- src/main/resources/mappers/AllAccountMapper.xml -->
-<mapper namespace="org.ozea.api.allaccount.mapper.AllAccountMapper">
 
+<mapper namespace="org.ozea.api.allaccount.mapper.AllAccountMapper">
     <select id="getAccountInfo"
-            parameterType="java.lang.String"
-            resultType="org.ozea.api.allaccount.dto.response.AllAccountResDto">
-        SELECT *
+            resultType="org.ozea.api.allaccount.dto.request.AllAccountReqDto">
+        SELECT
+            country_code   AS countryCode,
+            business_type  AS businessType,
+            client_type    AS clientType,
+            organization   AS organization,
+            login_type     AS loginType,
+            user_id        AS id,
+            user_password  AS password
         FROM useraccount
-        WHERE account_id = #{accountId}
+        ORDER BY updated_at DESC
+            LIMIT 1
+    </select>
+
+    <select id="getYeomsky95AccountInfo"
+            resultType="org.ozea.api.allaccount.dto.request.AllAccountReqDto">
+        SELECT
+            country_code   AS countryCode,
+            business_type  AS businessType,
+            client_type    AS clientType,
+            organization   AS organization,
+            login_type     AS loginType,
+            user_id        AS id,
+            user_password  AS password
+        FROM useraccount
+        WHERE alias = 'yeomsky95'
+        ORDER BY updated_at DESC
+            LIMIT 1
     </select>
 
 </mapper>
