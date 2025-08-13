@@ -1,6 +1,7 @@
 package org.ozea.security.handler;
-import lombok.extern.log4j.Log4j2;
-import org.ozea.security.util.JsonResponse;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.ozea.common.util.JsonResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.web.access.AccessDeniedHandler;
@@ -10,10 +11,17 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 @Component
-@Log4j2
+@Slf4j
+
+@RequiredArgsConstructor
 public class CustomAccessDeniedHandler implements AccessDeniedHandler {
+
+    private final JsonResponse jsonResponse;
+
     @Override
     public void handle(HttpServletRequest request, HttpServletResponse response, AccessDeniedException accessDeniedException) throws IOException, ServletException {
-        JsonResponse.sendError(response, HttpStatus.FORBIDDEN, "권한이 부족합니다.");
+        jsonResponse.sendError(response, HttpStatus.FORBIDDEN, "권한이 부족합니다.");
     }
+
+
 }

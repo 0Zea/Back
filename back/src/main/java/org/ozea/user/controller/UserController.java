@@ -63,7 +63,6 @@ public class UserController {
         }
         long currentTime = System.currentTimeMillis();
         if (currentTime - lastAttempt > ATTEMPT_WINDOW) {
-            // 시간이 지났으면 리셋
             resetRateLimit(email);
             return false;
         }
@@ -190,7 +189,10 @@ public class UserController {
                 throw new RuntimeException("유효하지 않은 토큰입니다.");
             }
             String token = authHeader.substring(7);
-            String email = jwtProcessor.getUsername(token);
+
+            String email = jwtProcessor.getUsernameAllowExpired(token);
+            if (email == null) throw new RuntimeException("토큰에서 이메일을 추출할 수 없습니다.");
+
             String newToken = jwtProcessor.generateAccessToken(email);
             Map<String, Object> response = new HashMap<>();
             response.put("success", true);
@@ -198,8 +200,8 @@ public class UserController {
             response.put("tokenType", "Bearer");
             response.put("expiresIn", 300);
             return ResponseEntity.ok(response);
+
         } catch (Exception e) {
-            log.error("토큰 갱신 실패: {}", e.getMessage());
             Map<String, Object> response = new HashMap<>();
             response.put("success", false);
             response.put("message", "토큰 갱신 실패: " + e.getMessage());
@@ -214,6 +216,12 @@ public class UserController {
             }
             String token = authHeader.substring(7);
             String email = jwtProcessor.getUsername(token);
+
+            log.info("Profile 요청: email from token = {}", email);
+            if (email == null) {
+                throw new RuntimeException("토큰에서 이메일을 추출할 수 없습니다.");
+            }
+
             UserDTO user = service.getUserByEmail(email);
             Map<String, Object> response = new HashMap<>();
             response.put("success", true);
@@ -479,7 +487,19 @@ public class UserController {
         try {
             String token = authHeader.replace("Bearer ", "");
             String email = jwtProcessor.getUsername(token);
+            if (email == null) {
+                return ResponseEntity.status(401).body(Map.of(
+                        "success", false,
+                        "message", "토큰이 만료되었거나 유효하지 않습니다."
+                ));
+            }
             UserDTO user = service.getUserByEmail(email);
+            if (user == null) {
+                return ResponseEntity.status(404).body(Map.of(
+                        "success", false,
+                        "message", "사용자를 찾을 수 없습니다."
+                ));
+            }
             Integer totalPoints = pointService.getTotalPoints(UUID.fromString(user.getUserId()));
             Map<String, Object> response = new HashMap<>();
             response.put("success", true);
@@ -498,7 +518,19 @@ public class UserController {
         try {
             String token = authHeader.replace("Bearer ", "");
             String email = jwtProcessor.getUsername(token);
+            if (email == null) {
+                return ResponseEntity.status(401).body(Map.of(
+                        "success", false,
+                        "message", "토큰이 만료되었거나 유효하지 않습니다."
+                ));
+            }
             UserDTO user = service.getUserByEmail(email);
+            if (user == null) {
+                return ResponseEntity.status(404).body(Map.of(
+                        "success", false,
+                        "message", "사용자를 찾을 수 없습니다."
+                ));
+            }
             List<PointDTO> history = pointService.getPointHistory(UUID.fromString(user.getUserId()));
             Map<String, Object> response = new HashMap<>();
             response.put("success", true);

@@ -4,40 +4,37 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.ibatis.session.SqlSessionFactory;
 import org.mybatis.spring.SqlSessionFactoryBean;
 import org.mybatis.spring.annotation.MapperScan;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.EnableAspectJAutoProxy;
-import org.springframework.context.annotation.PropertySource;
+import org.springframework.context.annotation.*;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.web.client.RestTemplate;
 import javax.annotation.PreDestroy;
 import javax.sql.DataSource;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 @Configuration
 @PropertySource({"classpath:/application.properties"})
-@Slf4j
 @EnableTransactionManagement
-@ComponentScan(basePackages = {"org.ozea"})
-@MapperScan(basePackages = {"org.ozea.user.mapper", "org.ozea.goal.mapper",
-        "org.ozea.inquiry.mapper", "org.ozea.asset.mapper","org.ozea.notice.mapper",
-        "org.ozea.point.mapper", "org.ozea.bank.mapper", "org.ozea.product.mapper",
-        "org.ozea.term.mapper", "org.ozea.quiz.mapper", "org.ozea.api.allaccount.mapper",
-        "org.ozea.api.taxkakaoouth.mapper","org.ozea.taxinfo.mapper"
-})
 @EnableAspectJAutoProxy
 @EnableScheduling
+@MapperScan(basePackages = {
+        "org.ozea.user.mapper","org.ozea.goal.mapper","org.ozea.inquiry.mapper",
+        "org.ozea.asset.mapper","org.ozea.notice.mapper","org.ozea.point.mapper",
+        "org.ozea.bank.mapper","org.ozea.product.mapper","org.ozea.term.mapper",
+        "org.ozea.quiz.mapper","org.ozea.api.allaccount.mapper" , "org.ozea.api.taxkakaoouth.mapper",
+        "org.ozea.taxinfo.mapper"
+})
+@ComponentScan(
+        basePackages = "org.ozea",
+        excludeFilters = @ComponentScan.Filter(org.springframework.stereotype.Controller.class)
+)
+@Import({RedisConfig.class})
 public class RootConfig {
     @Value("${jdbc.driver}") String driver;
     @Value("${jdbc.url}") String url;
@@ -61,6 +58,7 @@ public class RootConfig {
     }
     @Autowired
     ApplicationContext applicationContext;
+
     @Bean
     public SqlSessionFactory sqlSessionFactory() throws Exception {
         SqlSessionFactoryBean sqlSessionFactory = new SqlSessionFactoryBean();
@@ -73,17 +71,26 @@ public class RootConfig {
     public DataSourceTransactionManager transactionManager(DataSource dataSource) {
         return new DataSourceTransactionManager(dataSource);
     }
+
+    @Primary
     @Bean
     public ObjectMapper objectMapper() {
-        ObjectMapper objectMapper = new ObjectMapper();
-        JavaTimeModule javaTimeModule = new JavaTimeModule();
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss");
-        javaTimeModule.addSerializer(LocalDateTime.class, new LocalDateTimeSerializer(formatter));
-        javaTimeModule.addDeserializer(LocalDateTime.class,
-            new com.fasterxml.jackson.datatype.jsr310.deser.LocalDateTimeDeserializer(formatter));
-        objectMapper.registerModule(javaTimeModule);
-        objectMapper.disable(com.fasterxml.jackson.databind.SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
-        return objectMapper;
+        ObjectMapper mapper = new ObjectMapper();
+
+        JavaTimeModule javaTime = new JavaTimeModule();
+
+        DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss");
+        javaTime.addSerializer(java.time.LocalDateTime.class, new LocalDateTimeSerializer(dtf));
+        javaTime.addDeserializer(java.time.LocalDateTime.class,
+                new com.fasterxml.jackson.datatype.jsr310.deser.LocalDateTimeDeserializer(dtf));
+
+        java.time.format.DateTimeFormatter df = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+        javaTime.addSerializer(java.time.LocalDate.class, new com.fasterxml.jackson.datatype.jsr310.ser.LocalDateSerializer(df));
+        javaTime.addDeserializer(java.time.LocalDate.class, new com.fasterxml.jackson.datatype.jsr310.deser.LocalDateDeserializer(df));
+
+        mapper.registerModule(javaTime);
+        mapper.disable(com.fasterxml.jackson.databind.SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+        return mapper;
     }
     @Bean
     public RestTemplate restTemplate() {

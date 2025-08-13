@@ -6,6 +6,7 @@ import org.ozea.goal.dto.request.GoalUpdateRequestDto;
 import org.ozea.goal.dto.request.LinkAccountRequestDto;
 import org.ozea.goal.dto.response.*;
 import org.ozea.goal.service.GoalService;
+import org.ozea.security.account.domain.CustomUser;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -18,6 +19,17 @@ import java.util.UUID;
 public class GoalController {
     @Autowired
     private GoalService goalService;
+
+    @PostMapping("/{goalId}/claim-reward")
+    @ApiOperation(value = "목표 달성 보상 지급",
+            notes = "기간 종료 && 목표금액 100% 달성 시 1회 포인트 지급")
+    public ResponseEntity<ClaimRewardResponseDto> claimReward(
+            @PathVariable UUID goalId,
+            @RequestParam("userId") UUID userId // ← 명시적으로 맞춤
+    ) {
+        ClaimRewardResponseDto res = goalService.claimGoalReward(userId, goalId);
+        return ResponseEntity.ok(res);
+    }
     @GetMapping("/past")
     public ResponseEntity<List<PastGoalResponseDto>> getPastGoals(@RequestParam UUID userId) {
         List<PastGoalResponseDto> result = goalService.getPastGoals(userId);

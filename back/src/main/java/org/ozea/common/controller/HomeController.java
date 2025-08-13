@@ -8,21 +8,29 @@ import javax.servlet.http.HttpSession;
 import javax.servlet.http.HttpServletRequest;
 import org.ozea.user.mapper.UserMapper;
 import org.ozea.user.domain.User;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import java.util.Map;
+
 @Controller
 @Slf4j
 public class HomeController {
     private final UserMapper userMapper;
+
     public HomeController(UserMapper userMapper) {
         this.userMapper = userMapper;
     }
+
     @GetMapping("/")
     public String home() {
         return "index";
     }
+
     @GetMapping("/signup")
     public String showSignupPage() {
         return "signup";
     }
+
     @PostMapping("/signup")
     public String processSignup(HttpServletRequest request) {
         String name = request.getParameter("name");
@@ -44,10 +52,12 @@ public class HomeController {
         request.getSession().setAttribute("email", email);
         return "redirect:/additional-info";
     }
+
     @GetMapping("/local-login")
     public String showLocalLoginPage() {
         return "local-login";
     }
+
     @GetMapping("/main")
     public String mainPage() {
         return "main";

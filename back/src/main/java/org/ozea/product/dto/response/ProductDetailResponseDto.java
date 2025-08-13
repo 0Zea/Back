@@ -10,10 +10,11 @@ public class ProductDetailResponseDto {
     private String productName;
     private String bankName;
     private Long maxLimit;
-    private String joinWay;        // 가입방법
-    private String mtrtInt;        // 이자지급방식
-    private String spclCnd;        // 우대조건
-    private String joinMember;     // 가입대상
-    private String etcNote;        // 유의사항
+    private String joinWay;
+    private String mtrtInt;
+    private String spclCnd;
+    private String joinMember;
+    private String etcNote;
+    private String summary;
     private List<ProductOptionDto> options;
 }

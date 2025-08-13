@@ -16,6 +16,7 @@ ext {
   springVersion = '5.3.37'
   lombokVersion = '1.18.30'
   springSecurityVersion = '5.8.13'
+  log4j2Version = '2.22.1'
 }
 
 sourceCompatibility = '17'
@@ -23,116 +24,106 @@ targetCompatibility = '17'
 
 tasks.withType(JavaCompile) {
   options.encoding = 'UTF-8'
+  options.compilerArgs += ['-parameters']
 }
 
 dependencies {
-  // 스프링
-  implementation ("org.springframework:spring-context:${springVersion}")
-          { exclude group: 'commons-logging', module: 'commons-logging' }
+  // ===== Spring (MVC / TX / JDBC) =====
+  implementation ("org.springframework:spring-context:${springVersion}") {
+    exclude group: 'commons-logging', module: 'commons-logging'
+  }
   implementation "org.springframework:spring-webmvc:${springVersion}"
-  implementation 'javax.inject:javax.inject:1'
-  implementation 'javax.annotation:javax.annotation-api:1.3.2'
-
-  // AOP
-  runtimeOnly 'org.aspectj:aspectjrt:1.9.20'
-  runtimeOnly 'org.aspectj:aspectjweaver:1.9.20'
-
-  // JSP, SERVLET, JSTL
-  implementation('javax.servlet:javax.servlet-api:4.0.1')
-  compileOnly 'javax.servlet.jsp:jsp-api:2.1'
-  implementation 'javax.servlet:jstl:1.2'
-
-  // Logging
-  implementation 'org.slf4j:slf4j-api:2.0.9'
-  runtimeOnly 'org.slf4j:jcl-over-slf4j:2.0.9'
-  runtimeOnly 'org.slf4j:slf4j-log4j12:2.0.9'
-  implementation 'log4j:log4j:1.2.17'
-
-  // xml내 한글 처리
-  implementation 'xerces:xercesImpl:2.12.2'
-
-  // Lombok
-  compileOnly "org.projectlombok:lombok:${lombokVersion}"
-  annotationProcessor "org.projectlombok:lombok:${lombokVersion}"
-
-  // Jackson - Json 처리
-  implementation 'com.fasterxml.jackson.core:jackson-databind:2.9.4'
-
-  // 데이터베이스
-  implementation 'com.mysql:mysql-connector-j:8.1.0'
-  implementation 'com.zaxxer:HikariCP:2.7.4'
-
   implementation "org.springframework:spring-tx:${springVersion}"
   implementation "org.springframework:spring-jdbc:${springVersion}"
 
+  // JSR-330 / JSR-250
+  implementation 'javax.inject:javax.inject:1'
+  implementation 'javax.annotation:javax.annotation-api:1.3.2'
+
+  // ===== Servlet/JSP (WAR에선 제공 의존성) =====
+  providedCompile 'javax.servlet:javax.servlet-api:4.0.1'
+  providedCompile 'javax.servlet.jsp:jsp-api:2.1'
+  implementation 'javax.servlet:jstl:1.2'
+
+  // ===== Logging (Log4j2 + SLF4J-binding 단일화) =====
+  implementation "org.apache.logging.log4j:log4j-api:${log4j2Version}"
+  implementation "org.apache.logging.log4j:log4j-core:${log4j2Version}"
+  implementation "org.apache.logging.log4j:log4j-slf4j2-impl:${log4j2Version}"
+  implementation 'org.slf4j:slf4j-api:2.0.9'
+  // (중복/충돌 유발) jcl-over-slf4j, slf4j-log4j12 제거
+
+  // ===== DB =====
+  implementation 'com.mysql:mysql-connector-j:8.1.0'
+  implementation 'com.zaxxer:HikariCP:2.7.4'
   implementation 'org.mybatis:mybatis:3.4.6'
   implementation 'org.mybatis:mybatis-spring:1.3.2'
-
-
   implementation 'org.bgee.log4jdbc-log4j2:log4jdbc-log4j2-jdbc4:1.16'
-  implementation 'org.apache.logging.log4j:log4j-api:2.0.1'
-  implementation 'org.apache.logging.log4j:log4j-core:2.0.1'
 
-  //스웨거
+  // ===== Swagger (legacy) =====
   implementation 'io.springfox:springfox-swagger2:2.9.2'
   implementation 'io.springfox:springfox-swagger-ui:2.9.2'
 
+  // ===== JSON =====
   implementation 'org.json:json:20250517'
   implementation 'com.googlecode.json-simple:json-simple:1.1.1'
-  // 테스트
-  testImplementation "org.springframework:spring-test:${springVersion}"
+  implementation 'com.fasterxml.jackson.core:jackson-databind:2.17.2'
+  implementation 'com.fasterxml.jackson.core:jackson-annotations:2.17.2'
+  implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.17.2'
+
+  // ===== Lombok =====
+  compileOnly "org.projectlombok:lombok:${lombokVersion}"
+  annotationProcessor "org.projectlombok:lombok:${lombokVersion}"
   testCompileOnly "org.projectlombok:lombok:${lombokVersion}"
   testAnnotationProcessor "org.projectlombok:lombok:${lombokVersion}"
 
-  testImplementation("org.junit.jupiter:junit-jupiter-api:${junitVersion}")
-  testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:${junitVersion}")
-  
-  // Mockito for mocking
-  testImplementation 'org.mockito:mockito-core:5.3.1'
-  testImplementation 'org.mockito:mockito-junit-jupiter:5.3.1'
-  
-  // AssertJ for fluent assertions
-  testImplementation 'org.assertj:assertj-core:3.24.2'
-
-  //보안
+  // ===== Security =====
   implementation "org.springframework.security:spring-security-web:${springSecurityVersion}"
   implementation "org.springframework.security:spring-security-config:${springSecurityVersion}"
   implementation "org.springframework.security:spring-security-core:${springSecurityVersion}"
   implementation "org.springframework.security:spring-security-taglibs:${springSecurityVersion}"
 
-  //Apache HttpClient
-  implementation 'org.apache.httpcomponents:httpclient:4.5.13'
-
-  // JWT (JJWT) 관련 의존성
-  implementation("io.jsonwebtoken:jjwt-api:0.11.5")
-  runtimeOnly("io.jsonwebtoken:jjwt-impl:0.11.5")
-  implementation("io.jsonwebtoken:jjwt-jackson:0.11.5")
-
-  // LocalDate를 JSON으로 변환할 수 있도록 jackson-datatype-jsr310 라이브러리를 등록
-  implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
-
-  // Redis Cache
-  implementation 'org.springframework.data:spring-data-redis:2.7.18'
-  implementation 'redis.clients:jedis:4.3.1'
-
-  // AOP (AspectJ)
+  // ===== AOP =====
   implementation 'org.aspectj:aspectjrt:1.9.20'
   implementation 'org.aspectj:aspectjweaver:1.9.20'
-
-  // Spring Legacy용 모니터링 (Micrometer 대신)
   implementation 'org.springframework:spring-aop:5.3.37'
 
-  // JavaMail
+  // ===== Mail =====
   implementation 'org.springframework:spring-context-support:5.3.37'
   implementation 'javax.mail:javax.mail-api:1.6.2'
   implementation 'com.sun.mail:javax.mail:1.6.2'
   implementation 'javax.activation:activation:1.1.1'
 
+  // ===== Redis =====
+  implementation 'org.springframework.data:spring-data-redis:2.7.18'
+  implementation 'redis.clients:jedis:3.8.0'
+  implementation 'org.apache.commons:commons-pool2:2.12.0'
 
+  // ===== JWT =====
+  implementation 'io.jsonwebtoken:jjwt-api:0.11.5'
+  runtimeOnly   'io.jsonwebtoken:jjwt-impl:0.11.5'
+  runtimeOnly   'io.jsonwebtoken:jjwt-jackson:0.11.5'
+
+  // ===== HTTP Client (하나만 사용: 4.x) =====
+  implementation 'org.apache.httpcomponents:httpclient:4.5.13'
+
+  // ===== 테스트 =====
+  testImplementation "org.springframework:spring-test:${springVersion}"
+  testImplementation "org.junit.jupiter:junit-jupiter-api:${junitVersion}"
+  testRuntimeOnly   "org.junit.jupiter:junit-jupiter-engine:${junitVersion}"
+  testImplementation 'org.mockito:mockito-core:5.3.1'
+  testImplementation 'org.mockito:mockito-junit-jupiter:5.3.1'
+  testImplementation 'org.assertj:assertj-core:3.24.2'
+
+  implementation 'org.apache.httpcomponents.core5:httpcore5:5.2.1'
 }
-
 
 test {
   useJUnitPlatform()
 }
 
+configurations.all {
+  resolutionStrategy {
+    force 'redis.clients:jedis:3.8.0'
+    force 'org.springframework.data:spring-data-redis:2.7.18'
+  }
+}

@@ -42,7 +42,7 @@ public class QuizServiceImpl implements QuizService {
             throw new RuntimeException("존재하지 않는 퀴즈입니다. ID: " + request.getQuiz_id());
         }
         boolean isCorrect = quiz.toVO().isCorrectAnswer(request.getUser_answer());
-        quizMapper.saveUserQuizResult(userId, request.getQuiz_id(), isCorrect);
+        quizMapper.saveUserQuizResult(userId, request.getQuiz_id(), isCorrect, quiz.getExplanation());
         // 정답인 경우 포인트 지급
         if (isCorrect) {
             try {

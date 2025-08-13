@@ -12,4 +12,5 @@ public interface ProductService {
     int getTotalProductCount();
     ProductDetailResponseDto getProductDetail(String finPrdtCd);
     List<ProductListResponseDto> filterProducts(ProductFilterRequestDto filterDto);
+    String refreshAndSaveSummary(String finPrdtCd);
 }

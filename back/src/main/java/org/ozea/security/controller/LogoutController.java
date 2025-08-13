@@ -75,7 +75,7 @@ public class LogoutController {
             if (username == null) {
                 return ResponseEntity.badRequest().body(ApiResponse.error("유효하지 않은 토큰입니다."));
             }
-            // TODO: Redis 블랙리스트에 사용자 토큰 추가 구현 필요
+            // 현재는 블랙리스트 기능 미구현
             log.info("🔄 모든 세션 로그아웃 - 사용자: {}", username);
             logFileWriter.writeApiLog("/api/auth/logout/all", "모든 세션 로그아웃 - 사용자: " + username);
             Map<String, Object> logoutData = new HashMap<>();

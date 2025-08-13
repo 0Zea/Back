@@ -21,7 +21,7 @@ import java.nio.charset.StandardCharsets;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
-import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 public class AllAccountService {
@@ -33,11 +33,8 @@ public class AllAccountService {
         if (request == null) {
             throw new RuntimeException("DB에서 계정 정보를 찾을 수 없습니다.");
         }
-        // 2. CODEF 계정 등록 API URL
         String createUrl = "https://development.codef.io/v1/account/create";
-        // 3. CODEF 토큰 발급
         String token = RequestToken.getToken(CommonConstant.CLIENT_ID, CommonConstant.SECERET_KEY);
-        // 4. 계정 생성 요청 Body
         String body = String.format("""
             {
               "accountList": [
@@ -61,21 +58,17 @@ public class AllAccountService {
                 request.getId(),
                 RSAUtil.encryptRSA(request.getPassword(), CommonConstant.PUBLIC_KEY)
         );
-        // 5. 요청 헤더
         HttpHeaders headers = new HttpHeaders();
         headers.setBearerAuth(token);
         headers.setContentType(new MediaType("application", "json", StandardCharsets.UTF_8));
         RestTemplate restTemplate = new RestTemplate();
         HttpEntity<String> entity = new HttpEntity<>(body, headers);
-        // 6. 계정 생성 API 호출
         ResponseEntity<String> createResponse = restTemplate.exchange(createUrl, HttpMethod.POST, entity, String.class);
         String decodedCreateResponse = URLDecoder.decode(createResponse.getBody(), StandardCharsets.UTF_8);
-        // 7. connectedId 추출
         String connectedId = extractConnectedId(decodedCreateResponse);
         if (connectedId == null) {
             throw new RuntimeException("connectedId 추출 실패");
         }
-        // 8. 계좌 조회 API 호출
         String accountListUrl = "https://development.codef.io/v1/kr/bank/p/account/list";
         String accountListBody = String.format("""
             {
@@ -88,9 +81,6 @@ public class AllAccountService {
         String decodedAccountListResponse = URLDecoder.decode(accountListResponse.getBody(), StandardCharsets.UTF_8);
         return decodedAccountListResponse;
     }
-    /**
-     * connectedId 추출 메서드
-     */
     private String extractConnectedId(String jsonResponse) {
         try {
             JSONParser parser = new JSONParser();
@@ -104,22 +94,15 @@ public class AllAccountService {
         }
         return null;
     }
-    /**
-     * yeomsky95 사용자의 자산 정보를 가져오는 메서드
-     */
     public String getYeomsky95Assets() throws IOException,
             NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException,
             InvalidKeySpecException, BadPaddingException, InvalidKeyException, InterruptedException, ParseException {
-        // 1. DB에서 yeomsky95 계정 정보 조회
         AllAccountReqDto request = allAccountMapper.getYeomsky95AccountInfo();
         if (request == null) {
             throw new RuntimeException("yeomsky95 계정 정보를 찾을 수 없습니다.");
         }
-        // 2. CODEF 계정 등록 API URL
         String createUrl = "https://development.codef.io/v1/account/create";
-        // 3. CODEF 토큰 발급
         String token = RequestToken.getToken(CommonConstant.CLIENT_ID, CommonConstant.SECERET_KEY);
-        // 4. 계정 생성 요청 Body
         String body = String.format("""
             {
               "accountList": [
@@ -143,21 +126,17 @@ public class AllAccountService {
                 request.getId(),
                 RSAUtil.encryptRSA(request.getPassword(), CommonConstant.PUBLIC_KEY)
         );
-        // 5. 요청 헤더
         HttpHeaders headers = new HttpHeaders();
         headers.setBearerAuth(token);
         headers.setContentType(new MediaType("application", "json", StandardCharsets.UTF_8));
         RestTemplate restTemplate = new RestTemplate();
         HttpEntity<String> entity = new HttpEntity<>(body, headers);
-        // 6. 계정 생성 API 호출
         ResponseEntity<String> createResponse = restTemplate.exchange(createUrl, HttpMethod.POST, entity, String.class);
         String decodedCreateResponse = URLDecoder.decode(createResponse.getBody(), StandardCharsets.UTF_8);
-        // 7. connectedId 추출
         String connectedId = extractConnectedId(decodedCreateResponse);
         if (connectedId == null) {
             throw new RuntimeException("connectedId 추출 실패");
         }
-        // 8. 계좌 조회 API 호출
         String accountListUrl = "https://development.codef.io/v1/kr/bank/p/account/list";
         String accountListBody = String.format("""
             {
