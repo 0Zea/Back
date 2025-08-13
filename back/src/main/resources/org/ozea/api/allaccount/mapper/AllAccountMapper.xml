@@ -2,15 +2,44 @@
 <!DOCTYPE mapper
         PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<!-- src/main/resources/mappers/AllAccountMapper.xml -->
 <mapper namespace="org.ozea.api.allaccount.mapper.AllAccountMapper">
 
-    <select id="getAccountInfo"
-            parameterType="java.lang.String"
-            resultType="org.ozea.api.allaccount.dto.response.AllAccountResDto">
-        SELECT *
+    <!-- 사용자 ID로 계정 정보 조회 -->
+    <select id="getUserAccountInfo"
+            parameterType="string"
+            resultType="org.ozea.api.allaccount.dto.request.AllAccountReqDto">
+        SELECT countrycode      as countryCode,
+               businesstype     as businessType,
+               clienttype       as clientType,
+               organization     as organization,
+               logintype        as loginType,
+               account_id       as id,
+               account_password as password
         FROM useraccount
-        WHERE account_id = #{accountId}
+        WHERE user_id = UNHEX(REPLACE(#{userId}, '-', ''))
+        LIMIT 1
     </select>
+
+    <!-- 계좌 정보 UPSERT (중복 시 업데이트, 없으면 삽입) -->
+    <insert id="upsertBankAccount"
+            parameterType="org.ozea.asset.domain.BankAccountVO">
+        INSERT INTO BankAccount (
+            user_id,
+            bank_name,
+            account_num,
+            account_type,
+            balance
+        ) VALUES (
+            #{userId},
+            #{bankName},
+            #{accountNum},
+            #{accountType},
+            #{balance}
+        )
+        ON DUPLICATE KEY UPDATE
+            bank_name = VALUES(bank_name),
+            account_type = VALUES(account_type),
+            balance = VALUES(balance)
+    </insert>
 
 </mapper>
