@@ -267,7 +267,7 @@ public class UserServiceImpl implements UserService {
             } catch (Exception e) {
                 log.warn("목표 정보 삭제 실패: {}", e.getMessage());
             }
-            mapper.deleteUserData(userId);
+            mapper.deleteUser(userId);
             evictUserCaches(user);
             return true;
         } catch (Exception e) {
@@ -275,9 +275,6 @@ public class UserServiceImpl implements UserService {
             throw new RuntimeException("회원 탈퇴 처리 중 오류가 발생했습니다: " + e.getMessage());
         }
     }
-
-    // ====== 인증/검증(이메일 코드) ======
-
     @Override
     public boolean checkEmail(String email) {
         return mapper.checkEmail(email);

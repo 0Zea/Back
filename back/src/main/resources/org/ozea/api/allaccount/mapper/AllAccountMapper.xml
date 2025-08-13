@@ -2,37 +2,42 @@
 <!DOCTYPE mapper
         PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-
 <mapper namespace="org.ozea.api.allaccount.mapper.AllAccountMapper">
-    <select id="getAccountInfo"
+
+    <select id="getUserAccountInfo"
+            parameterType="string"
             resultType="org.ozea.api.allaccount.dto.request.AllAccountReqDto">
-        SELECT
-            country_code   AS countryCode,
-            business_type  AS businessType,
-            client_type    AS clientType,
-            organization   AS organization,
-            login_type     AS loginType,
-            user_id        AS id,
-            user_password  AS password
+        SELECT countrycode      as countryCode,
+               businesstype     as businessType,
+               clienttype       as clientType,
+               organization     as organization,
+               logintype        as loginType,
+               account_id       as id,
+               account_password as password
         FROM useraccount
-        ORDER BY updated_at DESC
-            LIMIT 1
+        WHERE user_id = UNHEX(REPLACE(#{userId}, '-', ''))
+        LIMIT 1
     </select>
 
-    <select id="getYeomsky95AccountInfo"
-            resultType="org.ozea.api.allaccount.dto.request.AllAccountReqDto">
-        SELECT
-            country_code   AS countryCode,
-            business_type  AS businessType,
-            client_type    AS clientType,
-            organization   AS organization,
-            login_type     AS loginType,
-            user_id        AS id,
-            user_password  AS password
-        FROM useraccount
-        WHERE alias = 'yeomsky95'
-        ORDER BY updated_at DESC
-            LIMIT 1
-    </select>
+    <insert id="upsertBankAccount"
+            parameterType="org.ozea.asset.domain.BankAccountVO">
+        INSERT INTO BankAccount (
+            user_id,
+            bank_name,
+            account_num,
+            account_type,
+            balance
+        ) VALUES (
+            #{userId},
+            #{bankName},
+            #{accountNum},
+            #{accountType},
+            #{balance}
+        )
+        ON DUPLICATE KEY UPDATE
+            bank_name = VALUES(bank_name),
+            account_type = VALUES(account_type),
+            balance = VALUES(balance)
+    </insert>
 
 </mapper>

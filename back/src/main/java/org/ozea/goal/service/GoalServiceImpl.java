@@ -8,6 +8,8 @@ import org.ozea.goal.mapper.GoalMapper;
 import org.ozea.user.mapper.UserMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.Period;
@@ -146,5 +148,23 @@ public class GoalServiceImpl implements GoalService {
         if (updated == 0) {
             throw new IllegalArgumentException("해당 목표가 존재하지 않거나 권한이 없습니다.");
         }
+    }
+    @Override
+    @Transactional
+    public ClaimRewardResponseDto claimGoalReward(UUID userId, UUID goalId) {
+        int inserted = goalMapper.claimGoalAchieveReward(userId, goalId);
+        if (inserted == 1) {
+            Integer pts = goalMapper.calcGoalRewardPoints(userId, goalId);
+            return new ClaimRewardResponseDto(
+                    ClaimRewardResponseDto.Status.REWARDED,
+                    pts != null ? pts : 0
+            );
+        }
+        boolean already = goalMapper.existsGoalRewardPoint(userId, goalId);
+        return new ClaimRewardResponseDto(
+                already ? ClaimRewardResponseDto.Status.ALREADY_REWARDED
+                        : ClaimRewardResponseDto.Status.NOT_ELIGIBLE,
+                null
+        );
     }
 }

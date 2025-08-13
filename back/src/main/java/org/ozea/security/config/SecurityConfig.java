@@ -4,10 +4,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.ozea.security.filter.AuthenticationErrorFilter;
 import org.ozea.security.filter.JwtAuthenticationFilter;
+import org.ozea.security.filter.JwtUsernamePasswordAuthenticationFilter;
 import org.ozea.security.handler.LoginFailureHandler;
 import org.ozea.security.handler.LoginSuccessHandler;
 import org.ozea.security.service.CustomUserDetailsService;
-import org.ozea.security.filter.JwtUsernamePasswordAuthenticationFilter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -42,6 +42,27 @@ public class SecurityConfig {
     private final LoginFailureHandler loginFailureHandler;
     private final ObjectMapper objectMapper;
 
+    /**
+     * 전역 공개 경로 – 필터/인가 규칙이 동일하게 참조하도록 상수화
+     */
+    public static final String[] PUBLIC_ENDPOINTS = {
+            "/api/auth/login",
+            "/api/auth/signup",
+            "/api/auth/refresh-token",         // 혹시 기존 프론트가 이 경로도 쓰면 대비
+            "/api/auth/kakao/callback",
+            "/api/auth/kakao/callback/test",
+            "/api/auth/token/refresh",
+            "/api/auth/token/validate",
+            "/api/auth/token/info",
+            "/api/monitoring/health",
+            "/api/monitoring/metrics",
+            "/api/monitoring/info",
+            "/error",
+            "/favicon.ico",
+            "/swagger-ui/**",
+            "/v3/api-docs/**"
+    };
+
     @Value("${app.cors.allowed-origins:http://localhost:5173}")
     private List<String> allowedOrigins;
 
@@ -65,17 +86,19 @@ public class SecurityConfig {
 
     @Bean
     public JwtUsernamePasswordAuthenticationFilter jsonLoginFilter(AuthenticationManager authenticationManager) {
-        JwtUsernamePasswordAuthenticationFilter f =
-                new JwtUsernamePasswordAuthenticationFilter(authenticationManager, loginSuccessHandler, loginFailureHandler, objectMapper);
-        return f;
+        return new JwtUsernamePasswordAuthenticationFilter(
+                authenticationManager, loginSuccessHandler, loginFailureHandler, objectMapper
+        );
     }
 
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration c = new CorsConfiguration();
 
+        // ★ 와일드카드 + credentials=TRUE 금지. 반드시 명시적 Origin만 허용
         if (allowedOrigins == null || allowedOrigins.isEmpty()) {
-            c.setAllowedOriginPatterns(List.of("*"));
+            // 안전한 기본값(로컬만 허용)
+            c.setAllowedOrigins(List.of("http://localhost:5173"));
         } else {
             c.setAllowedOrigins(allowedOrigins);
         }
@@ -95,7 +118,7 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 
         http
-                .csrf(csrf -> csrf.disable()) // Stateless + JWT
+                .csrf(csrf -> csrf.disable())
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .httpBasic(b -> b.disable())
                 .formLogin(f -> f.disable())
@@ -124,20 +147,7 @@ public class SecurityConfig {
                 )
                 .cors(Customizer.withDefaults())
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers(
-                                "/api/auth/login",
-                                "/api/auth/signup",
-                                "/api/auth/kakao/callback",
-                                "/api/auth/kakao/callback/test",
-                                "/api/auth/refresh-token",
-                                "/api/monitoring/health",
-                                "/api/monitoring/metrics",
-                                "/api/monitoring/info",
-                                "/error",
-                                "/favicon.ico",
-                                "/swagger-ui/**",
-                                "/v3/api-docs/**"
-                        ).permitAll()
+                        .requestMatchers(PUBLIC_ENDPOINTS).permitAll()
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers("/api/admin/**", "/api/monitoring/admin/**").hasRole("ADMIN")
                         .requestMatchers(
@@ -154,12 +164,12 @@ public class SecurityConfig {
                         .anyRequest().authenticated()
                 );
 
+        // 필터 순서: Error → JsonLogin → JWT
         http.addFilterBefore(authenticationErrorFilter, UsernamePasswordAuthenticationFilter.class);
         http.addFilterAt(
                 jsonLoginFilter(authenticationManager(http.getSharedObject(AuthenticationConfiguration.class))),
                 UsernamePasswordAuthenticationFilter.class
         );
-
         http.addFilterAfter(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         http.authenticationProvider(daoAuthenticationProvider());

@@ -2,9 +2,10 @@ package org.ozea.api.allaccount.mapper;
 
 import org.apache.ibatis.annotations.Mapper;
 import org.ozea.api.allaccount.dto.request.AllAccountReqDto;
+import org.ozea.asset.domain.BankAccountVO;
 
 @Mapper
 public interface AllAccountMapper {
-    AllAccountReqDto getAccountInfo();
-    AllAccountReqDto getYeomsky95AccountInfo();
+    AllAccountReqDto getUserAccountInfo(String userId);
+    int upsertBankAccount(BankAccountVO bankAccount);
 }
