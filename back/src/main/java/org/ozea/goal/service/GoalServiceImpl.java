@@ -25,13 +25,33 @@ public class GoalServiceImpl implements GoalService {
     private GoalMapper goalMapper;
     @Autowired
     private UserMapper userMapper;
+
     @Override
     public RecommendNextGoalDto recommendNextGoal(UUID userId) {
         List<PastGoalResponseDto> pastGoals = getPastGoals(userId);
+
         if (pastGoals.isEmpty()) {
-            throw new IllegalStateException("지난 목표가 없습니다.");
+            Long monthlyNet = goalMapper.findPayAmountByUserId(userId);
+            LocalDate now = LocalDate.now();
+            LocalDate oneYearEnd = now.plusYears(1).minusDays(1);
+            if (monthlyNet == null || monthlyNet <= 0) {
+                return new RecommendNextGoalDto(
+                        0L,
+                        now,
+                        oneYearEnd,
+                        "지난 목표가 없고 월순수익이 미입력입니다. 입력하면 자동 계산해 드려요."
+                );
+            }
+            long saveMonthly = monthlyNet / 2;
+            long target = saveMonthly * 12;
+            return new RecommendNextGoalDto(
+                    target,
+                    now,
+                    oneYearEnd,
+                    "당신에게 딱 맞는 목표를 추천했어요."
+            );
         }
-        PastGoalResponseDto recent = pastGoals.get(0); // 가장 최근 목표
+        PastGoalResponseDto recent = pastGoals.get(0);
         boolean isSuccess = recent.isSuccess();
         long originalAmount = recent.getTargetAmount();
         LocalDate now = LocalDate.now();

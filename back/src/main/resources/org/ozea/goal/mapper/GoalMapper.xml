@@ -5,6 +5,12 @@
 
 <mapper namespace="org.ozea.goal.mapper.GoalMapper">
 
+    <select id="findPayAmountByUserId" resultType="long">
+        SELECT GREATEST(IFNULL(salary, 0) - IFNULL(pay_amount, 0), 0) AS monthly_net
+        FROM user
+        WHERE user_id = #{userId, jdbcType=BINARY, javaType=java.util.UUID}
+    </select>
+
     <insert id="claimGoalAchieveReward">
         INSERT INTO point (
             point_id, user_id, goal_id, point_amount, type, type_detail, total_amount, created_at
@@ -40,7 +46,6 @@
         )
     </insert>
 
-
     <!-- 이미 지급 여부 -->
     <select id="existsGoalRewardPoint" resultType="boolean">
         SELECT EXISTS(
@@ -52,7 +57,6 @@
         )
     </select>
 
-    <!-- 응답용 포인트 계산 -->
     <select id="calcGoalRewardPoints" resultType="int">
         SELECT FLOOR(g.target_amount * 0.001)
         FROM goal g
@@ -165,8 +169,6 @@
         WHERE goal_id = #{goalId, jdbcType=BINARY, javaType=java.util.UUID}
     </delete>
 
-
-    <!-- 기존 쿼리 교체 -->
     <select id="findAllByUserId" resultType="org.ozea.goal.domain.Goal">
         SELECT
         g.goal_id,
@@ -188,6 +190,7 @@
         g.start_date, g.end_date, g.status, g.deposit_date
         ORDER BY g.start_date DESC
     </select>
+
     <select id="findByGoalId" resultType="org.ozea.goal.domain.Goal">
         SELECT *
         FROM goal
