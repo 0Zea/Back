@@ -5,6 +5,9 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
+import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.ibatis.session.SqlSessionFactory;
 import org.mybatis.spring.SqlSessionFactoryBean;
 import org.mybatis.spring.annotation.MapperScan;
@@ -16,23 +19,18 @@ import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.web.client.RestTemplate;
-
-// ↓ RestTemplate용 Apache HTTP 클라이언트
-import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClients;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 
 import javax.annotation.PreDestroy;
 import javax.sql.DataSource;
 import java.time.format.DateTimeFormatter;
-import java.time.Duration;
 import java.util.Properties;
+import java.util.concurrent.TimeUnit;
 
 @Configuration
 @PropertySource({"classpath:/application.properties"})
-@EnableTransactionManagement
-@EnableAspectJAutoProxy
+@EnableTransactionManagement(proxyTargetClass = true)
+@EnableAspectJAutoProxy(proxyTargetClass = true)
 @EnableScheduling
 @MapperScan(basePackages = {
         "org.ozea.user.mapper","org.ozea.goal.mapper","org.ozea.inquiry.mapper",
@@ -52,6 +50,8 @@ public class RootConfig {
     @Value("${jdbc.url}") String url;
     @Value("${jdbc.username}") String username;
     @Value("${jdbc.password}") String password;
+    private PoolingHttpClientConnectionManager cm;
+    private CloseableHttpClient httpClient;
 
     @Bean
     public DataSource dataSource() {
@@ -123,17 +123,19 @@ public class RootConfig {
     // --- RestTemplate: 타임아웃 + 커넥션풀 적용 ---
     @Bean
     public RestTemplate restTemplate() {
-        PoolingHttpClientConnectionManager cm = new PoolingHttpClientConnectionManager();
+        cm = new PoolingHttpClientConnectionManager();
         cm.setMaxTotal(100);
         cm.setDefaultMaxPerRoute(20);
 
-        CloseableHttpClient httpClient = HttpClients.custom()
+        httpClient = HttpClients.custom()
                 .setConnectionManager(cm)
-                .evictIdleConnections(30, java.util.concurrent.TimeUnit.SECONDS)
+                .evictIdleConnections(30, TimeUnit.SECONDS)
                 .disableCookieManagement()
                 .build();
 
-        HttpComponentsClientHttpRequestFactory factory = new HttpComponentsClientHttpRequestFactory(httpClient);
+        HttpComponentsClientHttpRequestFactory factory =
+                new HttpComponentsClientHttpRequestFactory(httpClient);
+
         factory.setConnectTimeout(5_000);
         factory.setReadTimeout(10_000);
         factory.setConnectionRequestTimeout(3_000);
@@ -143,6 +145,12 @@ public class RootConfig {
 
     @PreDestroy
     public void cleanup() {
+        try {
+            if (httpClient != null) httpClient.close();
+        } catch (Exception ignore) {}
+        try {
+            if (cm != null) cm.close();
+        } catch (Exception ignore) {}
         try {
             Class.forName("com.mysql.cj.jdbc.AbandonedConnectionCleanupThread");
             java.lang.reflect.Method method = Class.forName("com.mysql.cj.jdbc.AbandonedConnectionCleanupThread")

@@ -4,7 +4,7 @@
 
 <mapper namespace="org.ozea.user.mapper.UserMapper">
 
-    <!-- 테이블명은 예약어 충돌 방지를 위해 백틱으로 감싸줍니다 -->
+    <!-- 공통 컬럼 목록 -->
     <sql id="baseColumns">
         user_id,
         name,
@@ -31,7 +31,7 @@
         SELECT
         <include refid="baseColumns"/>
         FROM `USER`
-        WHERE email = #{email}
+        WHERE email = #{email, jdbcType=VARCHAR}
     </select>
 
     <insert id="insertUser" parameterType="org.ozea.user.domain.User">
@@ -74,40 +74,55 @@
 
     <update id="updateUser" parameterType="org.ozea.user.domain.User">
         UPDATE `USER`
-        SET name = #{name},
-            password = #{password},
-            phone_num = #{phoneNum},
-            mbti = #{mbti},
-            birth_date = #{birthDate},
-            sex = #{sex},
-            salary = #{salary},
-            pay_amount = #{payAmount},
-            role = #{role},
-            kakao_access_token = #{kakaoAccessToken}
+        SET name = #{name, jdbcType=VARCHAR},
+            password = #{password, jdbcType=VARCHAR},
+            phone_num = #{phoneNum, jdbcType=VARCHAR},
+            mbti = #{mbti, jdbcType=VARCHAR},
+            birth_date = #{birthDate, jdbcType=DATE},
+            sex = #{sex, jdbcType=VARCHAR},
+            salary = #{salary, jdbcType=BIGINT},
+            pay_amount = #{payAmount, jdbcType=BIGINT},
+            role = #{role, jdbcType=VARCHAR},
+            kakao_access_token = #{kakaoAccessToken, jdbcType=VARCHAR}
         WHERE user_id = #{userId, jdbcType=BINARY, javaType=java.util.UUID}
     </update>
 
-    <select id="checkEmail" resultType="boolean">
-        SELECT COUNT(*) > 0 FROM users  WHERE email = #{email}
+    <!-- ✅ 카카오 토큰만 갱신 -->
+    <update id="updateKakaoAccessToken">
+        UPDATE `USER`
+        SET kakao_access_token = #{kakaoAccessToken, jdbcType=VARCHAR}
+        WHERE email = #{email, jdbcType=VARCHAR}
+    </update>
+
+    <!-- ✅ 이메일 존재 여부: 잘못된 테이블명(users) → USER로 수정, 파라미터 타입/바인딩 명시 -->
+    <select id="checkEmail" parameterType="java.lang.String" resultType="boolean">
+        SELECT EXISTS(
+            SELECT 1 FROM `USER` WHERE email = #{email, jdbcType=VARCHAR}
+        )
     </select>
 
     <delete id="deleteUser" parameterType="java.util.UUID">
-        DELETE FROM `USER` WHERE user_id = #{userId, jdbcType=BINARY, javaType=java.util.UUID}
+        DELETE FROM `USER`
+        WHERE user_id = #{userId, jdbcType=BINARY, javaType=java.util.UUID}
     </delete>
 
     <delete id="deleteUserPoints" parameterType="java.util.UUID">
-        DELETE FROM `Point` WHERE user_id = #{userId, jdbcType=BINARY, javaType=java.util.UUID}
+        DELETE FROM `Point`
+        WHERE user_id = #{userId, jdbcType=BINARY, javaType=java.util.UUID}
     </delete>
 
     <delete id="deleteUserGoals" parameterType="java.util.UUID">
-        DELETE FROM `Goal` WHERE user_id = #{userId, jdbcType=BINARY, javaType=java.util.UUID}
+        DELETE FROM `Goal`
+        WHERE user_id = #{userId, jdbcType=BINARY, javaType=java.util.UUID}
     </delete>
 
     <delete id="deleteUserInquiries" parameterType="java.util.UUID">
-        DELETE FROM `Inquiry` WHERE user_id = #{userId, jdbcType=BINARY, javaType=java.util.UUID}
+        DELETE FROM `Inquiry`
+        WHERE user_id = #{userId, jdbcType=BINARY, javaType=java.util.UUID}
     </delete>
 
     <delete id="deleteUserQuiz" parameterType="java.util.UUID">
-        DELETE FROM `UserQuiz` WHERE user_id = #{userId, jdbcType=BINARY, javaType=java.util.UUID}
+        DELETE FROM `UserQuiz`
+        WHERE user_id = #{userId, jdbcType=BINARY, javaType=java.util.UUID}
     </delete>
 </mapper>

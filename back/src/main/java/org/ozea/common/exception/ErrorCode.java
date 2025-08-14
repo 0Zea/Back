@@ -1,6 +1,8 @@
 package org.ozea.common.exception;
+
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+
 @Getter
 @RequiredArgsConstructor
 public enum ErrorCode {
@@ -30,7 +32,9 @@ public enum ErrorCode {
     EXTERNAL_API_ERROR("S002", "외부 API 호출 중 오류가 발생했습니다."),
     INVALID_INPUT("C001", "입력값이 유효하지 않습니다."),
     DATABASE_ERROR("S003", "데이터베이스 오류가 발생했습니다."),
-    TOO_MANY_REQUESTS("C002", "너무 많은 요청입니다.");
+    TOO_MANY_REQUESTS("C002", "너무 많은 요청입니다."), BAD_REQUEST("G001", "오류 발생"),
+    DATA_INTEGRITY_ERROR("G002", "데이터 오류"),
+    FORBIDDEN("G003", "접근권한 없음");
     private final String code;
     private final String message;
 

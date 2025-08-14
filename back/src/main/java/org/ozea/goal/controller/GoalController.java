@@ -1,12 +1,11 @@
 package org.ozea.goal.controller;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.ozea.goal.dto.request.GoalCreateRequestDto;
 import org.ozea.goal.dto.request.GoalUpdateRequestDto;
 import org.ozea.goal.dto.request.LinkAccountRequestDto;
 import org.ozea.goal.dto.response.*;
 import org.ozea.goal.service.GoalService;
-import org.ozea.security.account.domain.CustomUser;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -15,14 +14,14 @@ import java.util.Map;
 import java.util.UUID;
 @RestController
 @RequestMapping("/api/goal")
-@Api (tags = "Goal")
+@Tag(name = "Goal")
 public class GoalController {
     @Autowired
     private GoalService goalService;
 
     @PostMapping("/{goalId}/claim-reward")
-    @ApiOperation(value = "목표 달성 보상 지급",
-            notes = "기간 종료 && 목표금액 100% 달성 시 1회 포인트 지급")
+    @Operation(summary = "목표 달성 보상 지급",
+            description = "기간 종료 && 목표금액 100% 달성 시 1회 포인트 지급")
     public ResponseEntity<ClaimRewardResponseDto> claimReward(
             @PathVariable UUID goalId,
             @RequestParam("userId") UUID userId // ← 명시적으로 맞춤
@@ -36,25 +35,25 @@ public class GoalController {
         return ResponseEntity.ok(result);
     }
     @GetMapping("/{goalId}/recommend-products")
-    @ApiOperation(value = "금융상품 추천", notes = "목표 ID를 기반으로 금융상품을 추천합니다.")
+    @Operation(summary = "금융상품 추천", description = "목표 ID를 기반으로 금융상품을 추천합니다.")
     public ResponseEntity<List<ProductRecommendResponseDto>> recommendProducts(@PathVariable UUID goalId) {
         List<ProductRecommendResponseDto> recommendations = goalService.recommendProducts(goalId);
         return ResponseEntity.ok(recommendations);
     }
     @GetMapping("/accounts/{userId}")
-    @ApiOperation(value = "사용자 계좌 목록 조회", notes = "사용자의 보유 계좌를 조회합니다.")
+    @Operation(summary = "사용자 계좌 목록 조회", description = "사용자의 보유 계좌를 조회합니다.")
     public ResponseEntity<?> getAccountsByUser(@PathVariable UUID userId) {
         List<LinkedAccountDto> accounts = goalService.getAccountsByUserId(userId);
         return ResponseEntity.ok(accounts);
     }
     @DeleteMapping("/unlink/{accountId}")
-    @ApiOperation(value = "계좌 연동 해제", notes = "해당 계좌를 목표에서 연동 해제합니다.")
+    @Operation(summary = "계좌 연동 해제", description = "해당 계좌를 목표에서 연동 해제합니다.")
     public ResponseEntity<?> unlinkAccount(@PathVariable int accountId) {
         goalService.unlinkAccount(accountId);
         return ResponseEntity.ok("계좌 연동이 해제되었습니다.");
     }
     @PostMapping("/{goalId}/link-account")
-    @ApiOperation(value = "목표 계좌 연동", notes = "사용자의 목표에 계좌를 연동합니다.")
+    @Operation(summary = "목표 계좌 연동", description = "사용자의 목표에 계좌를 연동합니다.")
     public ResponseEntity<Void> linkAccountToGoal(
             @PathVariable UUID goalId,
             @RequestBody LinkAccountRequestDto requestDto
@@ -63,7 +62,7 @@ public class GoalController {
         return ResponseEntity.ok().build();
     }
     @PostMapping
-    @ApiOperation(value = "목표 생성", notes = "사용자의 목표를 생성합니다.")
+    @Operation(summary = "목표 생성", description = "사용자의 목표를 생성합니다.")
     public ResponseEntity<?> createGoal(@RequestBody GoalCreateRequestDto request,
                                         @RequestParam UUID userId) {
         try {
@@ -84,32 +83,32 @@ public class GoalController {
         }
     }
     @GetMapping
-    @ApiOperation(value = "목표 전체 조회", notes = "사용자의 목표 목록을 조회합니다.")
+    @Operation(summary = "목표 전체 조회", description = "사용자의 목표 목록을 조회합니다.")
     public ResponseEntity<?> getAllGoals(@RequestParam UUID userId) {
         List<GoalListResponseDto> goals = goalService.getGoalsByUserId(userId);
         return ResponseEntity.ok(goals);
     }
     @GetMapping("/{goalId}")
-    @ApiOperation(value = "목표 상세 조회", notes = "사용자 목표 상세 정보를 조회합니다.")
+    @Operation(summary = "목표 상세 조회", description = "사용자 목표 상세 정보를 조회합니다.")
     public ResponseEntity<?> getGoalDetail(@PathVariable UUID goalId) {
         GoalDetailResponseDto goal = goalService.getGoalById(goalId);
         return ResponseEntity.ok(goal);
     }
     @DeleteMapping("/{goalId}")
-    @ApiOperation(value = "목표 삭제", notes = "goalId를 기반으로 목표를 삭제합니다.")
+    @Operation(summary = "목표 삭제", description = "goalId를 기반으로 목표를 삭제합니다.")
     public ResponseEntity<?> deleteGoal(@PathVariable UUID goalId) {
         goalService.deleteGoal(goalId);
         return ResponseEntity.ok(Map.of("message", "목표가 삭제되었습니다."));
     }
     @PutMapping("/{goalId}")
-    @ApiOperation(value = "목표 수정", notes = "goalId에 해당하는 목표를 수정합니다.")
+    @Operation(summary = "목표 수정", description = "goalId에 해당하는 목표를 수정합니다.")
     public ResponseEntity<?> updateGoal(@PathVariable UUID goalId,
                                         @RequestBody GoalUpdateRequestDto dto) {
         goalService.updateGoal(goalId , dto);
         return ResponseEntity.ok(Map.of("message", "목표가 수정되었습니다."));
     }
     @GetMapping("/recommend-next")
-    @ApiOperation(value = "다음 목표 추천", notes = "이전 목표를 기반으로 추천 목표 정보를 제공합니다.")
+    @Operation(summary = "다음 목표 추천", description = "이전 목표를 기반으로 추천 목표 정보를 제공합니다.")
     public ResponseEntity<RecommendNextGoalDto> recommendNextGoal(@RequestParam UUID userId) {
         RecommendNextGoalDto dto = goalService.recommendNextGoal(userId);
         return ResponseEntity.ok(dto);

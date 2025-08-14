@@ -20,7 +20,7 @@ public class AllAccountController {
     private final AllAccountService allAccountService;
 
     @GetMapping
-    public ResponseEntity<String> getAllAccount(@RequestParam String userId) throws NoSuchPaddingException, IllegalBlockSizeException, IOException, NoSuchAlgorithmException, InvalidKeySpecException, BadPaddingException, ParseException, InvalidKeyException, InterruptedException {
+    public ResponseEntity<String> getAllAccount(@RequestParam String userId) throws NoSuchPaddingException, IllegalBlockSizeException, IOException, NoSuchAlgorithmException, InvalidKeySpecException, BadPaddingException, ParseException, InvalidKeyException, InterruptedException, java.text.ParseException {
         String result = allAccountService.getAllAccount(userId);
         return ResponseEntity.ok(result);
     }
