@@ -19,6 +19,14 @@ public class GoalController {
     @Autowired
     private GoalService goalService;
 
+    @GetMapping("/{goalId}/rewarded")
+    public ResponseEntity<Boolean> isGoalRewarded(
+            @PathVariable UUID goalId,
+            @RequestParam("userId") UUID userId
+    ) {
+        return ResponseEntity.ok(goalService.existsGoalRewardPoint(userId, goalId));
+    }
+    
     @PostMapping("/{goalId}/claim-reward")
     @Operation(summary = "목표 달성 보상 지급",
             description = "기간 종료 && 목표금액 100% 달성 시 1회 포인트 지급")
