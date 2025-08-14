@@ -167,4 +167,8 @@ public class GoalServiceImpl implements GoalService {
                 null
         );
     }
+    @Override
+    public boolean existsGoalRewardPoint(UUID userId, UUID goalId) {
+        return goalMapper.existsGoalRewardPoint(userId, goalId);
+    }
 }
