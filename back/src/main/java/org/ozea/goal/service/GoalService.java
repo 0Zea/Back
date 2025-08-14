@@ -18,4 +18,6 @@ public interface GoalService {
     RecommendNextGoalDto recommendNextGoal(UUID userId);
     void updateGoalStatuses();
     ClaimRewardResponseDto claimGoalReward(UUID userId, UUID goalId);
+    boolean existsGoalRewardPoint(UUID userId, UUID goalId);
+
 }
