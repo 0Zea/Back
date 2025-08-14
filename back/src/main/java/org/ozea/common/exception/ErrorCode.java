@@ -34,7 +34,8 @@ public enum ErrorCode {
     DATABASE_ERROR("S003", "데이터베이스 오류가 발생했습니다."),
     TOO_MANY_REQUESTS("C002", "너무 많은 요청입니다."), BAD_REQUEST("G001", "오류 발생"),
     DATA_INTEGRITY_ERROR("G002", "데이터 오류"),
-    FORBIDDEN("G003", "접근권한 없음");
+    FORBIDDEN("G003", "접근권한 없음"),
+    CONFLICT("G005", "충돌발생"), NOT_FOUND("G008", "못찾음");
     private final String code;
     private final String message;
 
