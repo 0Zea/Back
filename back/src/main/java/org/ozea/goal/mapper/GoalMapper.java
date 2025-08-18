@@ -36,4 +36,8 @@ public interface GoalMapper {
     Integer calcGoalRewardPoints(@Param("userId") UUID userId,
                                  @Param("goalId") UUID goalId);
     Long findPayAmountByUserId(@Param("userId") UUID userId);
+    long sumTargetAmountOverlappingGoalsExceptGoal(@Param("userId") UUID userId,
+                                                   @Param("goalId") UUID goalId,
+                                                   @Param("startDate") LocalDate startDate,
+                                                   @Param("endDate") LocalDate endDate);
 }
