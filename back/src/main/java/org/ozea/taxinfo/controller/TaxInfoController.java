@@ -10,7 +10,7 @@ import java.util.Map;
 
 
 @RestController
-@RequestMapping("/taxinfo")
+@RequestMapping("/api/taxinfo")
 public class TaxInfoController {
     private final TaxInfoService service;
 

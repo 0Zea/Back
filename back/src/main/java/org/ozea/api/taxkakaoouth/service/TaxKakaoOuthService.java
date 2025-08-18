@@ -136,7 +136,7 @@ public class TaxKakaoOuthService {
                 req.setData(items);
 
                 taxInfoService.saveAndSummary(req); // ✅ 저장 + 정리
-
+                System.out.println("리스폰스 값"+"  "+ step2ResponseJson);
                 return step2ResponseJson; // 성공
             } else if (!"CF-03002".equals(step2Code)) {
                 return step2ResponseJson; // 다른 오류 발생 시 즉시 반환

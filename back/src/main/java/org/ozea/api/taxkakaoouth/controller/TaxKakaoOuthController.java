@@ -18,7 +18,7 @@ import java.util.Map;
 import java.util.UUID;
 
 @RestController // @Controller + @ResponseBody
-@RequestMapping("/tax")
+@RequestMapping("/api/tax")
 @RequiredArgsConstructor
 public class TaxKakaoOuthController {
     private final TaxInfoService taxInfoService;          // ← 추가
