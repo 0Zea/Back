@@ -14,10 +14,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.Period;
 import java.time.temporal.ChronoUnit;
-import java.util.Comparator;
-import java.util.List;
-import java.util.NoSuchElementException;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 @Service
 public class GoalServiceImpl implements GoalService {
@@ -136,11 +133,16 @@ public class GoalServiceImpl implements GoalService {
     }
     @Override
     public List<GoalListResponseDto> getGoalsByUserId(UUID userId) {
-        List<Goal> goals = goalMapper.findAllByUserId(userId);
+        List<Goal> goals = goalMapper.findAllByUserId(userId); // 기존 그대로 사용
         return goals.stream()
-                .map(GoalListResponseDto::from)
+                .map(g -> GoalListResponseDto.from(
+                        g,
+                        Optional.ofNullable(goalMapper.findLinkedAccountsByGoalId(g.getGoalId()))
+                                .orElseGet(Collections::emptyList)
+                ))
                 .collect(Collectors.toList());
     }
+
     @Override
     public GoalDetailResponseDto getGoalById(UUID goalId) {
         Goal goal = goalMapper.findByGoalId(goalId);
