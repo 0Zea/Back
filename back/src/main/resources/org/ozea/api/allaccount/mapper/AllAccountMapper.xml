@@ -30,16 +30,16 @@
             account_type,
             balance
         ) VALUES (
-            #{userId},
-            #{bankName},
-            #{accountNum},
-            #{accountType},
-            #{balance}
-        )
+                     #{userId},
+                     #{bankName},
+                     #{accountNum},
+                     #{accountType},
+                     #{balance}
+                 )
         ON DUPLICATE KEY UPDATE
-            bank_name = VALUES(bank_name),
-            account_type = VALUES(account_type),
-            balance = VALUES(balance)
+                             bank_name = VALUES(bank_name),
+                             account_type = VALUES(account_type),
+                             balance = VALUES(balance)
     </insert>
 
 </mapper>

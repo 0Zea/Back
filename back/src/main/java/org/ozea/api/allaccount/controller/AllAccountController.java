@@ -18,7 +18,7 @@ import java.security.spec.InvalidKeySpecException;
 @RequestMapping("/api/allaccount")
 public class AllAccountController {
     private final AllAccountService allAccountService;
-    
+
     @GetMapping
     public ResponseEntity<String> getAllAccount(@RequestParam String userId) throws NoSuchPaddingException, IllegalBlockSizeException, IOException, NoSuchAlgorithmException, InvalidKeySpecException, BadPaddingException, ParseException, InvalidKeyException, InterruptedException {
         String result = allAccountService.getAllAccount(userId);

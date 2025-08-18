@@ -53,29 +53,29 @@ public class AllAccountService {
             throw new RuntimeException("사용자 " + userId + "의 계정 정보를 찾을 수 없습니다.");
         }
         String result = callCodefApi(request);
-        
+
         // DB에 계좌 정보 저장
         saveAccounts(userId, result);
-        
+
         return result;
     }
-    
+
     private void saveAccounts(String userId, String codefResponse) {
         try {
             JSONParser parser = new JSONParser();
             JSONObject json = (JSONObject) parser.parse(codefResponse);
             JSONObject data = (JSONObject) json.get("data");
-            
+
             if (data != null && data.get("resDepositTrust") != null) {
                 org.json.simple.JSONArray accounts = (org.json.simple.JSONArray) data.get("resDepositTrust");
-                
+
                 java.util.UUID userUUID = java.util.UUID.fromString(userId);
-                
+
                 for (Object accountObj : accounts) {
                     JSONObject account = (JSONObject) accountObj;
                     String accountNum = (String) account.get("resAccountDisplay");
                     java.math.BigInteger newBalance = new java.math.BigInteger((String) account.get("resAccountBalance"));
-                    
+
                     // UPSERT로 계좌 정보 처리
                     BankAccountVO accountVO = BankAccountVO.builder()
                             .userId(userUUID)
@@ -84,11 +84,11 @@ public class AllAccountService {
                             .accountType((String) account.get("resAccountName"))
                             .balance(newBalance)
                             .build();
-                    
+
                     allAccountMapper.upsertBankAccount(accountVO);
                     log.info("계좌 처리: {} ({}원)", accountNum, account.get("resAccountBalance"));
                 }
-                
+
                 log.info("계좌 처리 완료: {}개", accounts.size());
             }
         } catch (Exception e) {
@@ -96,10 +96,10 @@ public class AllAccountService {
             throw new RuntimeException("계좌 정보 저장 실패", e);
         }
     }
-    
+
     private String extractBankName(String accountName) {
         if (accountName == null) return "기타은행";
-        
+
         // 1금융권 은행명 추출
         if (accountName.contains("KB")) return "국민은행";
         if (accountName.contains("신한")) return "신한은행";
@@ -111,7 +111,7 @@ public class AllAccountService {
         if (accountName.contains("씨티")) return "씨티은행";
         if (accountName.contains("KDB") || accountName.contains("산업")) return "산업은행";
         if (accountName.contains("수출입")) return "수출입은행";
-        
+
         return "기타은행";
     }
 
@@ -120,11 +120,11 @@ public class AllAccountService {
             InvalidKeySpecException, BadPaddingException, InvalidKeyException, InterruptedException, ParseException {
         String createUrl = "https://development.codef.io/v1/account/create";
         String token = RequestToken.getToken(CommonConstant.CLIENT_ID, CommonConstant.SECERET_KEY);
-        
+
         if (token == null) {
             throw new RuntimeException("토큰 획득 실패");
         }
-        
+
         String body = String.format("""
             {
               "accountList": [
@@ -148,24 +148,24 @@ public class AllAccountService {
                 request.getId(),
                 RSAUtil.encryptRSA(request.getPassword(), CommonConstant.PUBLIC_KEY)
         );
-        
+
         HttpHeaders headers = new HttpHeaders();
         headers.setBearerAuth(token);
         headers.setContentType(new MediaType("application", "json", StandardCharsets.UTF_8));
         RestTemplate restTemplate = new RestTemplate();
         HttpEntity<String> entity = new HttpEntity<>(body, headers);
-        
+
         String createResponseBody = restTemplate.exchange(createUrl, HttpMethod.POST, entity, String.class).getBody();
         if (createResponseBody == null) {
             throw new RuntimeException("계정 생성 응답이 null입니다");
         }
-        
+
         String decodedCreateResponse = URLDecoder.decode(createResponseBody, StandardCharsets.UTF_8);
         String connectedId = extractConnectedId(decodedCreateResponse);
         if (connectedId == null) {
             throw new RuntimeException("connectedId 추출 실패");
         }
-        
+
         String accountListUrl = "https://development.codef.io/v1/kr/bank/p/account/account-list";
         String accountListBody = String.format("""
             {
@@ -175,14 +175,14 @@ public class AllAccountService {
               "loginType": "%s"
             }
             """, request.getOrganization(), connectedId, request.getLoginType());
-            
+
         HttpEntity<String> accountListEntity = new HttpEntity<>(accountListBody, headers);
-        
+
         String accountListResponseBody = restTemplate.exchange(accountListUrl, HttpMethod.POST, accountListEntity, String.class).getBody();
         if (accountListResponseBody == null) {
             throw new RuntimeException("계좌 목록 응답이 null입니다");
         }
-        
+
         return URLDecoder.decode(accountListResponseBody, StandardCharsets.UTF_8);
     }
 }
