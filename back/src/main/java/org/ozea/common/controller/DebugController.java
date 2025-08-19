@@ -18,7 +18,7 @@ class DebugController {
     }
 
     @PostConstruct
-    void log() { // 어떤 모듈들 올라왔는지 로그
+    void log() {
         System.out.println("ObjectMapper modules -> " + om.getRegisteredModuleIds());
     }
 }

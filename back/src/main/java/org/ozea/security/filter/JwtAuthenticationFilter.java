@@ -107,7 +107,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 logFileWriter.writeApiLog(requestURI, "JWT 인증 성공 - 사용자: " + username);
 
                 long remainingTime = jwtProcessor.getRemainingTime(token);
-                if (remainingTime < 300_000) { // 5분 미만이면 재발급
+                if (remainingTime < 300_000) {
                     try {
                         String freshToken = jwtProcessor.generateAccessToken(username);
                         response.setHeader("X-New-Token", freshToken);

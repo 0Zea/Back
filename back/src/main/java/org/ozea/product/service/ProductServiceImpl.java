@@ -15,6 +15,8 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 
 import java.util.Comparator;
 import java.util.List;
@@ -30,12 +32,14 @@ public class ProductServiceImpl implements ProductService {
     private final ProductMapper productMapper;
     private final UserMapper userMapper;
     private final OpenAISummarizeServiceImpl summarizeService;
-    private final Executor executor = newFixedThreadPool(2);
     private final RedisTemplate<String, Object> redis;
     private final CacheHelper cacheHelper;
+    private final ProductSummaryWorker summaryWorker;
+
     @Autowired
     private StringRedisTemplate srt;
 
+    @Transactional(readOnly = true)
     @Cacheable(value = "product:list", key = "'p='+#page+', s ='+#size")
     @Override
     public List<ProductListResponseDto> getProductList(int page, int size) {
@@ -43,17 +47,17 @@ public class ProductServiceImpl implements ProductService {
         return productMapper.getProducts(offset, size);
     }
 
+    @Transactional(readOnly = true)
     @Cacheable(value = "product:detail", key = "#finPrdtCd")
     @Override
     public ProductDetailResponseDto getProductDetail(String finPrdtCd) {
         ProductDetailResponseDto detail = productMapper.getProductDetail(finPrdtCd);
         if (detail == null) throw new IllegalArgumentException("해당 상품이 존재하지 않습니다: " + finPrdtCd);
-
         List<ProductOptionDto> options = productMapper.getProductOptions(finPrdtCd);
         detail.setOptions(options);
-        enqueueSummaryIfNeeded(finPrdtCd,detail);
+        enqueueSummaryIfNeeded(finPrdtCd, detail);
         if (detail.getSummary() == null || detail.getSummary().trim().isEmpty()) {
-            tryGenerateSummaryOnce(finPrdtCd, detail);
+            summaryWorker.generateSummaryOnce(finPrdtCd, detail);
         }
         return detail;
     }
@@ -78,7 +82,6 @@ public class ProductServiceImpl implements ProductService {
             throw new IllegalArgumentException("사용자를 찾을 수 없습니다.");
         }
         if (user.getMbti() == null || user.getMbti().trim().isEmpty() || "미입력".equals(user.getMbti())) {
-            // MBTI가 없거나 미입력인 경우 기본 추천 상품 반환
             List<ProductResponseDto> products = productMapper.findAllProductsWithOptions();
             return products.stream()
                     .sorted(rate2Desc())
@@ -114,7 +117,6 @@ public class ProductServiceImpl implements ProductService {
                     .map(p -> toDto(p, "장기 분석 기반 추천"))
                     .toList();
             default -> {
-                // 알 수 없는 MBTI인 경우 기본 추천 상품 반환
                 yield products.stream()
                         .sorted(rate2Desc())
                         .limit(6)
@@ -215,22 +217,6 @@ public class ProductServiceImpl implements ProductService {
         return sb.toString();
     }
 
-    private void tryGenerateSummaryOnce(String finPrdtCd, ProductDetailResponseDto detail) {
-        String lockKey = "lock:summary:" + finPrdtCd;
-        Boolean ok = srt.opsForValue().setIfAbsent(lockKey, "1", java.time.Duration.ofSeconds(30));
-        if (Boolean.TRUE.equals(ok)) {
-            new Thread(() -> {
-                try {
-                    String material = buildSummarizableText(detail);
-                    String aiSummary = summarizeService.summarizeTo3Lines(material);
-                    productMapper.updateProductSummary(finPrdtCd, aiSummary);
-                } catch (Exception ignored) {
-                } finally {
-                    srt.delete(lockKey);
-                }
-            }, "ai-summary-" + finPrdtCd).start();
-        }
-    }
     private void enqueueSummaryIfNeeded(String finPrdtCd, ProductDetailResponseDto d) {
         if (d.getSummary() != null && !d.getSummary().isBlank()) return;
         String lockKey = "lock:ai-summary:" + finPrdtCd;

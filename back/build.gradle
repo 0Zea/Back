@@ -114,6 +114,11 @@ dependencies {
   testImplementation 'org.assertj:assertj-core:3.24.2'
 
   implementation 'com.googlecode.json-simple:json-simple:1.1.1'
+
+  //프로메테우스
+  implementation 'io.micrometer:micrometer-core:1.12.6'
+  implementation 'io.micrometer:micrometer-registry-prometheus:1.12.6'
+  implementation 'com.lmax:disruptor:3.4.4'
 }
 
 test {
@@ -124,5 +129,14 @@ configurations.all {
   resolutionStrategy {
     force 'redis.clients:jedis:3.8.0'
     force 'org.springframework.data:spring-data-redis:2.7.18'
+
+    force 'org.apache.logging.log4j:log4j-api:2.23.1'
+    force 'org.apache.logging.log4j:log4j-core:2.23.1'
+    force 'org.apache.logging.log4j:log4j-slf4j2-impl:2.23.1'
+
   }
+  exclude group: 'ch.qos.logback', module: 'logback-classic'
+  exclude group: 'ch.qos.logback', module: 'logback-core'
+  exclude group: 'org.slf4j', module: 'slf4j-simple'
+  exclude group: 'org.apache.logging.log4j', module: 'log4j-to-slf4j'
 }

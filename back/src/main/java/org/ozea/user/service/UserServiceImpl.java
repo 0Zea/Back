@@ -31,8 +31,6 @@ public class UserServiceImpl implements UserService {
     private final KakaoApiClient kakaoApiClient;
     private final CacheManager cacheManager;
 
-    // ====== 조회 (Cacheable) ======
-
     @Override
     @Cacheable(value = "userByEmail", key = "#p0", unless = "#result == null")
     public UserDTO getUserByEmail(String email) {
@@ -50,8 +48,6 @@ public class UserServiceImpl implements UserService {
         }
         return UserDTO.of(user);
     }
-
-    // ====== 가입/수정 (리턴 DTO 기반 캐시 무효화) ======
 
     @Transactional
     @Override
@@ -179,8 +175,6 @@ public class UserServiceImpl implements UserService {
         mapper.updateUser(user);
         return UserDTO.of(user);
     }
-
-    // ====== 비밀번호/탈퇴 (프로그램 방식 캐시 무효화) ======
 
     @Override
     public boolean changePassword(String email, String newPassword) {
@@ -345,8 +339,6 @@ public class UserServiceImpl implements UserService {
     public boolean verifySignupCode(String email, String code) {
         return verificationCodeService.verifyCode(email, code);
     }
-
-    // ====== 내부 유틸 ======
 
     private void validatePassword(String password) {
         if (password == null || password.length() < 8) {

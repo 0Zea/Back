@@ -32,7 +32,7 @@ public class GoalController {
             description = "기간 종료 && 목표금액 100% 달성 시 1회 포인트 지급")
     public ResponseEntity<ClaimRewardResponseDto> claimReward(
             @PathVariable UUID goalId,
-            @RequestParam("userId") UUID userId // ← 명시적으로 맞춤
+            @RequestParam("userId") UUID userId
     ) {
         ClaimRewardResponseDto res = goalService.claimGoalReward(userId, goalId);
         return ResponseEntity.ok(res);

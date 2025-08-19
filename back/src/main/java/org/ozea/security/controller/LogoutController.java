@@ -19,10 +19,7 @@ import java.util.Map;
 public class LogoutController {
     private final JwtProcessor jwtProcessor;
     private final LogFileWriter logFileWriter;
-    /**
-     * 로그아웃 엔드포인트
-     * 현재 토큰을 블랙리스트에 추가하여 무효화
-     */
+
     @PostMapping("/logout")
     public ResponseEntity<?> logout(HttpServletRequest request) {
         try {
@@ -39,9 +36,7 @@ public class LogoutController {
                 logFileWriter.writeErrorLog("로그아웃 요청 - 유효하지 않은 토큰");
                 return ResponseEntity.badRequest().body(ApiResponse.error("유효하지 않은 토큰입니다."));
             }
-            // 토큰을 블랙리스트에 추가
             jwtProcessor.blacklistToken(token);
-            // 현재 인증 정보 제거
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
             if (authentication != null) {
                 SecurityContextHolder.clearContext();
@@ -59,10 +54,7 @@ public class LogoutController {
             return ResponseEntity.badRequest().body(ApiResponse.error("로그아웃 처리 중 오류가 발생했습니다."));
         }
     }
-    /**
-     * 모든 세션 로그아웃 (관리자용)
-     * 특정 사용자의 모든 토큰을 무효화
-     */
+
     @PostMapping("/logout/all")
     public ResponseEntity<?> logoutAllSessions(HttpServletRequest request) {
         try {
@@ -75,7 +67,6 @@ public class LogoutController {
             if (username == null) {
                 return ResponseEntity.badRequest().body(ApiResponse.error("유효하지 않은 토큰입니다."));
             }
-            // 현재는 블랙리스트 기능 미구현
             log.info("🔄 모든 세션 로그아웃 - 사용자: {}", username);
             logFileWriter.writeApiLog("/api/auth/logout/all", "모든 세션 로그아웃 - 사용자: " + username);
             Map<String, Object> logoutData = new HashMap<>();
@@ -89,10 +80,7 @@ public class LogoutController {
             return ResponseEntity.badRequest().body(ApiResponse.error("모든 세션 로그아웃 처리 중 오류가 발생했습니다."));
         }
     }
-    /**
-     * 토큰 상태 확인
-     * 토큰의 유효성과 만료 시간을 확인
-     */
+
     @GetMapping("/token/status")
     public ResponseEntity<?> getTokenStatus(HttpServletRequest request) {
         try {

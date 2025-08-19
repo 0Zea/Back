@@ -24,7 +24,7 @@ public class RedisTokenBlacklistService implements TokenBlacklistService {
 
     @Override
     public void blacklist(String jti, long ttlMs) {
-        if (ttlMs <= 0) ttlMs = 1_000; // 최소 1초
+        if (ttlMs <= 0) ttlMs = 1_000;
         redis.opsForValue().set(key(jti), "1", ttlMs, TimeUnit.MILLISECONDS);
     }
 }

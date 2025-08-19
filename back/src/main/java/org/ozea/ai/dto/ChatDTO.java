@@ -15,7 +15,7 @@ public class ChatDTO {
 
         @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
         public static class Message {
-            private String role;    // "system" | "user"
+            private String role;
             private String content;
         }
     }

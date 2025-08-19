@@ -39,7 +39,6 @@ public class JsonResponse {
     }
 
     public void sendError(HttpServletResponse res, ErrorCode errorCode) throws IOException {
-        // 필요하면 여기서 상태코드 매핑 로직 추가 가능
         res.setCharacterEncoding("UTF-8");
         res.setContentType("application/json;charset=UTF-8");
         res.getWriter().write(objectMapper.writeValueAsString(ApiResponse.error(errorCode)));

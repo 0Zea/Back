@@ -2,6 +2,8 @@ package org.ozea.security.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
+import org.ozea.ai.filter.RateLimitFilter;
+import org.ozea.common.filter.IdempotencyFilter;
 import org.ozea.security.filter.AuthenticationErrorFilter;
 import org.ozea.security.filter.JwtAuthenticationFilter;
 import org.ozea.security.filter.JwtUsernamePasswordAuthenticationFilter;
@@ -41,14 +43,13 @@ public class SecurityConfig {
     private final LoginSuccessHandler loginSuccessHandler;
     private final LoginFailureHandler loginFailureHandler;
     private final ObjectMapper objectMapper;
+    private final RateLimitFilter rateLimitFilter;
+    private final IdempotencyFilter idempotencyFilter;
 
-    /**
-     * 전역 공개 경로 – 필터/인가 규칙이 동일하게 참조하도록 상수화
-     */
     public static final String[] PUBLIC_ENDPOINTS = {
             "/api/auth/login",
             "/api/auth/signup",
-            "/api/auth/refresh-token",         // 혹시 기존 프론트가 이 경로도 쓰면 대비
+            "/api/auth/refresh-token",
             "/api/auth/kakao/callback",
             "/api/auth/kakao/callback/test",
             "/api/auth/token/refresh",
@@ -60,8 +61,10 @@ public class SecurityConfig {
             "/error",
             "/favicon.ico",
             "/swagger-ui/**",
-            "/v3/api-docs/**"
+            "/v3/api-docs/**",
+            "/api/monitoring/**"
     };
+
 
     @Value("${app.cors.allowed-origins:http://localhost:5173}")
     private List<String> allowedOrigins;
@@ -95,9 +98,7 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration c = new CorsConfiguration();
 
-        // ★ 와일드카드 + credentials=TRUE 금지. 반드시 명시적 Origin만 허용
         if (allowedOrigins == null || allowedOrigins.isEmpty()) {
-            // 안전한 기본값(로컬만 허용)
             c.setAllowedOrigins(List.of("http://localhost:5173"));
         } else {
             c.setAllowedOrigins(allowedOrigins);
@@ -164,13 +165,15 @@ public class SecurityConfig {
                         .anyRequest().authenticated()
                 );
 
-        // 필터 순서: Error → JsonLogin → JWT
         http.addFilterBefore(authenticationErrorFilter, UsernamePasswordAuthenticationFilter.class);
+        http.addFilterBefore(rateLimitFilter, UsernamePasswordAuthenticationFilter.class);
+        http.addFilterBefore(idempotencyFilter, UsernamePasswordAuthenticationFilter.class); // ✅ 기준 표준 필터
+
         http.addFilterAt(
                 jsonLoginFilter(authenticationManager(http.getSharedObject(AuthenticationConfiguration.class))),
                 UsernamePasswordAuthenticationFilter.class
         );
-        http.addFilterAfter(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+        http.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         http.authenticationProvider(daoAuthenticationProvider());
 

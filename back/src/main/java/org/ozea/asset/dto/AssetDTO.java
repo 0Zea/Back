@@ -13,7 +13,7 @@ public class AssetDTO {
     private String name;
     private BigInteger totalAssets;
     private BigInteger monthlyNetIncome;
-    private Double averageGoalRate;   // 목표 평균 달성률
+    private Double averageGoalRate;
     public AssetVO toVO() {
         return AssetVO.builder()
                 .name(name)

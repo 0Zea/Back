@@ -16,5 +16,5 @@ public class PastGoalResponseDto {
     private LocalDate startDate;
     private LocalDate endDate;
     private Long targetAmount;
-    private boolean success; // true: 성공, false: 실패
+    private boolean success;
 }

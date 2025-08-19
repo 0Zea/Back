@@ -18,7 +18,6 @@ public class TaxInfoController {
         this.service = service;
     }
 
-    // 저장 + 요약을 한 번에 반환
     @PostMapping("/save-and-summary")
     public ResponseEntity<Map<String,String>> saveAndSummary(@RequestBody TaxInfoReqDto request) {
         if (request == null || request.getUserId() == null || request.getYear() == null) {

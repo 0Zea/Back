@@ -6,6 +6,8 @@ import org.ozea.common.pagenation.PageRequest;
 import org.ozea.notice.domain.NoticeVO;
 import org.ozea.notice.dto.NoticeDTO;
 import org.ozea.notice.mapper.NoticeMapper;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -17,11 +19,13 @@ import java.util.UUID;
 public class NoticeServiceImpl implements NoticeService{
     final private NoticeMapper mapper;
     @Override
+    @Cacheable(cacheNames = "notice:item", key = "#noticeId")
     public NoticeDTO get(UUID noticeId) {
         NoticeDTO notice = NoticeDTO.of(mapper.get(noticeId));
         return Optional.ofNullable(notice).orElseThrow(NoSuchElementException::new);
     }
     @Override
+    @CacheEvict(cacheNames = {"notice:list", "notice:item"}, allEntries = true)
     public NoticeDTO create(NoticeDTO notice) {
         if (notice.getNoticeId() == null) {
             notice.setNoticeId(UUID.randomUUID().toString());
@@ -31,18 +35,21 @@ public class NoticeServiceImpl implements NoticeService{
         return get(noticeVO.getNoticeId());
     }
     @Override
+    @CacheEvict(cacheNames = {"notice:list", "notice:item"}, allEntries = true)
     public NoticeDTO update(UUID noticeId, NoticeDTO notice) {
         NoticeVO noticeVO = notice.toVo();
         mapper.update(noticeId, noticeVO);
         return get(noticeId);
     }
     @Override
+    @CacheEvict(cacheNames = {"notice:list", "notice:item"}, allEntries = true)
     public NoticeDTO delete(UUID noticeId) {
         NoticeDTO notice = get(noticeId);
         mapper.delete(noticeId);
         return notice;
     }
     @Override
+    @Cacheable(cacheNames = "notice:list", key = "#pageRequest.page + ':' + #pageRequest.size")
     public Page<NoticeDTO> getPage(PageRequest pageRequest) {
         List<NoticeVO> notices = mapper.getPage(pageRequest);
         int totalCount = mapper.getTotalCount();

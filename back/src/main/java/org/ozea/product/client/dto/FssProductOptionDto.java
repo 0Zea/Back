@@ -19,6 +19,5 @@ public class FssProductOptionDto {
     private Double intrRate;
     @JsonProperty("intr_rate2")
     private Double intrRate2;
-    // 옵션 ID는 별도로 생성
     private Integer optionId;
 }

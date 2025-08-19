@@ -187,6 +187,31 @@
                              ) AS grouped
     </select>
 
+    <select id="findRecommended" resultMap="ProductWithOptionsMap">
+        SELECT p.*, o.*
+        FROM product p
+        JOIN productoption o ON o.fin_prdt_cd = p.fin_prdt_cd
+        <where>
+            <!-- MBTI 케이스별 예시 조건 -->
+            <choose>
+                <when test="mbti == '신속한 승부사'">
+                    AND o.save_trm &lt;= 6
+                    AND p.fin_prdt_nm LIKE '%자유%'
+                </when>
+                <when test="mbti == '신중한 승부사'">
+                    AND o.save_trm &gt;= 12
+                    AND p.kor_co_nm IN ('국민은행','신한은행','우리은행','하나은행')
+                </when>
+                <!-- 나머지 케이스도 동일 패턴 -->
+                <otherwise>
+                    AND 1=1
+                </otherwise>
+            </choose>
+        </where>
+        ORDER BY o.intr_rate2 DESC NULLS LAST, o.intr_rate DESC NULLS LAST
+        LIMIT #{limit}
+    </select>
+
     <!-- 배치 작업용 SQL -->
     <insert id="insertProduct" parameterType="org.ozea.product.domain.Product">
         INSERT INTO product (

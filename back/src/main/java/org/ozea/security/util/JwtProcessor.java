@@ -171,7 +171,6 @@ public class JwtProcessor {
         return exp == null ? 0 : Math.max(0, exp.getTime() - System.currentTimeMillis());
     }
 
-    // === 블랙리스트 연동 ===
     public boolean isTokenBlacklisted(String token) {
         String jti = getJti(token);
         return jti != null && blacklistService.isBlacklisted(jti);

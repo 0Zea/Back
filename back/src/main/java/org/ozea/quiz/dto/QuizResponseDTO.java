@@ -7,7 +7,7 @@ import org.ozea.quiz.domain.QuizVO;
 public class QuizResponseDTO {
     private int quiz_id;
     private String question;
-    private String type; // "OX" 또는 "short"
+    private String type;
     private String explanation;
     public static QuizResponseDTO of(QuizVO quizVO) {
         return QuizResponseDTO.builder()

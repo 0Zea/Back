@@ -54,7 +54,6 @@ public class AllAccountService {
         }
         String result = callCodefApi(request);
 
-        // DB에 계좌 정보 저장
         saveAccounts(userId, result);
 
         return result;
@@ -76,7 +75,6 @@ public class AllAccountService {
                     String accountNum = (String) account.get("resAccountDisplay");
                     java.math.BigInteger newBalance = new java.math.BigInteger((String) account.get("resAccountBalance"));
 
-                    // UPSERT로 계좌 정보 처리
                     BankAccountVO accountVO = BankAccountVO.builder()
                             .userId(userUUID)
                             .bankName(extractBankName((String) account.get("resAccountName")))
@@ -100,7 +98,6 @@ public class AllAccountService {
     private String extractBankName(String accountName) {
         if (accountName == null) return "기타은행";
 
-        // 1금융권 은행명 추출
         if (accountName.contains("KB")) return "국민은행";
         if (accountName.contains("신한")) return "신한은행";
         if (accountName.contains("우리")) return "우리은행";

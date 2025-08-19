@@ -29,7 +29,6 @@ public class OpenApiConfig{
                 .addSecurityItem(new SecurityRequirement().addList(schemeName));
     }
 
-    // 컨트롤러 스캔 그룹(패키지 맞춰 조정)
     @Bean
     public GroupedOpenApi apiGroup() {
         return GroupedOpenApi.builder()

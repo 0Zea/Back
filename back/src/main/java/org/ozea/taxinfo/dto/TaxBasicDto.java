@@ -8,15 +8,15 @@ import java.util.List;
 
 @Getter
 @Setter
-@JsonIgnoreProperties(ignoreUnknown = true)  // ← 여기를 추가
+@JsonIgnoreProperties(ignoreUnknown = true)
 
 public class TaxBasicDto {
     private String resUserNm;
     private String resUserIdentiyNo;
     private String resType;
     private String resCompanyNm;
-    private String resCompanyIdentityNo;   // ← JSON 필드 추가
-    private String resAccount;         // ← 여기 추가
+    private String resCompanyIdentityNo;
+    private String resAccount;
     private String resInsureType;
     private String resEduCostDetail;
     private String resAmount;
@@ -24,13 +24,10 @@ public class TaxBasicDto {
     private String resAmountPayment;
     private String resAmountPayment1;
     private List<TaxDetailDto> resDetailList;
-    private Integer basicId;  // MyBatis generated key
+    private Integer basicId;
 
-    // 추가한 필드의 getter/setter
     @Setter
     @Getter
-    private String resDeductibleItem;   // ← 추가
-
-    // getters / setters
+    private String resDeductibleItem;
 
 }

@@ -4,6 +4,8 @@ import lombok.extern.log4j.Log4j2;
 import org.ozea.bank.domain.BankCode;
 import org.ozea.bank.dto.BankCodeDTO;
 import org.ozea.bank.mapper.BankCodeMapper;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
@@ -13,6 +15,7 @@ import java.util.List;
 public class BankCodeServiceImpl implements BankCodeService {
     private final BankCodeMapper bankCodeMapper;
     @Override
+    @Cacheable(cacheNames = "bank:active", key = "'all'")
     public List<BankCodeDTO> getAllActiveBanks() {
         List<BankCode> banks = bankCodeMapper.findAllActive();
         return BankCodeDTO.of(banks);
@@ -27,18 +30,21 @@ public class BankCodeServiceImpl implements BankCodeService {
     }
     @Override
     @Transactional
+    @CacheEvict(cacheNames = "bank:active", key = "'all'")
     public void addBank(BankCodeDTO bankCodeDTO) {
         BankCode bank = bankCodeDTO.toEntity();
         bankCodeMapper.insertBankCode(bank);
     }
     @Override
     @Transactional
+    @CacheEvict(cacheNames = "bank:active", key = "'all'")
     public void updateBank(BankCodeDTO bankCodeDTO) {
         BankCode bank = bankCodeDTO.toEntity();
         bankCodeMapper.updateBankCode(bank);
     }
     @Override
     @Transactional
+    @CacheEvict(cacheNames = "bank:active", key = "'all'")
     public void deleteBank(String bankCode) {
         bankCodeMapper.deleteBankCode(bankCode);
     }

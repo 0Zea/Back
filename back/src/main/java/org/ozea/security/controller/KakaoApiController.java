@@ -41,20 +41,18 @@ public class KakaoApiController {
     private final LogFileWriter logFileWriter;
 
     @Value("${kakao.api.key}")
-    private String kakaoApiKey;          // 반드시 REST API 키
+    private String kakaoApiKey;
 
     @Value("${kakao.redirect.uri}")
-    private String kakaoRedirectUri;     // 반드시 프론트 인가요청 redirect_uri와 1byte 동일
+    private String kakaoRedirectUri;
 
     @GetMapping(value = "/callback", produces = "application/json")
     public ResponseEntity<?> kakaoApiCallback(@RequestParam("code") String code) {
         final String codePreview = code != null ? code.substring(0, Math.min(code.length(), 10)) + "..." : "null";
         log.info("🔐 카카오 콜백 요청 - Code: {}", codePreview);
 
-        // ⚠️ try 바깥에서 I/O 치면 500로 바로 떨어지므로 안전하게 감싸기
         safeKakaoLog("콜백 요청 - Code: " + codePreview);
 
-        // 필수값 검증 (환경 변수/설정 누락 방지)
         if (kakaoApiKey == null || kakaoApiKey.isBlank()) {
             return serverError("KAKAO_API_KEY 누락");
         }
@@ -67,12 +65,9 @@ public class KakaoApiController {
         }
 
         try {
-            // 1) 토큰 교환
-            String accessToken = getAccessToken(code); // IllegalArgumentException → 400으로 내려감
-            // 2) 사용자 정보 조회
+            String accessToken = getAccessToken(code);
             Map<String, Object> userInfo = getUserInfo(accessToken);
 
-            // 3) kakao_account / profile 가드
             Map<String, Object> kakaoAccount = safeMap(userInfo.get("kakao_account"));
             if (kakaoAccount == null) {
                 return badRequest("kakao_account 누락(동의 범위 확인 필요: account_email 등)");
@@ -82,7 +77,6 @@ public class KakaoApiController {
                 return badRequest("profile 누락(카카오 프로필 동의 필요)");
             }
 
-            // 4) 필수 식별값 조합
             String email = asString(kakaoAccount.get("email"));
             if (email == null || email.isBlank()) {
                 email = UUID.randomUUID() + "@noemail.kakao";
@@ -96,7 +90,6 @@ public class KakaoApiController {
 
             log.info("👤 카카오 사용자: email={}, nickname={}", email, nickname);
 
-            // 5) 사용자 조회/등록 + CustomUser 로딩
             boolean isNew;
             try {
                 isNew = (kakaoUserDetailsService.getUserByEmail(email) == null);
@@ -107,7 +100,6 @@ public class KakaoApiController {
 
             CustomUser customUser;
             try {
-                // 커스텀 시그니처 (email, nickname, kakaoAccessToken, passwordPlaceholder)
                 customUser = (CustomUser) kakaoUserDetailsService.loadUserByUsername(email, nickname, accessToken, "");
                 if (isNew) {
                     kakaoUserDetailsService.registerNewUser(customUser.getUser());
@@ -120,7 +112,6 @@ public class KakaoApiController {
                 return serverError("사용자 처리 중 오류가 발생했습니다.");
             }
 
-            // 6) JWT 발급
             String token = jwtProcessor.generateAccessToken(email);
             String refreshToken = jwtProcessor.generateRefreshToken(email);
 
@@ -130,7 +121,6 @@ public class KakaoApiController {
             return ResponseEntity.ok(ApiResponse.success(result, "카카오 로그인 성공"));
 
         } catch (IllegalArgumentException e) {
-            // 카카오 4xx(redirect_uri 불일치/코드만료/스코프 거부 등)
             log.warn("Kakao client error: {}", e.getMessage());
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body(ApiResponse.error(ErrorCode.EXTERNAL_API_ERROR, e.getMessage()));
@@ -194,7 +184,6 @@ public class KakaoApiController {
         throw new IllegalArgumentException(reason);
     }
 
-    // ---------------- 유틸 ----------------
     private void safeKakaoLog(String msg) {
         try { if (logFileWriter != null) logFileWriter.writeKakaoLog(msg); }
         catch (Exception ignore) { log.debug("logFileWriter 실패(무시): {}", ignore.toString()); }

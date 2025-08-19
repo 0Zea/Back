@@ -2,6 +2,7 @@ package org.ozea.user.controller;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.ozea.point.dto.PointDTO;
+import org.ozea.security.service.LoginAttemptService;
 import org.ozea.security.util.JwtProcessor;
 import org.ozea.user.dto.UserDTO;
 import org.ozea.user.dto.UserSignupDTO;
@@ -27,22 +28,25 @@ public class UserController {
     final UserService service;
     final JwtProcessor jwtProcessor;
     final PointService pointService;
-    private final Map<String, AtomicInteger> loginAttempts = new ConcurrentHashMap<>();
-    private final Map<String, Long> lastAttemptTime = new ConcurrentHashMap<>();
+    private final LoginAttemptService loginAttemptService;
+
     private static final int MAX_ATTEMPTS = 5;
     private static final long ATTEMPT_WINDOW = 5 * 60 * 1000;
     @PostMapping("/login")
     public ResponseEntity<ApiResponse<Map<String, Object>>> login(@RequestBody Map<String, String> request) {
         String email = request.get("email");
         String password = request.get("password");
-        if (isRateLimited(email)) {
+
+        if (loginAttemptService.isBlocked(email)) {
             return ResponseEntity.status(429)
-                .body(ApiResponse.error(ErrorCode.ACCESS_DENIED, "너무 많은 로그인 시도가 있었습니다. 5분 후에 다시 시도해주세요."));
+                    .body(ApiResponse.error(ErrorCode.ACCESS_DENIED, "너무 많은 로그인 시도가 있었습니다. 5분 후에 다시 시도해주세요."));
         }
+
         try {
             UserDTO user = service.login(email, password);
             String token = jwtProcessor.generateAccessToken(user.getEmail());
-            resetRateLimit(email);
+            loginAttemptService.recordSuccessfulAttempt(email);
+
             Map<String, Object> data = new HashMap<>();
             data.put("user", user);
             data.put("token", token);
@@ -50,32 +54,10 @@ public class UserController {
             data.put("expiresIn", 300);
             return ResponseEntity.ok(ApiResponse.success(data, "로그인 성공"));
         } catch (Exception e) {
-            incrementRateLimit(email);
+            loginAttemptService.recordFailedAttempt(email);
             return ResponseEntity.badRequest()
-                .body(ApiResponse.error(ErrorCode.INVALID_PASSWORD, "로그인 실패: " + e.getMessage()));
+                    .body(ApiResponse.error(ErrorCode.INVALID_PASSWORD, "로그인 실패: " + e.getMessage()));
         }
-    }
-    private boolean isRateLimited(String email) {
-        AtomicInteger attempts = loginAttempts.get(email);
-        Long lastAttempt = lastAttemptTime.get(email);
-        if (attempts == null || lastAttempt == null) {
-            return false;
-        }
-        long currentTime = System.currentTimeMillis();
-        if (currentTime - lastAttempt > ATTEMPT_WINDOW) {
-            resetRateLimit(email);
-            return false;
-        }
-        return attempts.get() >= MAX_ATTEMPTS;
-    }
-    private void incrementRateLimit(String email) {
-        AtomicInteger attempts = loginAttempts.computeIfAbsent(email, k -> new AtomicInteger(0));
-        attempts.incrementAndGet();
-        lastAttemptTime.put(email, System.currentTimeMillis());
-    }
-    private void resetRateLimit(String email) {
-        loginAttempts.remove(email);
-        lastAttemptTime.remove(email);
     }
     private UUID validateAndParseUserId(String userIdStr) {
         if (userIdStr == null || userIdStr.trim().isEmpty()) {

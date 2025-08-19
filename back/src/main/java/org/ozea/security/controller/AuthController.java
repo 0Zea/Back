@@ -15,7 +15,6 @@ import java.util.Map;
 @Log4j2
 public class AuthController {
     private final JwtProcessor jwtProcessor;
-    // 토큰 갱신 API
     @PostMapping("/refresh")
     public ResponseEntity<?> refreshToken(HttpServletRequest request) {
         try {
@@ -24,24 +23,20 @@ public class AuthController {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body(Map.of("error", "Refresh token이 필요합니다."));
             }
-            // Refresh Token 검증
             if (!jwtProcessor.validateToken(refreshToken)) {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body(Map.of("error", "유효하지 않은 refresh token입니다."));
             }
-            // 토큰 타입 확인
             String tokenType = jwtProcessor.getTokenType(refreshToken);
             if (!"refresh".equals(tokenType)) {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body(Map.of("error", "잘못된 토큰 타입입니다."));
             }
-            // 사용자명 추출
             String username = jwtProcessor.getUsername(refreshToken);
             if (username == null) {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body(Map.of("error", "토큰에서 사용자 정보를 추출할 수 없습니다."));
             }
-            // 새로운 Access Token 생성
             String newAccessToken = jwtProcessor.generateAccessToken(username);
             Map<String, Object> response = new HashMap<>();
             response.put("accessToken", newAccessToken);
@@ -54,7 +49,6 @@ public class AuthController {
                 .body(Map.of("error", "토큰 갱신 중 오류가 발생했습니다."));
         }
     }
-    // 토큰 검증 API
     @GetMapping("/validate")
     public ResponseEntity<?> validateToken(HttpServletRequest request) {
         try {

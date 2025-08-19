@@ -16,7 +16,7 @@ public class RequestToken {
     public static String getToken(String clientId, String secretKey) throws IOException, InterruptedException, ParseException {
         try {
             URL url = new URL(CommonConstant.TOKEN_DOMAIN + CommonConstant.GET_TOKEN);
-            String POST_PARAMS = "grant_type=client_credentials&scope=read";	// Oauth2.0 사용자 자격증명 방식(client_credentials) 토큰 요청 설정
+            String POST_PARAMS = "grant_type=client_credentials&scope=read";
             HttpURLConnection con = (HttpURLConnection) url.openConnection();
             con.setRequestMethod("POST");
             con.setRequestProperty(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_FORM_URLENCODED_VALUE);
@@ -34,7 +34,7 @@ public class RequestToken {
 
             int responseCode = con.getResponseCode();
             BufferedReader br;
-            if (responseCode == HttpURLConnection.HTTP_OK) {	// 정상 응답
+            if (responseCode == HttpURLConnection.HTTP_OK) {
                 br = new BufferedReader(new InputStreamReader(con.getInputStream()));
             } else {
                 br = new BufferedReader(new InputStreamReader(con.getErrorStream()));

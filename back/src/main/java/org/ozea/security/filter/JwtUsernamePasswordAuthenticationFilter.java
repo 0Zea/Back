@@ -57,7 +57,6 @@ public class JwtUsernamePasswordAuthenticationFilter extends UsernamePasswordAut
                 throw new AuthenticationServiceException("Invalid login payload");
             }
 
-            // 실패 핸들러에서 쓸 수 있도록 요청 속성에 저장
             request.setAttribute(REQ_LOGIN_EMAIL, login.getEmail());
 
             UsernamePasswordAuthenticationToken authToken =

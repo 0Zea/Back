@@ -15,6 +15,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.*;
+import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
@@ -77,7 +78,7 @@ public class RootConfig {
         props.setProperty("useUnicode", "true");
         props.setProperty("characterEncoding", "utf8");
         props.setProperty("tcpKeepAlive", "true");
-        props.setProperty("rewriteBatchedStatements", "true"); // 대량 insert 최적화
+        props.setProperty("rewriteBatchedStatements", "true");
         config.setDataSourceProperties(props);
 
         return new HikariDataSource(config);
@@ -120,7 +121,6 @@ public class RootConfig {
         return mapper;
     }
 
-    // --- RestTemplate: 타임아웃 + 커넥션풀 적용 ---
     @Bean
     public RestTemplate restTemplate() {
         cm = new PoolingHttpClientConnectionManager();
@@ -142,6 +142,12 @@ public class RootConfig {
 
         return new RestTemplate(factory);
     }
+    @Bean
+    public static PropertySourcesPlaceholderConfigurer propertySourcesPlaceholderConfigurer() {
+        PropertySourcesPlaceholderConfigurer cfg = new PropertySourcesPlaceholderConfigurer();
+        cfg.setIgnoreUnresolvablePlaceholders(true);
+        return cfg;
+    }
 
     @PreDestroy
     public void cleanup() {
@@ -157,7 +163,6 @@ public class RootConfig {
                     .getMethod("checkedShutdown");
             method.invoke(null);
         } catch (Exception e) {
-            // ignore
         }
     }
 }

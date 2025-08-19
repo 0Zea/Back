@@ -22,7 +22,6 @@ import java.util.NoSuchElementException;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-    /* 400 - 잘못된 요청 (비즈니스/검증) */
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<?> handleIllegalArgument(IllegalArgumentException e) {
         log.warn("400 Bad Request (IllegalArgument): {}", e.getMessage());
@@ -42,7 +41,6 @@ public class GlobalExceptionHandler {
                 .body(ApiResponse.error(ErrorCode.BAD_REQUEST, "요청 파라미터가 올바르지 않습니다."));
     }
 
-    /* 401 - 인증 실패 */
     @ExceptionHandler(AuthenticationException.class)
     public ResponseEntity<?> handleAuthenticationException(AuthenticationException e) {
         log.warn("401 Unauthorized: {}", e.getMessage());
@@ -50,7 +48,6 @@ public class GlobalExceptionHandler {
                 .body(ApiResponse.error(ErrorCode.UNAUTHORIZED, "인증에 실패했습니다."));
     }
 
-    /* 403 - 권한 없음 */
     @ExceptionHandler(AccessDeniedException.class)
     public ResponseEntity<?> handleAccessDeniedException(AccessDeniedException e) {
         log.warn("403 Forbidden: {}", e.getMessage());
@@ -58,7 +55,6 @@ public class GlobalExceptionHandler {
                 .body(ApiResponse.error(ErrorCode.FORBIDDEN, "접근 권한이 없습니다."));
     }
 
-    /* 404 - 리소스 없음 (필요 시 사용) */
     @ExceptionHandler(NoSuchElementException.class)
     public ResponseEntity<?> handleNotFound(NoSuchElementException e) {
         log.warn("404 Not Found: {}", e.getMessage());
@@ -66,7 +62,6 @@ public class GlobalExceptionHandler {
                 .body(ApiResponse.error(ErrorCode.NOT_FOUND, "요청한 리소스를 찾을 수 없습니다."));
     }
 
-    /* 409 - 무결성 위반 & 비즈니스 충돌 */
     @ExceptionHandler(DataIntegrityViolationException.class)
     public ResponseEntity<?> handleDataIntegrityViolationException(DataIntegrityViolationException e) {
         log.warn("409 Conflict (DataIntegrity): {}", e.getMessage());
@@ -74,7 +69,6 @@ public class GlobalExceptionHandler {
                 .body(ApiResponse.error(ErrorCode.DATA_INTEGRITY_ERROR, "데이터 처리 중 오류가 발생했습니다."));
     }
 
-    /* 예: 이미 오늘 퀴즈를 풀었을 때 같은 도메인 충돌 예외를 409로 */
     @ExceptionHandler(AlreadySolvedException.class)
     public ResponseEntity<?> handleAlreadySolved(AlreadySolvedException e) {
         log.warn("409 Conflict (AlreadySolved): {}", e.getMessage());
@@ -82,7 +76,6 @@ public class GlobalExceptionHandler {
                 .body(ApiResponse.error(ErrorCode.CONFLICT, e.getMessage()));
     }
 
-    /* 500 - DB 접근 일반 오류 */
     @ExceptionHandler(DataAccessException.class)
     public ResponseEntity<?> handleDataAccess(DataAccessException e) {
         log.error("500 Internal Server Error (DataAccess)", e);
@@ -90,7 +83,6 @@ public class GlobalExceptionHandler {
                 .body(ApiResponse.error(ErrorCode.INTERNAL_SERVER_ERROR, "DB 처리 중 문제가 발생했습니다."));
     }
 
-    /* 500 - 런타임 기타 (가급적 마지막에서 처리) */
     @ExceptionHandler(RuntimeException.class)
     public ResponseEntity<?> handleRuntimeException(RuntimeException e) {
         log.error("500 Internal Server Error (Runtime)", e);
@@ -98,7 +90,6 @@ public class GlobalExceptionHandler {
                 .body(ApiResponse.error(ErrorCode.INTERNAL_SERVER_ERROR, "서버 오류가 발생했습니다."));
     }
 
-    /* 500 - 최종 캐치(정말 마지막 하나만) */
     @ExceptionHandler(Exception.class)
     public ResponseEntity<?> handleAny(Exception e) {
         log.error("500 Internal Server Error (Unhandled)", e);
