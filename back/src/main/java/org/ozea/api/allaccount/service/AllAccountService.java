@@ -25,7 +25,6 @@ import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
 
-
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -53,18 +52,19 @@ public class AllAccountService {
             throw new RuntimeException("사용자 " + userId + "의 계정 정보를 찾을 수 없습니다.");
         }
         String result = callCodefApi(request);
-
+        
+        // DB에 계좌 정보 저장
         saveAccounts(userId, result);
 
         return result;
     }
-
+    
     private void saveAccounts(String userId, String codefResponse) {
         try {
             JSONParser parser = new JSONParser();
             JSONObject json = (JSONObject) parser.parse(codefResponse);
             JSONObject data = (JSONObject) json.get("data");
-
+            
             if (data != null && data.get("resDepositTrust") != null) {
                 org.json.simple.JSONArray accounts = (org.json.simple.JSONArray) data.get("resDepositTrust");
 

@@ -148,6 +148,19 @@
         WHERE account_id = #{accountId} AND goal_id IS NULL
     </update>
 
+    <select id="sumTargetAmountOverlappingGoalsExceptGoal" resultType="long">
+        SELECT IFNULL(SUM(target_amount), 0)
+        FROM goal
+        WHERE user_id = #{userId, jdbcType=BINARY, javaType=java.util.UUID}
+          AND goal_id != #{goalId, jdbcType=BINARY, javaType=java.util.UUID}
+          AND (
+            (start_date BETWEEN #{startDate} AND #{endDate})
+           OR (end_date   BETWEEN #{startDate} AND #{endDate})
+           OR (#{startDate} BETWEEN start_date AND end_date)
+           OR (#{endDate}  BETWEEN start_date AND end_date)
+            )
+    </select>
+
     <select id="sumTargetAmountOverlappingGoals" resultType="long">
         SELECT IFNULL(SUM(target_amount), 0)
         FROM goal

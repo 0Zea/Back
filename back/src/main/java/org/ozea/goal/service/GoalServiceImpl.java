@@ -13,11 +13,9 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.Period;
+import java.time.YearMonth;
 import java.time.temporal.ChronoUnit;
-import java.util.Comparator;
-import java.util.List;
-import java.util.NoSuchElementException;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 @Service
 public class GoalServiceImpl implements GoalService {
@@ -136,11 +134,16 @@ public class GoalServiceImpl implements GoalService {
     }
     @Override
     public List<GoalListResponseDto> getGoalsByUserId(UUID userId) {
-        List<Goal> goals = goalMapper.findAllByUserId(userId);
+        List<Goal> goals = goalMapper.findAllByUserId(userId); // 기존 그대로 사용
         return goals.stream()
-                .map(GoalListResponseDto::from)
+                .map(g -> GoalListResponseDto.from(
+                        g,
+                        Optional.ofNullable(goalMapper.findLinkedAccountsByGoalId(g.getGoalId()))
+                                .orElseGet(Collections::emptyList)
+                ))
                 .collect(Collectors.toList());
     }
+
     @Override
     public GoalDetailResponseDto getGoalById(UUID goalId) {
         Goal goal = goalMapper.findByGoalId(goalId);
@@ -162,8 +165,50 @@ public class GoalServiceImpl implements GoalService {
             throw new IllegalArgumentException("해당 목표가 존재하지 않거나 권한이 없습니다.");
         }
     }
+    @Transactional
     @Override
     public void updateGoal(UUID goalId, GoalUpdateRequestDto dto) {
+        // 0) 대상 목표 확인 + userId 확보
+        Goal existing = goalMapper.findByGoalId(goalId);
+        if (existing == null) {
+            throw new NoSuchElementException("해당 목표가 존재하지 않습니다.");
+        }
+        UUID userId = existing.getUserId();
+
+        // 1) 입력값 검증
+        LocalDate start = dto.getStart_date();
+        LocalDate end   = dto.getEnd_date();
+        if (start == null || end == null || end.isBefore(start)) {
+            throw new IllegalArgumentException("기간이 올바르지 않습니다.");
+        }
+        Long targetAmount = dto.getTarget_amount();
+        if (targetAmount == null || targetAmount <= 0) {
+            throw new IllegalArgumentException("목표 금액이 올바르지 않습니다.");
+        }
+
+        // 2) 월 순수익(>=0)
+        long monthlyNet = goalMapper.findPayAmountByUserId(userId);
+
+        // 3) 포함 개월 수(같은 달이면 1개월)
+        long months = ChronoUnit.MONTHS.between(YearMonth.from(start), YearMonth.from(end)) + 1;
+        if (months <= 0) {
+            throw new IllegalArgumentException("기간이 올바르지 않습니다.");
+        }
+
+        // 4) 자기 자신 제외, 겹치는 목표들의 target 합
+        long reserved = goalMapper.sumTargetAmountOverlappingGoalsExceptGoal(userId, goalId, start, end);
+
+        // 5) 상한 비교: (겹치는 합 + 이번 목표) ≤ 월순수익 × 개월수
+        long maxAffordable = monthlyNet * months;
+        long projected     = reserved + targetAmount;
+        if (projected > maxAffordable) {
+            long allowed = Math.max(0, maxAffordable - reserved);
+            throw new IllegalArgumentException(
+                    "기간 대비 목표 금액이 과도합니다. " +
+                            "\n최대 설정 가능 금액: " + String.format("%,d", allowed) + "원"
+            );
+        }
+
         int updated = goalMapper.updateGoalByIdAndUserId(goalId, dto);
         if (updated == 0) {
             throw new IllegalArgumentException("해당 목표가 존재하지 않거나 권한이 없습니다.");
