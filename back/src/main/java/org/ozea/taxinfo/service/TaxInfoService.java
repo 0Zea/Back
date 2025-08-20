@@ -1,4 +1,3 @@
-// TaxInfoService.java
 package org.ozea.taxinfo.service;
 
 import org.ozea.taxinfo.dto.*;
@@ -21,12 +20,10 @@ public class TaxInfoService {
         String userId = request.getUserId();
         String year   = request.getYear();
 
-        // 기존 데이터 삭제
         mapper.deleteDetailsByUserYear(userId, year);
         mapper.deleteBasicsByUserYear(userId, year);
         mapper.deleteItemsByUserYear(userId, year);
 
-        // 저장
         List<TaxInfoItemDto> items =
                 request.getData() != null ? request.getData() : Collections.emptyList();
 
@@ -55,13 +52,11 @@ public class TaxInfoService {
             }
         }
 
-        // 요약 반환
         List<Map<String, Object>> rows = mapper.selectSummary(userId, year);
         Map<String, String> summary = new HashMap<>();
 
         for (Map<String, Object> r : rows) {
             String category = r.get("category") != null ? r.get("category").toString() : "";
-            // 드라이버에 따라 SUM 결과가 BigDecimal일 수 있음
             Number num = (Number) r.get("total");
             long total = num == null ? 0L : Math.round(num.doubleValue());
             summary.put(category, String.format("%,d원", total));

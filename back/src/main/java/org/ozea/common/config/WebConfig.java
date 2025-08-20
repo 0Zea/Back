@@ -1,7 +1,10 @@
 package org.ozea.common.config;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springdoc.webmvc.ui.SwaggerConfig;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.web.context.WebApplicationContext;
+import org.springframework.web.context.support.WebApplicationContextUtils;
 import org.springframework.web.filter.CharacterEncodingFilter;
 import org.springframework.web.servlet.support.AbstractAnnotationConfigDispatcherServletInitializer;
 import org.springframework.web.cors.CorsConfiguration;
@@ -9,7 +12,7 @@ import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.filter.CorsFilter;
 
-import javax.servlet.Filter;
+import javax.servlet.*;
 import java.util.Arrays;
 
 @Slf4j
@@ -26,13 +29,11 @@ public class WebConfig extends AbstractAnnotationConfigDispatcherServletInitiali
         return new Class[] { ServletConfig.class, SwaggerConfig.class };
     }
 
-    /** DispatcherServlet 매핑은 "/" 하나로 충분 */
     @Override
     protected String[] getServletMappings() {
         return new String[] { "/" };
     }
 
-    /** 인코딩 + CORS 필터 (CORS는 필터에서만 처리: addCorsMappings 미사용) */
     @Override
     protected Filter[] getServletFilters() {
         CharacterEncodingFilter characterEncodingFilter = new CharacterEncodingFilter();
@@ -42,6 +43,32 @@ public class WebConfig extends AbstractAnnotationConfigDispatcherServletInitiali
         CorsFilter corsFilter = new CorsFilter(corsConfigurationSource());
         return new Filter[] { characterEncodingFilter, corsFilter };
     }
+
+    @Override
+    protected void customizeRegistration(ServletRegistration.Dynamic registration) {
+        registration.addMapping("/");
+    }
+
+    @Override
+    public void onStartup(ServletContext servletContext) throws ServletException {
+        super.onStartup(servletContext);
+
+        ServletRegistration existing = servletContext.getServletRegistration("prometheusScrapeServlet");
+        if (existing == null) {
+            try {
+                WebApplicationContext wac =
+                        WebApplicationContextUtils.getRequiredWebApplicationContext(servletContext);
+
+                Servlet prometheusServlet = (Servlet) wac.getBean("prometheusScrapeServlet");
+
+                servletContext.addServlet("prometheusScrapeServlet", prometheusServlet)
+                        .addMapping("/api/monitoring/prometheus");
+            } catch (Exception e) {
+                log.warn("Prometheus servlet not registered", e);
+            }
+        }
+    }
+
 
     private CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();

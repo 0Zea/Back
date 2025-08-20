@@ -38,12 +38,12 @@ public class OpenAISummarizeServiceImpl implements OpenAISummarizeService {
         for (String line : rawLines) {
             String t = line.trim();
             if (t.isEmpty()) continue;
-            t = t.replaceFirst("^[•\\-\\*\\d\\.)\\(]+\\s*", ""); // 앞 bullet 제거
+            t = t.replaceFirst("^[•\\-\\*\\d\\.)\\(]+\\s*", "");
             if (sb.length() > 0) sb.append("\n");
             sb.append("• ").append(t);
             if (++count == 3) break;
         }
-        if (count == 0 && content.length() > 0) { // 문단만 온 경우
+        if (count == 0 && content.length() > 0) {
             String[] parts = content.split("(?<=\\.)\\s+");
             for (int i = 0; i < parts.length && i < 3; i++) {
                 String t = parts[i].trim();
@@ -57,7 +57,7 @@ public class OpenAISummarizeServiceImpl implements OpenAISummarizeService {
     }
     public ResponseEntity<String> postWithRetry(String url, HttpEntity<ChatDTO.ChatRequest> entity) {
         int max = 3;
-        long backoffMs = 500; // 0.5s -> 1s -> 2s
+        long backoffMs = 500;
         for (int i = 1; i <= max; i++) {
             try {
                 return openAiRestTemplate.exchange(url, HttpMethod.POST, entity, String.class);
@@ -107,7 +107,7 @@ public class OpenAISummarizeServiceImpl implements OpenAISummarizeService {
             String content = body.getChoices().get(0).getMessage().getContent();
             if (content == null) throw new IllegalStateException("OpenAI 응답 content가 없습니다.");
 
-            return limitLength(formatToThreeBullets(content.trim()), 500); // DB/화면 안전 길이
+            return limitLength(formatToThreeBullets(content.trim()), 500);
         } catch (HttpStatusCodeException httpEx) {
             log.error("OpenAI HTTP error: status={}, body={}", httpEx.getStatusCode().value(), httpEx.getResponseBodyAsString(), httpEx);
             throw new RuntimeException("외부 요약 호출 실패 (http)", httpEx);

@@ -2,14 +2,14 @@ package org.ozea.security.filter;
 
 import lombok.extern.log4j.Log4j2;
 import org.ozea.common.util.LogFileWriter;
+import org.ozea.security.config.SecurityConfig;
 import org.ozea.security.util.JwtProcessor;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
+import org.ozea.security.service.CustomUserDetailsService;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Component;
+import org.springframework.util.AntPathMatcher;
 import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 
@@ -18,8 +18,6 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.List;
 
 @Component
 @Log4j2
@@ -27,27 +25,13 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtProcessor jwtProcessor;
     private final LogFileWriter logFileWriter;
-    private final UserDetailsService userDetailsService;
+    private final CustomUserDetailsService userDetailsService;
 
-    private static final List<String> PUBLIC_PATHS = Arrays.asList(
-            "/api/auth/login",
-            "/api/auth/signup",
-            "/api/auth/kakao/callback",
-            "/api/auth/kakao/callback/test",
-            "/api/auth/refresh-token",
-            "/api/monitoring/health",
-            "/api/monitoring/metrics",
-            "/api/monitoring/info",
-            "/error",
-            "/favicon.ico",
-            "/swagger-ui",
-            "/v3/api-docs"
-    );
+    private static final AntPathMatcher PATH_MATCHER = new AntPathMatcher();
 
-    @Autowired
     public JwtAuthenticationFilter(
             JwtProcessor jwtProcessor,
-            @Qualifier("kakaoUserDetailsService") UserDetailsService userDetailsService,
+            CustomUserDetailsService userDetailsService,
             LogFileWriter logFileWriter
     ) {
         this.jwtProcessor = jwtProcessor;
@@ -79,7 +63,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             if (!StringUtils.hasText(token)) {
                 log.warn("❌ 토큰이 없음 - URI: {}", requestURI);
                 logFileWriter.writeErrorLog("토큰이 없음 - URI: " + requestURI);
-
                 response.setHeader("WWW-Authenticate",
                         "Bearer error=\"invalid_token\", error_description=\"missing\"");
                 SecurityContextHolder.clearContext();
@@ -93,7 +76,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             if (jwtProcessor.isTokenBlacklisted(token)) {
                 log.warn("🚫 블랙리스트된 토큰 - URI: {}", requestURI);
                 logFileWriter.writeErrorLog("블랙리스트된 토큰 사용 시도: " + requestURI);
-
                 response.setHeader("WWW-Authenticate",
                         "Bearer error=\"invalid_token\", error_description=\"blacklisted\"");
                 SecurityContextHolder.clearContext();
@@ -105,12 +87,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 final String username = jwtProcessor.getUsername(token);
                 final String tokenType = jwtProcessor.getTokenType(token);
 
-                log.debug("✅ 토큰 검증 성공 - 사용자: {}, 타입: {}, URI: {}", username, tokenType, requestURI);
-
                 if (!"access".equals(tokenType)) {
                     log.warn("❌ 잘못된 토큰 타입 - 타입: {}, URI: {}", tokenType, requestURI);
                     logFileWriter.writeErrorLog("잘못된 토큰 타입: " + tokenType + " - URI: " + requestURI);
-
                     response.setHeader("WWW-Authenticate",
                             "Bearer error=\"invalid_token\", error_description=\"wrong_type\"");
                     SecurityContextHolder.clearContext();
@@ -128,13 +107,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 logFileWriter.writeApiLog(requestURI, "JWT 인증 성공 - 사용자: " + username);
 
                 long remainingTime = jwtProcessor.getRemainingTime(token);
-                if (remainingTime < 300_000) { // 5분 미만이면 재발급
+                if (remainingTime < 300_000) {
                     try {
                         String freshToken = jwtProcessor.generateAccessToken(username);
-                        // 프론트가 읽을 수 있도록 헤더 셋 + 노출 허용
                         response.setHeader("X-New-Token", freshToken);
-                        response.setHeader("Access-Control-Expose-Headers", "X-New-Token");
-
                         log.debug("♻️ 토큰 재발급 헤더 첨부 - 사용자: {}, 남은(ms): {}", username, remainingTime);
                     } catch (Exception reissueEx) {
                         log.warn("⚠️ 토큰 재발급 중 예외 - 사용자: {}, 사유: {}", username, reissueEx.getMessage());
@@ -142,10 +118,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 }
 
             } else {
-                String typ = jwtProcessor.getTokenType(token); // ➕ 타입도 같이 찍기
+                String typ = jwtProcessor.getTokenType(token);
                 log.warn("❌ 유효하지 않은 토큰(type={}) - URI: {}", typ, requestURI);
                 logFileWriter.writeErrorLog("유효하지 않은 토큰(type=" + typ + ") - URI: " + requestURI);
-
                 response.setHeader("WWW-Authenticate",
                         "Bearer error=\"invalid_token\", error_description=\"expired_or_invalid\"");
                 SecurityContextHolder.clearContext();
@@ -156,7 +131,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         } catch (Exception e) {
             log.error("💥 JWT 인증 필터 오류 - URI: {}, 오류: {}", requestURI, e.getMessage(), e);
             logFileWriter.writeErrorLog("JWT 인증 필터 오류 - URI: " + requestURI + ", 오류: " + e.getMessage());
-
             response.setHeader("WWW-Authenticate",
                     "Bearer error=\"server_error\", error_description=\"jwt_filter_exception\"");
             SecurityContextHolder.clearContext();
@@ -179,12 +153,13 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     protected boolean shouldNotFilter(HttpServletRequest request) {
         String uri = request.getRequestURI();
         if ("/".equals(uri)) return true;
-
-        for (String publicPath : PUBLIC_PATHS) {
-            if (uri.startsWith(publicPath)) return true;
-        }
         if ("OPTIONS".equalsIgnoreCase(request.getMethod())) return true;
 
+        for (String pattern : SecurityConfig.PUBLIC_ENDPOINTS) {
+            if (PATH_MATCHER.match(pattern, uri)) {
+                return true;
+            }
+        }
         return false;
     }
 }

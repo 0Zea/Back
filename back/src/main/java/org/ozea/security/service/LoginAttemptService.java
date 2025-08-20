@@ -1,74 +1,57 @@
 package org.ozea.security.service;
+
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
-import java.time.LocalDateTime;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+
+import java.time.Duration;
+
 @Service
 @Log4j2
 public class LoginAttemptService {
+
+    private final StringRedisTemplate srt;
+
+    public LoginAttemptService(StringRedisTemplate srt) {
+        this.srt = srt;
+    }
+
     @Value("${security.login.max-attempts:5}")
     private int maxAttempts;
+
     @Value("${security.login.lockout-duration:300000}")
-    private long lockoutDuration;
-    private final Map<String, LoginAttempt> attempts = new ConcurrentHashMap<>();
+    private long lockoutDurationMs;
+
+    private String failKey(String email)  { return "login:fail:" + email; }
+    private String lockKey(String email)  { return "login:lock:" + email; }
+
     public boolean isBlocked(String email) {
-        LoginAttempt attempt = attempts.get(email);
-        if (attempt == null) {
-            return false;
-        }
-        if (attempt.isLocked() && !attempt.isExpired()) {
-            log.warn("계정 잠금: {}", email);
-            return true;
-        }
-        if (attempt.isExpired()) {
-            attempts.remove(email);
-            return false;
-        }
-        return false;
+        Boolean locked = srt.hasKey(lockKey(email));
+        return locked != null && locked;
     }
+
     public void recordFailedAttempt(String email) {
-        LoginAttempt attempt = attempts.get(email);
-        if (attempt == null) {
-            attempt = new LoginAttempt();
-            attempts.put(email, attempt);
+        String fKey = failKey(email);
+        Long c = srt.opsForValue().increment(fKey);
+        if (c != null && c == 1L) {
+            srt.expire(fKey, Duration.ofMillis(lockoutDurationMs));
         }
-        attempt.incrementFailedAttempts();
-        if (attempt.getFailedAttempts() >= maxAttempts) {
-            attempt.setLocked(true);
-            attempt.setLockoutTime(LocalDateTime.now());
-            log.warn("계정 잠금 설정: {} (시도 횟수: {})", email, attempt.getFailedAttempts());
+        if (c != null && c >= maxAttempts) {
+            srt.opsForValue().set(lockKey(email), "1", Duration.ofMillis(lockoutDurationMs));
         }
     }
+
     public void recordSuccessfulAttempt(String email) {
-        attempts.remove(email);
-        log.info("로그인 성공: {}", email);
+        srt.delete(failKey(email));
+        srt.delete(lockKey(email));
     }
+
     public int getRemainingAttempts(String email) {
-        LoginAttempt attempt = attempts.get(email);
-        if (attempt == null) {
-            return maxAttempts;
-        }
-        return Math.max(0, maxAttempts - attempt.getFailedAttempts());
-    }
-    private static class LoginAttempt {
-        private int failedAttempts = 0;
-        private boolean locked = false;
-        private LocalDateTime lockoutTime;
-        public void incrementFailedAttempts() {
-            failedAttempts++;
-        }
-        public boolean isExpired() {
-            if (lockoutTime == null) {
-                return false;
-            }
-            return LocalDateTime.now().isAfter(lockoutTime.plusSeconds(300)); // 5분
-        }
-        // Getters and Setters
-        public int getFailedAttempts() { return failedAttempts; }
-        public boolean isLocked() { return locked; }
-        public void setLocked(boolean locked) { this.locked = locked; }
-        public void setLockoutTime(LocalDateTime lockoutTime) { this.lockoutTime = lockoutTime; }
+        if (isBlocked(email)) return 0;
+        String v = srt.opsForValue().get(failKey(email));
+        int used = v == null ? 0 : Integer.parseInt(v);
+        int remain = maxAttempts - used;
+        return Math.max(remain, 0);
     }
 }

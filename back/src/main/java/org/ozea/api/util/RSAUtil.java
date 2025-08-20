@@ -12,20 +12,7 @@ import java.security.spec.X509EncodedKeySpec;
 import java.util.Base64;
 public class RSAUtil {
     private static String ENCRYPT_TYPE_RSA = "RSA";
-    /**
-     * Public Key로 RSA 암호화를 수행합니다.
-     *
-     * @param plainText 암호화할 평문입니다.
-     * @param base64PublicKey 공개키 입니다.
-     * @return 암호화된 데이터 String
-     * @throws NoSuchAlgorithmException
-     * @throws InvalidKeySpecException
-     * @throws NoSuchPaddingException
-     * @throws InvalidKeyException
-     * @throws BadPaddingException
-     * @throws IllegalBlockSizeException
-     *
-     */
+
     public static String encryptRSA(String plainText, String base64PublicKey)
             throws NoSuchAlgorithmException, InvalidKeySpecException, NoSuchPaddingException,
             InvalidKeyException, IllegalBlockSizeException, BadPaddingException {

@@ -17,11 +17,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-@RestController // @Controller + @ResponseBody
+@RestController
 @RequestMapping("/api/tax")
 @RequiredArgsConstructor
 public class TaxKakaoOuthController {
-    private final TaxInfoService taxInfoService;          // ← 추가
+    private final TaxInfoService taxInfoService;
     private final TaxKakaoOuthService taxKakaoOuthService;
     private final ObjectMapper objectMapper = new ObjectMapper();
 
@@ -32,23 +32,18 @@ public class TaxKakaoOuthController {
     ) {
         try {
             UUID uuid = UUID.fromString(userId);
-            // 서비스에서 이미 URL 디코딩 끝난 JSON 문자열이 옴
             String jsonResponse = taxKakaoOuthService.processKakaoAuth(uuid, year);
-            // 프론트로 그대로 전달
 
             JsonNode root = objectMapper.readTree(jsonResponse);
             String resultCode = root.path("result").path("code").asText();
 
             if ("CF-00000".equals(resultCode)) {
-                // data 배열 → DTO
                 List<TaxInfoItemDto> items = objectMapper.convertValue(
                         root.path("data"),
                         new TypeReference<List<TaxInfoItemDto>>() {}
                 );
-                // userId 채우기
                 TaxInfoReqDto req = new TaxInfoReqDto();
                 req.setUserId(userId);
-                // 저장
                 taxInfoService.saveAndSummary(req);
             }
 

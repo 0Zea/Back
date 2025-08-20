@@ -23,7 +23,4 @@ public class SolvedQuizResponseDTO {
                 .build();
     }
 
-//    public boolean isAlreadySolved() {
-//        return true;
-//    }
 }

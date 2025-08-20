@@ -29,4 +29,5 @@ public interface ProductMapper {
     void deleteAllProducts();
     void deleteAllProductOptions();
     void updateProductSummary(@Param("finPrdtCd") String finPrdtCd,@Param("summary") String summary);
+    List<ProductResponseDto> findRecommended(@Param("mbti") String mbti, @Param("limit") int limit);
 }

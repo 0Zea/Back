@@ -15,22 +15,9 @@ import org.springframework.web.bind.annotation.*;
 public class QuizController {
     private final QuizService quizService;
     @GetMapping("/today")
-    public ResponseEntity<Object> getTodayQuiz(@RequestParam String userId) {
-        try {
-            validateUserId(userId);
-            Object response = quizService.getTodayQuiz(userId);
-            return ResponseEntity.ok(response);
-        } catch (AlreadySolvedException e) {  // 추가
-            // 이미 푼 퀴즈 정보를 409와 함께 반환
-            log.info("User {} already solved today's quiz", userId);
-            return ResponseEntity.status(409).body(e.getSolvedQuizData());
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(400).body(null);
-        } catch (IllegalStateException e) {
-            return ResponseEntity.status(409).body(null);
-        } catch (Exception e) {
-            return ResponseEntity.status(500).body(null);
-        }
+    public QuizResponseDTO getTodayQuiz(@RequestParam String userId) {
+        validateUserId(userId);
+        return quizService.getTodayQuiz(userId);
     }
     @PostMapping("/submit")
     public ResponseEntity<QuizSubmitResponseDTO> submitAnswer(

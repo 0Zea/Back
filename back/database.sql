@@ -200,3 +200,9 @@ WHERE fin_prdt_cd = '4';
 SELECT fin_prdt_cd, summary
 FROM product
 WHERE fin_prdt_cd = '01012000200000000004';
+
+
+ALTER TABLE Quiz
+    ADD COLUMN explanation VARCHAR(1000) NULL AFTER quiz_type;
+
+CREATE INDEX idx_userquiz_userid_date ON UserQuiz (user_id, answered_at);

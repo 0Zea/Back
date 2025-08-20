@@ -51,7 +51,7 @@ public class RedisConfig extends CachingConfigurerSupport {
     @Value("${redis.database:0}")
     private int database;
 
-    @Value("${redis.timeout:2000}") // ms
+    @Value("${redis.timeout:2000}")
     private int timeoutMs;
 
     @Value("${redis.pool.maxTotal:50}")
@@ -71,7 +71,6 @@ public class RedisConfig extends CachingConfigurerSupport {
             standalone.setPassword(RedisPassword.of(password));
         }
 
-        // Pool
         JedisPoolConfig pool = new JedisPoolConfig();
         pool.setMaxTotal(maxTotal);
         pool.setMaxIdle(maxIdle);
@@ -102,21 +101,26 @@ public class RedisConfig extends CachingConfigurerSupport {
         var json = new GenericJackson2JsonRedisSerializer(om);
 
         var base = RedisCacheConfiguration.defaultCacheConfig()
-                .entryTtl(Duration.ofMinutes(30))
                 .serializeKeysWith(RedisSerializationContext.SerializationPair.fromSerializer(new StringRedisSerializer()))
                 .serializeValuesWith(RedisSerializationContext.SerializationPair.fromSerializer(json))
-                .disableCachingNullValues();
+                .disableCachingNullValues()
+                .entryTtl(Duration.ofMinutes(30));
 
-        Map<String, RedisCacheConfiguration> per = new HashMap<>();
-        per.put("userByEmail", base.entryTtl(Duration.ofMinutes(10)));
-        per.put("userById",    base.entryTtl(Duration.ofMinutes(10)));
-        per.put("product:detail", base.entryTtl(Duration.ofMinutes(30)));
-        per.put("product:list",   base.entryTtl(Duration.ofMinutes(5)));
-        per.put("product:filter", base.entryTtl(Duration.ofMinutes(3)));
+        Map<String, RedisCacheConfiguration> conf = new HashMap<>();
+        conf.put("userById",      base.entryTtl(Duration.ofMinutes(5)));
+        conf.put("userByEmail",   base.entryTtl(Duration.ofMinutes(5)));
+        conf.put("product:list",  base.entryTtl(Duration.ofMinutes(10)));
+        conf.put("product:detail",base.entryTtl(Duration.ofMinutes(10)));
+        conf.put("product:filter",base.entryTtl(Duration.ofMinutes(5)));
+        conf.put("bank:active",   base.entryTtl(Duration.ofMinutes(60)));
+        conf.put("notice:list",   base.entryTtl(Duration.ofMinutes(2)));
+        conf.put("notice:item",   base.entryTtl(Duration.ofMinutes(10)));
+        conf.put("quiz:list",      base.entryTtl(Duration.ofMinutes(5)));
+        conf.put("quiz:item",      base.entryTtl(Duration.ofMinutes(10)));
 
         return RedisCacheManager.builder(cf)
                 .cacheDefaults(base)
-                .withInitialCacheConfigurations(per)
+                .withInitialCacheConfigurations(conf)
                 .build();
     }
 
@@ -146,19 +150,19 @@ public class RedisConfig extends CachingConfigurerSupport {
 
     @Bean
     public KeyGenerator keyGenerator() {
-        return new KeyGenerator() {
-            @Override
-            public Object generate(Object target, Method method, Object... params) {
-                StringBuilder sb = new StringBuilder();
-                sb.append(target.getClass().getSimpleName()).append(":")
-                        .append(method.getName());
-                for (Object p : params) {
-                    sb.append(":").append(String.valueOf(p));
+        return (target, method, params) -> {
+            StringBuilder sb = new StringBuilder();
+            sb.append(target.getClass().getSimpleName())
+                    .append(":")
+                    .append(method.getName());
+            if (params != null && params.length > 0) {
+                sb.append(":");
+                for (int i = 0; i < params.length; i++) {
+                    if (i > 0) sb.append(",");
+                    sb.append(String.valueOf(params[i]));
                 }
-                String key = sb.toString();
-                log.debug("KeyGenerator -> {}", key);
-                return key;
             }
+            return sb.toString();
         };
     }
 

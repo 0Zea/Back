@@ -4,7 +4,6 @@
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="org.ozea.api.allaccount.mapper.AllAccountMapper">
 
-    <!-- 사용자 ID로 계정 정보 조회 -->
     <select id="getUserAccountInfo"
             parameterType="string"
             resultType="org.ozea.api.allaccount.dto.request.AllAccountReqDto">
@@ -20,7 +19,6 @@
         LIMIT 1
     </select>
 
-    <!-- 계좌 정보 UPSERT (중복 시 업데이트, 없으면 삽입) -->
     <insert id="upsertBankAccount"
             parameterType="org.ozea.asset.domain.BankAccountVO">
         INSERT INTO BankAccount (

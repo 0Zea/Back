@@ -35,7 +35,7 @@ public class ProductScheduler {
             String summary  = summarizeService.summarizeTo3Lines(material);
             productMapper.updateProductSummary(finPrdtCd, summary);
 
-            redis.delete("product:detail::" + finPrdtCd); // Spring Cache 키 포맷: cacheName::key
+            redis.delete("product:detail::" + finPrdtCd);
             log.info("AI summary saved & cache evicted for {}", finPrdtCd);
         } catch (Exception e) {
             log.warn("AI summary job failed for {}: {}", finPrdtCd, e.getMessage());

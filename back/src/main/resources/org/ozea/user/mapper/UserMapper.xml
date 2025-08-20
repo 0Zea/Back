@@ -4,139 +4,125 @@
 
 <mapper namespace="org.ozea.user.mapper.UserMapper">
 
+    <!-- 공통 컬럼 목록 -->
+    <sql id="baseColumns">
+        user_id,
+        name,
+        email,
+        password,
+        mbti,
+        phone_num,
+        birth_date,
+        sex,
+        salary,
+        pay_amount,
+        role,
+        kakao_access_token
+    </sql>
+
     <select id="findById" parameterType="java.util.UUID" resultType="org.ozea.user.domain.User">
         SELECT
-            user_id,
-            name,
-            email,
-            password,
-            mbti,
-            phone_num,
-            birth_date,
-            sex,
-            salary,
-            pay_amount,
-            role,
-            kakao_access_token
-        FROM USER
+        <include refid="baseColumns"/>
+        FROM `USER`
         WHERE user_id = #{userId, jdbcType=BINARY, javaType=java.util.UUID}
     </select>
 
-    <select id="getUserByEmail" parameterType="String" resultType="org.ozea.user.domain.User">
+    <select id="getUserByEmail" parameterType="java.lang.String" resultType="org.ozea.user.domain.User">
         SELECT
-            user_id,
-            name,
-            email,
-            password,
-            mbti,
-            phone_num,
-            birth_date,
-            sex,
-            salary,
-            pay_amount,
-            role,
-            kakao_access_token
-        FROM USER
-        WHERE email = #{email}
+        <include refid="baseColumns"/>
+        FROM `USER`
+        WHERE email = #{email, jdbcType=VARCHAR}
     </select>
 
     <insert id="insertUser" parameterType="org.ozea.user.domain.User">
-        INSERT INTO USER(user_id,
-                         email,
-                         name,
-                         password,
-                         mbti,
-                         phone_num,
-                         birth_date,
-                         sex,
-                         salary,
-                         pay_amount,
-                         role,
-                         kakao_access_token)
-        VALUES (#{userId, jdbcType=BINARY, javaType=java.util.UUID},
-                #{email, jdbcType=VARCHAR},
-                #{name, jdbcType=VARCHAR},
-                #{password, jdbcType=VARCHAR},
-                #{mbti, jdbcType=VARCHAR},
-                #{phoneNum, jdbcType=VARCHAR},
-                #{birthDate, jdbcType=DATE},
-                #{sex, jdbcType=VARCHAR},
-                #{salary, jdbcType=BIGINT},
-                #{payAmount, jdbcType=BIGINT},
-                #{role, jdbcType=VARCHAR},
-                #{kakaoAccessToken, jdbcType=VARCHAR})
+        INSERT INTO `USER`(
+            user_id, email, name, password, mbti, phone_num, birth_date, sex, salary, pay_amount, role, kakao_access_token
+        ) VALUES (
+                     #{userId, jdbcType=BINARY, javaType=java.util.UUID},
+                     #{email, jdbcType=VARCHAR},
+                     #{name, jdbcType=VARCHAR},
+                     #{password, jdbcType=VARCHAR},
+                     #{mbti, jdbcType=VARCHAR},
+                     #{phoneNum, jdbcType=VARCHAR},
+                     #{birthDate, jdbcType=DATE},
+                     #{sex, jdbcType=VARCHAR},
+                     #{salary, jdbcType=BIGINT},
+                     #{payAmount, jdbcType=BIGINT},
+                     #{role, jdbcType=VARCHAR},
+                     #{kakaoAccessToken, jdbcType=VARCHAR}
+                 )
     </insert>
 
     <insert id="insertUserWithEmail" parameterType="org.ozea.user.domain.User">
-        INSERT INTO USER(
-            user_id,
-            email,
-            name,
-            password,
-            mbti,
-            phone_num,
-            birth_date,
-            sex,
-            salary,
-            pay_amount,
-            role,
-            kakao_access_token
+        INSERT INTO `USER`(
+            user_id, email, name, password, mbti, phone_num, birth_date, sex, salary, pay_amount, role, kakao_access_token
         ) VALUES (
-            #{userId, jdbcType=BINARY, javaType=java.util.UUID},
-            #{email, jdbcType=VARCHAR},
-            #{name, jdbcType=VARCHAR},
-            #{password, jdbcType=VARCHAR},
-            #{mbti, jdbcType=VARCHAR},
-            #{phoneNum, jdbcType=VARCHAR},
-            #{birthDate, jdbcType=DATE},
-            #{sex, jdbcType=VARCHAR},
-            #{salary, jdbcType=BIGINT},
-            #{payAmount, jdbcType=BIGINT},
-            #{role, jdbcType=VARCHAR},
-            #{kakaoAccessToken, jdbcType=VARCHAR}
-        )
+                     #{userId, jdbcType=BINARY, javaType=java.util.UUID},
+                     #{email, jdbcType=VARCHAR},
+                     #{name, jdbcType=VARCHAR},
+                     #{password, jdbcType=VARCHAR},
+                     #{mbti, jdbcType=VARCHAR},
+                     #{phoneNum, jdbcType=VARCHAR},
+                     #{birthDate, jdbcType=DATE},
+                     #{sex, jdbcType=VARCHAR},
+                     #{salary, jdbcType=BIGINT},
+                     #{payAmount, jdbcType=BIGINT},
+                     #{role, jdbcType=VARCHAR},
+                     #{kakaoAccessToken, jdbcType=VARCHAR}
+                 )
     </insert>
 
     <update id="updateUser" parameterType="org.ozea.user.domain.User">
-        UPDATE USER
-        SET name = #{name},
-            password = #{password},
-            phone_num = #{phoneNum},
-            mbti = #{mbti},
-            birth_date = #{birthDate},
-            sex = #{sex},
-            salary = #{salary},
-            pay_amount = #{payAmount},
-            role = #{role},
-            kakao_access_token = #{kakaoAccessToken}
+        UPDATE `USER`
+        SET name = #{name, jdbcType=VARCHAR},
+            password = #{password, jdbcType=VARCHAR},
+            phone_num = #{phoneNum, jdbcType=VARCHAR},
+            mbti = #{mbti, jdbcType=VARCHAR},
+            birth_date = #{birthDate, jdbcType=DATE},
+            sex = #{sex, jdbcType=VARCHAR},
+            salary = #{salary, jdbcType=BIGINT},
+            pay_amount = #{payAmount, jdbcType=BIGINT},
+            role = #{role, jdbcType=VARCHAR},
+            kakao_access_token = #{kakaoAccessToken, jdbcType=VARCHAR}
         WHERE user_id = #{userId, jdbcType=BINARY, javaType=java.util.UUID}
     </update>
 
-    <select id="checkEmail" parameterType="string" resultType="boolean">
-        SELECT COUNT(*) > 0 FROM USER WHERE email = #{email}
+    <!-- ✅ 카카오 토큰만 갱신 -->
+    <update id="updateKakaoAccessToken">
+        UPDATE `USER`
+        SET kakao_access_token = #{kakaoAccessToken, jdbcType=VARCHAR}
+        WHERE email = #{email, jdbcType=VARCHAR}
+    </update>
+
+    <!-- ✅ 이메일 존재 여부: 잘못된 테이블명(users) → USER로 수정, 파라미터 타입/바인딩 명시 -->
+    <select id="checkEmail" parameterType="java.lang.String" resultType="boolean">
+        SELECT EXISTS(
+            SELECT 1 FROM `USER` WHERE email = #{email, jdbcType=VARCHAR}
+        )
     </select>
-    
+
     <delete id="deleteUser" parameterType="java.util.UUID">
-        DELETE FROM USER WHERE user_id = #{userId, jdbcType=BINARY, javaType=java.util.UUID}
+        DELETE FROM `USER`
+        WHERE user_id = #{userId, jdbcType=BINARY, javaType=java.util.UUID}
     </delete>
-    
-    <delete id="deleteUserData" parameterType="java.util.UUID">
-        DELETE FROM USER WHERE user_id = #{userId, jdbcType=BINARY, javaType=java.util.UUID}
-    </delete>
-    
+
     <delete id="deleteUserPoints" parameterType="java.util.UUID">
-        DELETE FROM Point WHERE user_id = #{userId, jdbcType=BINARY, javaType=java.util.UUID}
+        DELETE FROM `Point`
+        WHERE user_id = #{userId, jdbcType=BINARY, javaType=java.util.UUID}
     </delete>
-    
+
     <delete id="deleteUserGoals" parameterType="java.util.UUID">
-        DELETE FROM Goal WHERE user_id = #{userId, jdbcType=BINARY, javaType=java.util.UUID}
+        DELETE FROM `Goal`
+        WHERE user_id = #{userId, jdbcType=BINARY, javaType=java.util.UUID}
     </delete>
-    
+
     <delete id="deleteUserInquiries" parameterType="java.util.UUID">
-        DELETE FROM Inquiry WHERE user_id = #{userId, jdbcType=BINARY, javaType=java.util.UUID}
+        DELETE FROM `Inquiry`
+        WHERE user_id = #{userId, jdbcType=BINARY, javaType=java.util.UUID}
     </delete>
-    
+
     <delete id="deleteUserQuiz" parameterType="java.util.UUID">
-        DELETE FROM UserQuiz WHERE user_id = #{userId, jdbcType=BINARY, javaType=java.util.UUID}
+        DELETE FROM `UserQuiz`
+        WHERE user_id = #{userId, jdbcType=BINARY, javaType=java.util.UUID}
     </delete>
-</mapper> 
+</mapper>

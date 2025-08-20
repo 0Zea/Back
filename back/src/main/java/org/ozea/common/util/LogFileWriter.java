@@ -17,9 +17,7 @@ public class LogFileWriter {
     private static final Path LOG_PATH = Paths.get(LOG_DIR, LOG_FILE);
     public void writeLog(String message) {
         try {
-            // 로그 디렉토리 생성
             createLogDirectory();
-            // 로그 메시지 작성
             String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
             String logMessage = String.format("[%s] %s%n", timestamp, message);
             Files.write(LOG_PATH, logMessage.getBytes(),

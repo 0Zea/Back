@@ -43,7 +43,6 @@ public class QuizServiceImpl implements QuizService {
         }
         boolean isCorrect = quiz.toVO().isCorrectAnswer(request.getUser_answer());
         quizMapper.saveUserQuizResult(userId, request.getQuiz_id(), isCorrect, quiz.getExplanation());
-        // 정답인 경우 포인트 지급
         if (isCorrect) {
             try {
                 UUID userUUID = UUID.fromString(userId);
@@ -51,7 +50,6 @@ public class QuizServiceImpl implements QuizService {
                 log.info("퀴즈 정답 포인트 지급: userId={}, amount=10", userId);
             } catch (Exception e) {
                 log.error("퀴즈 정답 포인트 지급 실패: userId={}, error={}", userId, e.getMessage());
-                // 포인트 지급 실패해도 퀴즈 결과는 저장
             }
         }
         return QuizSubmitResponseDTO.of(isCorrect, request.getQuiz_id());

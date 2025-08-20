@@ -15,7 +15,6 @@ import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
-
 import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
@@ -53,19 +52,19 @@ public class AllAccountService {
             throw new RuntimeException("사용자 " + userId + "의 계정 정보를 찾을 수 없습니다.");
         }
         String result = callCodefApi(request);
-
+        
         // DB에 계좌 정보 저장
         saveAccounts(userId, result);
 
         return result;
     }
-
+    
     private void saveAccounts(String userId, String codefResponse) {
         try {
             JSONParser parser = new JSONParser();
             JSONObject json = (JSONObject) parser.parse(codefResponse);
             JSONObject data = (JSONObject) json.get("data");
-
+            
             if (data != null && data.get("resDepositTrust") != null) {
                 org.json.simple.JSONArray accounts = (org.json.simple.JSONArray) data.get("resDepositTrust");
 
@@ -76,7 +75,6 @@ public class AllAccountService {
                     String accountNum = (String) account.get("resAccountDisplay");
                     java.math.BigInteger newBalance = new java.math.BigInteger((String) account.get("resAccountBalance"));
 
-                    // UPSERT로 계좌 정보 처리
                     BankAccountVO accountVO = BankAccountVO.builder()
                             .userId(userUUID)
                             .bankName(extractBankName((String) account.get("resAccountName")))
@@ -100,7 +98,6 @@ public class AllAccountService {
     private String extractBankName(String accountName) {
         if (accountName == null) return "기타은행";
 
-        // 1금융권 은행명 추출
         if (accountName.contains("KB")) return "국민은행";
         if (accountName.contains("신한")) return "신한은행";
         if (accountName.contains("우리")) return "우리은행";

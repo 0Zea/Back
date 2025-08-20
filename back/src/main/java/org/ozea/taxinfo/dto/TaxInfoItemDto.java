@@ -9,5 +9,4 @@ import java.util.List;
 public class TaxInfoItemDto {
     private String resDeductibleItem;
     private List<TaxBasicDto> resBasicList;
-    // getters / setters
 }

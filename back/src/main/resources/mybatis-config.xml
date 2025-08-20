@@ -6,6 +6,8 @@
 <configuration>
     <settings>
         <setting name="mapUnderscoreToCamelCase" value="true" />
+        <setting name="defaultExecutorType" value="REUSE"/>
+        <setting name="jdbcTypeForNull" value="NULL"/>
     </settings>
 
     <typeAliases>
@@ -23,6 +25,14 @@
 
     <typeHandlers>
         <typeHandler handler="org.ozea.common.type.UUIDTypeHandler" javaType="java.util.UUID"/>
+        <typeHandler javaType="java.time.LocalDate"
+                     handler="org.ozea.common.mybatis.type.LocalDateCompatTypeHandler"/>
+
+        <typeHandler javaType="java.time.LocalDateTime"
+                     handler="org.ozea.common.mybatis.type.LocalDateTimeCompatTypeHandler"/>
+
+        <typeHandler javaType="java.time.LocalTime"
+                     handler="org.ozea.common.mybatis.type.LocalTimeCompatTypeHandler"/>
     </typeHandlers>
 
     <mappers>

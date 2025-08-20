@@ -31,8 +31,6 @@ public class UserServiceImpl implements UserService {
     private final KakaoApiClient kakaoApiClient;
     private final CacheManager cacheManager;
 
-    // ====== 조회 (Cacheable) ======
-
     @Override
     @Cacheable(value = "userByEmail", key = "#p0", unless = "#result == null")
     public UserDTO getUserByEmail(String email) {
@@ -50,8 +48,6 @@ public class UserServiceImpl implements UserService {
         }
         return UserDTO.of(user);
     }
-
-    // ====== 가입/수정 (리턴 DTO 기반 캐시 무효화) ======
 
     @Transactional
     @Override
@@ -180,8 +176,6 @@ public class UserServiceImpl implements UserService {
         return UserDTO.of(user);
     }
 
-    // ====== 비밀번호/탈퇴 (프로그램 방식 캐시 무효화) ======
-
     @Override
     public boolean changePassword(String email, String newPassword) {
         validatePassword(newPassword);
@@ -267,7 +261,7 @@ public class UserServiceImpl implements UserService {
             } catch (Exception e) {
                 log.warn("목표 정보 삭제 실패: {}", e.getMessage());
             }
-            mapper.deleteUserData(userId);
+            mapper.deleteUser(userId);
             evictUserCaches(user);
             return true;
         } catch (Exception e) {
@@ -275,9 +269,6 @@ public class UserServiceImpl implements UserService {
             throw new RuntimeException("회원 탈퇴 처리 중 오류가 발생했습니다: " + e.getMessage());
         }
     }
-
-    // ====== 인증/검증(이메일 코드) ======
-
     @Override
     public boolean checkEmail(String email) {
         return mapper.checkEmail(email);
@@ -348,8 +339,6 @@ public class UserServiceImpl implements UserService {
     public boolean verifySignupCode(String email, String code) {
         return verificationCodeService.verifyCode(email, code);
     }
-
-    // ====== 내부 유틸 ======
 
     private void validatePassword(String password) {
         if (password == null || password.length() < 8) {
